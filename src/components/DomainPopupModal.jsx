@@ -1,0 +1,570 @@
+import { useState } from "react";
+import EditModal from "./EditModal";
+import DetailsModal from "./DetailsModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+
+const DomainPopupModal = ({
+  isOpen,
+  onClose,
+  domain,
+  refreshData,
+  canEditDomain,
+}) => {
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingRoute, setEditingRoute] = useState(null);
+  const [viewingRoute, setViewingRoute] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [copiedUrl, setCopiedUrl] = useState(null);
+
+  if (!isOpen || !domain) return null;
+
+  const routes = Array.isArray(domain.routes) ? domain.routes : [];
+
+  // Get current user info for role-based permissions
+  const getCurrentUser = () => {
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+      try {
+        const parsedUserData = JSON.parse(userData);
+        return {
+          email: parsedUserData.email,
+          role: parsedUserData.role,
+        };
+      } catch (err) {
+        console.error("Error parsing user data:", err);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Check if current user can edit domains (not mediaBuyer role)
+  const canEditDomains = () => {
+    const currentUser = getCurrentUser();
+    return currentUser && currentUser.role !== "mediaBuyer";
+  };
+
+  // Check if current user can edit routes
+  const canEditRoutes = () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return false;
+
+    // CEO, Tech, and Admin can edit all routes
+    if (
+      currentUser.role === "ceo" ||
+      currentUser.role === "tech" ||
+      currentUser.role === "admin"
+    ) {
+      return true;
+    }
+
+    // Media buyers can edit routes in domains assigned to them
+    if (currentUser.role === "mediaBuyer") {
+      return domain.assignedTo === currentUser.email;
+    }
+
+    // Regular users (Jake, Addy, Neil) can edit routes in domains assigned to them
+    return domain.assignedTo === currentUser.email;
+  };
+
+  const handleRouteEdit = (route) => {
+    setEditingRoute(route);
+    setShowEditModal(true);
+  };
+
+  const handleRouteDetails = (route) => {
+    setViewingRoute(route);
+    setShowDetailsModal(true);
+  };
+
+  const handleRouteDelete = (route) => {
+    setDeletingItem({ type: "route", data: route, domain: domain.domain });
+    setShowDeleteModal(true);
+  };
+
+  const handleDomainDelete = () => {
+    setDeletingItem({ type: "domain", data: domain });
+    setShowDeleteModal(true);
+  };
+
+  const handleDomainEdit = () => {
+    setEditingRoute({
+      domain: domain.domain,
+      organization: domain.organization,
+      id: domain.id,
+      platform: domain.platform,
+      certificationTags: domain.certificationTags || [],
+      assignedTo: domain.assignedTo || domain.createdBy,
+      isDomain: true,
+    });
+    setShowEditModal(true);
+  };
+
+  const copyUrlToClipboard = async (route) => {
+    const url = `http://${domain.domain}/${route.route}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedUrl(`${domain.domain}/${route.route}`);
+      // Clear the feedback after 2 seconds
+      setTimeout(() => setCopiedUrl(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopiedUrl(`${domain.domain}/${route.route}`);
+      setTimeout(() => setCopiedUrl(null), 2000);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-auto relative max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Domain: {domain.domain}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* Domain Info */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Organization
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {domain.organization || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    ID
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {domain.id || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Platform
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {domain.platform || "N/A"}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="text-sm font-medium text-gray-500">
+                  Certification Tags
+                </label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {domain.certificationTags &&
+                  Array.isArray(domain.certificationTags) ? (
+                    domain.certificationTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">N/A</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Domain Actions */}
+            {canEditDomain && canEditDomain(domain) && canEditDomains() && (
+              <div className="mb-6 flex gap-3">
+                <button
+                  onClick={handleDomainEdit}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Edit Domain
+                </button>
+                <button
+                  onClick={handleDomainDelete}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  Delete Domain
+                </button>
+              </div>
+            )}
+
+            {/* Routes Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Routes ({routes.length})
+              </h3>
+
+              {routes.length > 0 ? (
+                <div className="space-y-4">
+                  {routes.map((route, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => copyUrlToClipboard(route)}
+                            className="p-1 hover:bg-gray-100 rounded transition-colors group"
+                            title="Copy URL to clipboard"
+                          >
+                            <svg
+                              className={`w-5 h-5 transition-colors ${
+                                copiedUrl === `${domain.domain}/${route.route}`
+                                  ? "text-green-600"
+                                  : "text-purple-600 group-hover:text-purple-700"
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                              />
+                            </svg>
+                          </button>
+                          <span className="font-medium text-gray-900">
+                            {domain.domain}/{route.route}
+                            {copiedUrl ===
+                              `${domain.domain}/${route.route}` && (
+                              <span className="ml-2 text-sm text-green-600 font-normal">
+                                ✓ Copied!
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <a
+                            href={`http://${domain.domain}/${route.route}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors"
+                          >
+                            View
+                          </a>
+                          <button
+                            onClick={() => handleRouteDetails(route)}
+                            className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition-colors"
+                          >
+                            Details
+                          </button>
+                          {canEditRoutes() && (
+                            <>
+                              <button
+                                onClick={() => handleRouteEdit(route)}
+                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleRouteDelete(route)}
+                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-sm text-gray-600 mb-2">
+                        Template: {route.template || "N/A"}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div>
+                          <label className="font-medium text-gray-500">
+                            RTK ID:
+                          </label>
+                          <p className="text-gray-900">
+                            {domain.rtkID || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-500">
+                            Ringba ID:
+                          </label>
+                          <p className="text-gray-900">
+                            {route.ringbaID || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="font-medium text-gray-500">
+                            Phone Number:
+                          </label>
+                          <p className="text-gray-900">
+                            {route.phoneNumber || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <svg
+                    className="w-12 h-12 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                  <p>No routes found for this domain</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingRoute(null);
+          }}
+          onSave={async (data) => {
+            try {
+              if (editingRoute?.isDomain) {
+                // Handle domain editing
+                const updateData = {
+                  oldDomain: domain.domain, // Current domain name
+                  newDomain: data.domain, // New domain name from form
+                  oldOrganization: domain.organization,
+                  newOrganization: data.organization,
+                  oldId: domain.id,
+                  newId: data.id,
+                  oldPlatform: domain.platform,
+                  newPlatform: data.platform,
+                  oldCertificationTags: domain.certificationTags || [],
+                  newCertificationTags: data.certificationTags,
+                  oldAssignedTo: domain.assignedTo || domain.createdBy,
+                  newAssignedTo: data.assignedTo,
+                };
+
+                console.log("Sending domain update data to API:", updateData);
+
+                // Get auth token for authorization header
+                const token = localStorage.getItem("authToken");
+
+                const response = await fetch(
+                  "http://localhost:3000/api/v1/updateDomain",
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(updateData),
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(
+                    `Failed to update domain: ${response.statusText}`
+                  );
+                }
+
+                const result = await response.json();
+                console.log("Domain updated successfully:", result);
+              } else {
+                // Handle route editing
+                const updateData = {
+                  domain: domain.domain,
+                  route: editingRoute.route, // Current route path
+                  newRoute: data.route, // New route path from form
+                  oldTemplate: editingRoute.template,
+                  newTemplate: data.template,
+                  oldRtkID: editingRoute.rtkID,
+                  newRtkID: data.rtkID,
+                  organization: editingRoute.organization || "paragon media",
+                  ringbaID: editingRoute.ringbaID,
+                  phoneNumber: editingRoute.phoneNumber,
+                  createdBy: editingRoute.createdBy,
+                };
+
+                console.log("Sending route update data to API:", updateData);
+
+                // Get auth token for authorization header
+                const token = localStorage.getItem("authToken");
+
+                const response = await fetch(
+                  "http://localhost:3000/api/v1/updateData",
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(updateData),
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(
+                    `Failed to update route: ${response.statusText}`
+                  );
+                }
+
+                const result = await response.json();
+                console.log("Route updated successfully:", result);
+              }
+
+              // Close modal and refresh data
+              setShowEditModal(false);
+              setEditingRoute(null);
+              refreshData();
+            } catch (error) {
+              console.error("Error updating:", error);
+              alert(`Error: ${error.message}`);
+              // Close modal even on error
+              setShowEditModal(false);
+              setEditingRoute(null);
+            }
+          }}
+          type={editingRoute?.isDomain ? "domain" : "route"}
+          initialData={editingRoute}
+        />
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && (
+        <DetailsModal
+          isOpen={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setViewingRoute(null);
+          }}
+          routeData={viewingRoute}
+          domainName={domain.domain}
+          domainRtkID={domain.rtkID}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDeletingItem(null);
+          }}
+          onConfirm={async () => {
+            try {
+              if (deletingItem?.type === "domain") {
+                // Handle domain deletion
+                const token = localStorage.getItem("authToken");
+                const response = await fetch(
+                  `http://localhost:3000/api/v1/domain/${domain.domain}`,
+                  {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(
+                    `Failed to delete domain: ${response.statusText}`
+                  );
+                }
+
+                console.log("Domain deleted successfully");
+              } else if (deletingItem?.type === "route") {
+                // Handle route deletion
+                const token = localStorage.getItem("authToken");
+                const response = await fetch(
+                  "http://localhost:3000/api/v1/deleteData",
+                  {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      domain: domain.domain,
+                      route: deletingItem.data.route,
+                      createdBy:
+                        deletingItem.data.createdBy || "jake@paragonmedia.io",
+                    }),
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error(
+                    `Failed to delete route: ${response.statusText}`
+                  );
+                }
+
+                console.log("Route deleted successfully");
+              }
+
+              // Close modals and refresh data
+              setShowDeleteModal(false);
+              setDeletingItem(null);
+              refreshData();
+              onClose(); // Close the popup modal after deletion
+            } catch (error) {
+              console.error("Error during deletion:", error);
+              alert(`Error: ${error.message}`);
+            }
+          }}
+          itemType={deletingItem?.type === "domain" ? "domain" : "route"}
+          itemName={
+            deletingItem?.type === "domain"
+              ? domain.domain
+              : `${domain.domain}/${deletingItem?.data?.route}`
+          }
+          domainName={domain.domain}
+        />
+      )}
+    </>
+  );
+};
+
+export default DomainPopupModal;
