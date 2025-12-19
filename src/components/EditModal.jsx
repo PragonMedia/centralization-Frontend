@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 
-const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
+const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = false }) => {
   const [formData, setFormData] = useState({});
 
   // Template options - stored values (for DB) and display names
@@ -11,14 +12,18 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        certificationTags: initialData.certificationTags || [],
+      });
     }
   }, [initialData, type]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isLoading) return; // Prevent submission while loading
     onSave(formData);
-    onClose();
+    // Don't close modal here - let parent handle it after async operation
   };
 
   const handleChange = (e) => {
@@ -45,6 +50,12 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto relative max-h-[90vh] overflow-y-auto">
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-2xl">
+            <LoadingSpinner size="large" text="Saving changes..." />
+          </div>
+        )}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">
             Edit {type === "domain" ? "Domain" : "Route"}
@@ -82,7 +93,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="domain"
                     value={formData.domain || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter domain name"
                     required
                   />
@@ -96,7 +108,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="organization"
                     value={formData.organization || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                   >
                     <option value="">Select Organization</option>
@@ -115,7 +128,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="id"
                     value={formData.id || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter unique ID"
                     required
                   />
@@ -129,7 +143,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="platform"
                     value={formData.platform || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                   >
                     <option value="">Select Platform</option>
@@ -154,7 +169,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                           formData.certificationTags?.includes("G2") || false
                         }
                         onChange={handleCertificationChange}
-                        className="mr-2 text-blue-600 focus:ring-blue-500"
+                        disabled={isLoading}
+                        className="mr-2 w-4 h-4 text-blue-600 bg-white border-2 border-black rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <span className="text-gray-700">G2</span>
                     </label>
@@ -168,7 +184,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                           false
                         }
                         onChange={handleCertificationChange}
-                        className="mr-2 text-blue-600 focus:ring-blue-500"
+                        disabled={isLoading}
+                        className="mr-2 w-4 h-4 text-blue-600 bg-white border-2 border-black rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <span className="text-gray-700">Political</span>
                     </label>
@@ -183,7 +200,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="assignedTo"
                     value={formData.assignedTo || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                   >
                     <option value="">Select Media Buyer</option>
@@ -204,7 +222,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="route"
                     value={formData.route || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter route path"
                   />
                 </div>
@@ -217,7 +236,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="template"
                     value={formData.template || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a template</option>
                     {templates.map((template) => (
@@ -237,7 +257,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
                     name="rtkID"
                     value={formData.rtkID || ""}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter RTK ID"
                   />
                 </div>
@@ -248,15 +269,17 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                disabled={isLoading}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={isLoading}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save Changes
+                {isLoading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditModal from "./EditModal";
 import DetailsModal from "./DetailsModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import LoadingSpinner from "./LoadingSpinner";
+import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 
 const DomainPopupModal = ({
   isOpen,
@@ -13,10 +15,24 @@ const DomainPopupModal = ({
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [editingRoute, setEditingRoute] = useState(null);
   const [viewingRoute, setViewingRoute] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
   const [copiedUrl, setCopiedUrl] = useState(null);
+
+  // Auto-close success modal after 5 seconds
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+        setSuccessMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal]);
 
   if (!isOpen || !domain) return null;
 
@@ -367,6 +383,7 @@ const DomainPopupModal = ({
             setEditingRoute(null);
           }}
           onSave={async (data) => {
+            setIsEditing(true);
             try {
               if (editingRoute?.isDomain) {
                 // Handle domain editing
@@ -380,36 +397,41 @@ const DomainPopupModal = ({
                   oldPlatform: domain.platform,
                   newPlatform: data.platform,
                   oldCertificationTags: domain.certificationTags || [],
-                  newCertificationTags: data.certificationTags,
+                  newCertificationTags: Array.isArray(data.certificationTags) 
+                    ? data.certificationTags 
+                    : [],
                   oldAssignedTo: domain.assignedTo || domain.createdBy,
                   newAssignedTo: data.assignedTo,
                 };
 
                 console.log("Sending domain update data to API:", updateData);
 
-                // Get auth token for authorization header
-                const token = localStorage.getItem("authToken");
-
-                const response = await fetch(
-                  "http://localhost:3000/api/v1/updateDomain",
-                  {
-                    method: "PUT",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(updateData),
-                  }
-                );
+                const response = await fetch(API_ENDPOINTS.DOMAINS.UPDATE, {
+                  method: "PUT",
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify(updateData),
+                });
 
                 if (!response.ok) {
-                  throw new Error(
-                    `Failed to update domain: ${response.statusText}`
-                  );
+                  let errorMessage = `Failed to update domain: ${response.statusText}`;
+                  try {
+                    const errorData = await response.json();
+                    console.error("API Error Response:", errorData);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                  } catch (parseError) {
+                    const errorText = await response.text();
+                    console.error("Error response text:", errorText);
+                    errorMessage = errorText || errorMessage;
+                  }
+                  throw new Error(errorMessage);
                 }
 
                 const result = await response.json();
                 console.log("Domain updated successfully:", result);
+                
+                // Show success modal
+                setSuccessMessage("Edit successful");
+                setShowSuccessModal(true);
               } else {
                 // Handle route editing
                 const updateData = {
@@ -428,43 +450,55 @@ const DomainPopupModal = ({
 
                 console.log("Sending route update data to API:", updateData);
 
-                // Get auth token for authorization header
-                const token = localStorage.getItem("authToken");
-
-                const response = await fetch(
-                  "http://localhost:3000/api/v1/updateData",
-                  {
-                    method: "PUT",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(updateData),
-                  }
-                );
+                const response = await fetch(API_ENDPOINTS.ROUTES.UPDATE_DATA, {
+                  method: "PUT",
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify(updateData),
+                });
 
                 if (!response.ok) {
-                  throw new Error(
-                    `Failed to update route: ${response.statusText}`
-                  );
+                  let errorMessage = `Failed to update route: ${response.statusText}`;
+                  try {
+                    const errorData = await response.json();
+                    console.error("API Error Response:", errorData);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                  } catch (parseError) {
+                    try {
+                      const errorText = await response.text();
+                      console.error("Error response text:", errorText);
+                      errorMessage = errorText || errorMessage;
+                    } catch (textError) {
+                      console.error("Could not parse error response:", textError);
+                    }
+                  }
+                  throw new Error(errorMessage);
                 }
 
                 const result = await response.json();
                 console.log("Route updated successfully:", result);
+                
+                // Show success modal
+                setSuccessMessage("Edit successful");
+                setShowSuccessModal(true);
               }
 
               // Close modal and refresh data
               setShowEditModal(false);
               setEditingRoute(null);
-              refreshData();
+              
+              // Refresh data - parent will update selectedDomain
+              await refreshData();
             } catch (error) {
               console.error("Error updating:", error);
               alert(`Error: ${error.message}`);
               // Close modal even on error
               setShowEditModal(false);
               setEditingRoute(null);
+            } finally {
+              setIsEditing(false);
             }
           }}
+          isLoading={isEditing}
           type={editingRoute?.isDomain ? "domain" : "route"}
           initialData={editingRoute}
         />
@@ -496,52 +530,70 @@ const DomainPopupModal = ({
             try {
               if (deletingItem?.type === "domain") {
                 // Handle domain deletion
-                const token = localStorage.getItem("authToken");
                 const response = await fetch(
-                  `http://localhost:3000/api/v1/domain/${domain.domain}`,
+                  API_ENDPOINTS.DOMAINS.DELETE(domain.domain),
                   {
                     method: "DELETE",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
+                    headers: getAuthHeaders(),
                   }
                 );
 
                 if (!response.ok) {
-                  throw new Error(
-                    `Failed to delete domain: ${response.statusText}`
-                  );
+                  let errorMessage = `Failed to delete domain: ${response.statusText}`;
+                  try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                  } catch (parseError) {
+                    try {
+                      const errorText = await response.text();
+                      errorMessage = errorText || errorMessage;
+                    } catch (textError) {
+                      console.error("Could not parse error response:", textError);
+                    }
+                  }
+                  throw new Error(errorMessage);
                 }
 
                 console.log("Domain deleted successfully");
+                
+                // Show success modal
+                setSuccessMessage("Domain deleted successfully");
+                setShowSuccessModal(true);
               } else if (deletingItem?.type === "route") {
                 // Handle route deletion
                 const token = localStorage.getItem("authToken");
-                const response = await fetch(
-                  "http://localhost:3000/api/v1/deleteData",
-                  {
-                    method: "DELETE",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                      domain: domain.domain,
-                      route: deletingItem.data.route,
-                      createdBy:
-                        deletingItem.data.createdBy || "jake@paragonmedia.io",
-                    }),
-                  }
-                );
+                const response = await fetch(API_ENDPOINTS.ROUTES.DELETE_DATA, {
+                  method: "DELETE",
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({
+                    domain: domain.domain,
+                    route: deletingItem.data.route,
+                    createdBy:
+                      deletingItem.data.createdBy || "jake@paragonmedia.io",
+                  }),
+                });
 
                 if (!response.ok) {
-                  throw new Error(
-                    `Failed to delete route: ${response.statusText}`
-                  );
+                  let errorMessage = `Failed to delete route: ${response.statusText}`;
+                  try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                  } catch (parseError) {
+                    try {
+                      const errorText = await response.text();
+                      errorMessage = errorText || errorMessage;
+                    } catch (textError) {
+                      console.error("Could not parse error response:", textError);
+                    }
+                  }
+                  throw new Error(errorMessage);
                 }
 
                 console.log("Route deleted successfully");
+                
+                // Show success modal
+                setSuccessMessage("Route deleted successfully");
+                setShowSuccessModal(true);
               }
 
               // Close modals and refresh data
@@ -562,6 +614,60 @@ const DomainPopupModal = ({
           }
           domainName={domain.domain}
         />
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto relative">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900">Success</h3>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessMessage("");
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-center text-gray-700 text-lg font-medium">
+                {successMessage}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

@@ -81,6 +81,28 @@ function DomainsName() {
     fetchDomains();
   }, [fetchDomains]);
 
+  // Update selectedDomain when domainData changes (after refresh)
+  useEffect(() => {
+    if (selectedDomain && domainData && domainData.length > 0) {
+      const updatedDomain = domainData.find(
+        (d) => d.domain === selectedDomain.domain
+      );
+      if (updatedDomain) {
+        // Only update if the domain object has actually changed
+        // Compare routes to detect changes
+        const currentRoutes = JSON.stringify(selectedDomain.routes || []);
+        const updatedRoutes = JSON.stringify(updatedDomain.routes || []);
+        if (currentRoutes !== updatedRoutes || 
+            selectedDomain.id !== updatedDomain.id ||
+            selectedDomain.organization !== updatedDomain.organization ||
+            selectedDomain.platform !== updatedDomain.platform) {
+          setSelectedDomain(updatedDomain);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domainData]);
+
   // Get current user info for filtering
   const getCurrentUser = () => {
     const userData = localStorage.getItem("userData");
@@ -359,7 +381,12 @@ function DomainsName() {
         isOpen={showDomainPopup}
         onClose={() => setShowDomainPopup(false)}
         domain={selectedDomain}
-        refreshData={fetchDomains}
+        refreshData={async () => {
+          // Invalidate cache to ensure fresh data
+          const { invalidateCache } = await import("../utils/cache.js");
+          invalidateCache.domains();
+          await fetchDomains();
+        }}
         canEditDomain={canEditDomain}
       />
     </div>

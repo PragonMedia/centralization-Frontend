@@ -68,7 +68,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "debt-campaign-3", name: "Credit Repair Campaign" },
     ],
     Sweeps: [
-      { id: "sweep", name: "Sweep" },
+      { id: "sweep", name: "$750 Walmart Gift Card" },
     ],
     Nutra: [
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },

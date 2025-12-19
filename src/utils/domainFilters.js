@@ -83,6 +83,11 @@ const matchesSearchTerm = (domain, searchTerm) => {
     return true;
   }
 
+  // Search by domain ID
+  if (domain.id?.toLowerCase().includes(searchTerm)) {
+    return true;
+  }
+
   // Search by ringbaID in routes
   if (domain.routes && Array.isArray(domain.routes)) {
     return domain.routes.some((route) =>
