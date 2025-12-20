@@ -209,8 +209,8 @@ function DomainsName() {
         return "Addy";
       case "jake@paragonmedia.io":
         return "Jake";
-      case "neil@paragonmedia.io":
-        return "Neil";
+      case "sean@paragonmedia.io":
+        return "Sean Luc";
       default:
         return "Unknown";
     }

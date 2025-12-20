@@ -182,7 +182,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           createdBy: userEmail, // Set createdBy to current user
         }));
       } else {
-        // For regular users (Jake, Addy, Neil), auto-fill their details
+        // For regular users (Jake, Addy, Sean), auto-fill their details
         if (userEmail === "jake@paragonmedia.io") {
           setFormData((prev) => ({
             ...prev,
@@ -283,7 +283,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       const mediaBuyerEmailMap = {
         "Jake Hunter": "jake@paragonmedia.io",
         "Addy Jaloudi": "addy@paragonmedia.io",
-        Neil: "neil@paragonmedia.io",
+        "Sean Luc": "sean@paragonmedia.io",
       };
 
       const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
@@ -307,7 +307,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       const mediaBuyerEmailMap = {
         "Jake Hunter": "jake@paragonmedia.io",
         "Addy Jaloudi": "addy@paragonmedia.io",
-        Neil: "neil@paragonmedia.io",
+        "Sean Luc": "sean@paragonmedia.io",
       };
 
       const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
@@ -476,7 +476,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           const mediaBuyerEmailMap = {
             "Jake Hunter": "jake@paragonmedia.io",
             "Addy Jaloudi": "addy@paragonmedia.io",
-            Neil: "neil@paragonmedia.io",
+            "Sean Luc": "sean@paragonmedia.io",
           };
 
           const selectedEmail =

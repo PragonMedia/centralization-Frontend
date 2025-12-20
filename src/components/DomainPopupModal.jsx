@@ -81,7 +81,7 @@ const DomainPopupModal = ({
       return domain.assignedTo === currentUser.email;
     }
 
-    // Regular users (Jake, Addy, Neil) can edit routes in domains assigned to them
+    // Regular users (Jake, Addy, Sean) can edit routes in domains assigned to them
     return domain.assignedTo === currentUser.email;
   };
 

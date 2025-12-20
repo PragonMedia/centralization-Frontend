@@ -7,6 +7,7 @@ This is a React-based frontend application for managing domains and creating lan
 ## Architecture
 
 ### Technology Stack
+
 - **Frontend Framework**: React 19.1.0 with Vite
 - **Routing**: React Router DOM 7.7.1
 - **State Management**: Zustand 5.0.8
@@ -16,6 +17,7 @@ This is a React-based frontend application for managing domains and creating lan
 - **Styling**: Tailwind CSS (via Flowbite)
 
 ### Project Structure
+
 ```
 src/
 ├── main.jsx                 # Application entry point
@@ -56,18 +58,21 @@ src/
 The authentication system uses Zustand for state management and localStorage for persistence.
 
 **Key Features**:
+
 - User login with email/password
 - JWT token storage in localStorage
 - Automatic authentication status checking
 - Role-based access control
 
 **User Roles**:
+
 - `ceo` - Full access to all domains and routes
 - `tech` - Technical admin with full access
 - `admin` - Administrative access
 - `mediaBuyer` - Limited access to assigned domains only
 
 **Authentication Flow**:
+
 1. User enters credentials in LoginModal
 2. Credentials sent to `/api/v1/auth/login`
 3. Backend returns user object and JWT token
@@ -80,6 +85,7 @@ The authentication system uses Zustand for state management and localStorage for
 **Location**: `src/pages/Domains.jsx` and `src/components/DomainsName.jsx`
 
 **Features**:
+
 - View all domains in a table format
 - Filter by organization, platform, media buyer, or search term
 - Add new domains
@@ -89,6 +95,7 @@ The authentication system uses Zustand for state management and localStorage for
 - Click domain to see all routes
 
 **Domain Data Structure**:
+
 ```javascript
 {
   domain: "example.com",
@@ -102,9 +109,10 @@ The authentication system uses Zustand for state management and localStorage for
 ```
 
 **Role-Based Domain Access**:
+
 - **Media Buyers**: Only see domains assigned to them (`assignedTo === user.email`)
 - **Tech/CEO/Admin**: See all domains, can filter by media buyer
-- **Regular Users** (Jake, Addy, Neil): See domains assigned to them
+- **Regular Users** (Jake, Addy, Sean): See domains assigned to them
 
 ### 3. Landing Page Creation
 
@@ -113,11 +121,13 @@ The authentication system uses Zustand for state management and localStorage for
 **Multi-Step Wizard Process**:
 
 **Step 1: Organization Selection**
+
 - Choose between "Paragon Media" or "Elite"
 - Paragon Media: Dynamic campaign data from Ringba API
 - Elite: Fixed configuration (hardcoded Ringba ID and phone)
 
 **Step 2: Vertical & Campaign**
+
 - Select vertical: Medicare PPC, Debt PPC, Sweeps, Nutra, Casino
 - For Medicare PPC/Debt PPC: Fetch campaigns from Ringba API
 - For other verticals: Use dummy campaigns
@@ -126,6 +136,7 @@ The authentication system uses Zustand for state management and localStorage for
 - For Media Buyers: Auto-fill their details from campaign
 
 **Step 3: Domain Selection**
+
 - Filtered domain list based on:
   - User role (media buyers see only their domains)
   - Selected media buyer (for Tech/CEO/Admin)
@@ -134,12 +145,14 @@ The authentication system uses Zustand for state management and localStorage for
 - Auto-populates platform from selected domain
 
 **Step 4: Landing Page Details**
+
 - Path/Route: URL path for the landing page (e.g., "nn")
 - Template: Select from templates based on vertical
 - RT Campaign ID: RedTrack campaign identifier
 - Template preview shown below form
 
 **Form Submission**:
+
 - Validates all required fields
 - Sanitizes all inputs
 - Creates route via POST to `/api/v1/route`
@@ -147,6 +160,7 @@ The authentication system uses Zustand for state management and localStorage for
 - Shows success modal with created URL
 
 **Templates by Vertical**:
+
 - **Medicare PPC**: Chatbot Grocery, Chatbot Social Security
 - **Debt PPC**: Debt Landing Page 1, Debt Landing Page 2, Debt Consolidation
 - **Sweeps**: Sweep
@@ -158,6 +172,7 @@ The authentication system uses Zustand for state management and localStorage for
 **Location**: `src/components/DomainPopupModal.jsx`
 
 When clicking a domain, a modal opens showing:
+
 - Domain information (organization, ID, platform, certification tags)
 - All routes associated with the domain
 - For each route:
@@ -167,10 +182,12 @@ When clicking a domain, a modal opens showing:
   - Actions: View, Details, Edit, Delete
 
 **Route Editing**:
+
 - Edit route path, template, RTK ID, Ringba ID, phone number
 - Updates via PUT to `/api/v1/updateData`
 
 **Route Deletion**:
+
 - Confirmation modal before deletion
 - Deletes via DELETE to `/api/v1/deleteData`
 
@@ -179,6 +196,7 @@ When clicking a domain, a modal opens showing:
 **Location**: `src/config/api.js`
 
 **Backend API** (Default: `http://138.68.231.226:3000/api/v1`):
+
 - `POST /auth/login` - User authentication
 - `GET /` - List all domains
 - `POST /domain` - Create new domain
@@ -190,12 +208,14 @@ When clicking a domain, a modal opens showing:
 - `DELETE /deleteData` - Delete route
 
 **Ringba API Integration**:
+
 - Fetches campaigns for Medicare PPC and Debt PPC verticals
 - Extracts media buyer information from campaign jsTags
 - Campaigns endpoint: `https://api.ringba.com/v2/{accountId}/campaigns/ui`
 - Campaign details: `https://api.ringba.com/v2/{accountId}/campaigns/{id}`
 
 **Authentication Headers**:
+
 - Backend API: `Authorization: Bearer {token}`
 - Ringba API: `Authorization: Token {ringbaToken}`
 
@@ -204,18 +224,21 @@ When clicking a domain, a modal opens showing:
 **Location**: `src/utils/cache.js`
 
 **Features**:
+
 - In-memory cache for API responses
 - TTL-based expiration (default 5 minutes)
 - Cache invalidation on mutations
 - Only caches GET requests
 
 **Cache Configuration**:
+
 - Domains: 2 minutes
 - Campaigns: 5 minutes
 - Campaign Details: 10 minutes
 - Default: 5 minutes
 
 **Cache Invalidation**:
+
 - Domain operations invalidate domain cache
 - Route operations invalidate domain cache
 - Manual invalidation available
@@ -225,6 +248,7 @@ When clicking a domain, a modal opens showing:
 **Location**: `src/utils/sanitization.js`
 
 **Sanitization Functions**:
+
 - Domain names: Removes spaces, adds .com if missing
 - Email addresses: Validates format
 - Route paths: Removes invalid characters
@@ -232,6 +256,7 @@ When clicking a domain, a modal opens showing:
 - Phone numbers: Validates format
 
 **Validation Functions**:
+
 - Required field checks
 - Domain format validation
 - Email format validation
@@ -242,12 +267,14 @@ When clicking a domain, a modal opens showing:
 **Location**: `src/utils/domainFilters.js`
 
 **Filter Types**:
+
 - **Search**: Filters by domain name or Ringba ID in routes
 - **Organization**: Filters by Paragon/Elite
 - **Platform**: Filters by Facebook/Google/Liftoff/Bigo/DV 360
 - **Media Buyer**: Filters by assigned user email
 
 **Filter Logic**:
+
 - User role determines base visibility
 - Additional filters applied on top
 - Filters are combinable (AND logic)
@@ -255,6 +282,7 @@ When clicking a domain, a modal opens showing:
 ## User Roles & Permissions
 
 ### CEO / Tech / Admin
+
 - ✅ View all domains
 - ✅ Create domains
 - ✅ Edit all domains
@@ -266,6 +294,7 @@ When clicking a domain, a modal opens showing:
 - ✅ See Media Buyer column in domain table
 
 ### Media Buyer
+
 - ✅ View only assigned domains
 - ✅ Create landing pages for assigned domains
 - ✅ Auto-filled with their campaign details
@@ -275,7 +304,8 @@ When clicking a domain, a modal opens showing:
 - ❌ Cannot edit domain properties
 - ❌ Cannot see Media Buyer column
 
-### Regular Users (Jake, Addy, Neil)
+### Regular Users (Jake, Addy, Sean)
+
 - ✅ View only assigned domains
 - ✅ Create landing pages for assigned domains
 - ✅ Edit routes in assigned domains
@@ -288,6 +318,7 @@ When clicking a domain, a modal opens showing:
 **Location**: `src/App.jsx`
 
 **Routes**:
+
 - `/` - Homepage (shows login modal if not authenticated)
 - `/domains` - Domain management (protected)
 - `/create` - Landing page creation (protected)
@@ -295,6 +326,7 @@ When clicking a domain, a modal opens showing:
 - `/test` - Test page (public)
 
 **Protected Routes**:
+
 - Wrapped in `<ProtectedRoute>` component
 - Redirects to homepage if not authenticated
 - Homepage shows login modal automatically
@@ -302,6 +334,7 @@ When clicking a domain, a modal opens showing:
 ## State Management
 
 **Authentication State** (Zustand):
+
 - `user` - Current user object
 - `isAuthenticated` - Boolean auth status
 - `isLoading` - Loading state
@@ -313,6 +346,7 @@ When clicking a domain, a modal opens showing:
 ## Environment Variables
 
 **Required** (via `.env` file):
+
 - `VITE_API_BASE_URL` - Backend API URL (default: `http://138.68.231.226:3000/api/v1`)
 - `VITE_RINGBA_ACCOUNT_ID` - Ringba account ID
 - `VITE_RINGBA_API_TOKEN` - Ringba API token
@@ -321,12 +355,14 @@ When clicking a domain, a modal opens showing:
 ## Key Components
 
 ### DomainPopupModal
+
 - Shows domain details and all routes
 - Handles route editing, viewing, and deletion
 - Handles domain editing and deletion
 - Role-based action visibility
 
 ### LanderCreationForm
+
 - Multi-step wizard (4 steps)
 - Integrates with Ringba API for campaigns
 - Auto-fills media buyer details
@@ -334,12 +370,14 @@ When clicking a domain, a modal opens showing:
 - Form validation and sanitization
 
 ### DomainTable
+
 - Displays domains in table format
 - Sortable and filterable
 - Clickable rows to open domain popup
 - Media buyer column (only for Tech/CEO/Admin)
 
 ### DomainFilters
+
 - Search bar
 - Organization dropdown
 - Platform dropdown
@@ -349,6 +387,7 @@ When clicking a domain, a modal opens showing:
 ## Data Flow
 
 ### Creating a Landing Page:
+
 1. User selects organization (Paragon/Elite)
 2. User selects vertical
 3. System fetches campaigns from Ringba (if Medicare/Debt PPC)
@@ -363,6 +402,7 @@ When clicking a domain, a modal opens showing:
 12. Success modal shown with created URL
 
 ### Viewing Domains:
+
 1. Component mounts, checks authentication
 2. Fetches domains from `/api/v1/` (with caching)
 3. Filters domains based on user role
@@ -388,21 +428,25 @@ When clicking a domain, a modal opens showing:
 ## Development
 
 **Start Development Server**:
+
 ```bash
 npm run dev
 ```
 
 **Build for Production**:
+
 ```bash
 npm run build
 ```
 
 **Lint Code**:
+
 ```bash
 npm run lint
 ```
 
 **Preview Production Build**:
+
 ```bash
 npm run preview
 ```
@@ -426,4 +470,3 @@ npm run preview
 - Template previews are loaded from external URL
 - Cache cleanup runs every 5 minutes automatically
 - Domain IDs must be unique (checked before creation)
-

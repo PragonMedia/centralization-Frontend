@@ -18,11 +18,11 @@ const DomainHeader = ({ getCurrentUser, canAddDomains, onAddDomain }) => {
           <span>Showing only domains assigned to Addy</span>
         </div>
       );
-    } else if (currentUser?.email === "neil@paragonmedia.io") {
+    } else if (currentUser?.email === "sean@paragonmedia.io") {
       return (
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-          <span>Showing only domains assigned to Neil</span>
+          <span>Showing only domains assigned to Sean Luc</span>
         </div>
       );
     } else if (currentUser?.role === "tech" || currentUser?.role === "ceo") {
@@ -102,6 +102,7 @@ const DomainHeader = ({ getCurrentUser, canAddDomains, onAddDomain }) => {
 };
 
 export default DomainHeader;
+
 
 
 

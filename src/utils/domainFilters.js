@@ -61,8 +61,8 @@ const shouldUserSeeDomain = (domain, currentUser) => {
   }
 
   if (
-    userEmail === "neil@paragonmedia.io" &&
-    domain.assignedTo !== "neil@paragonmedia.io"
+    userEmail === "sean@paragonmedia.io" &&
+    domain.assignedTo !== "sean@paragonmedia.io"
   ) {
     return false;
   }
