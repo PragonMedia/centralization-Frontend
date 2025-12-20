@@ -22,7 +22,7 @@ const DomainTable = ({
                 </th>
               )}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Domain Name
+                Domain
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Organization
@@ -32,9 +32,6 @@ const DomainTable = ({
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Platform
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Domain
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Certification Tags
@@ -85,9 +82,12 @@ const DomainTable = ({
                   </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <button
+                    onClick={() => handleDomainClick(domain)}
+                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+                  >
                     {domain.domain || "Unknown"}
-                  </div>
+                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -103,14 +103,6 @@ const DomainTable = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {domain.platform || "N/A"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => handleDomainClick(domain)}
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                  >
-                    {domain.domain || "Unknown"}
-                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-wrap gap-1">
