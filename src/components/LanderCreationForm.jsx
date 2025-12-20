@@ -263,9 +263,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
 
-    // For other non-Medicare PPC verticals, use "Jake" as the only media buyer
+    // For other non-Medicare PPC verticals, show all media buyers
     if (selectedVertical) {
-      setMediaBuyers([{ name: "Jake Hunter" }]);
+      setMediaBuyers([
+        { name: "Jake Hunter" },
+        { name: "Addy Jaloudi" },
+        { name: "Sean Luc" },
+      ]);
       return;
     }
 
@@ -302,22 +306,46 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       (buyer) => buyer.name === mediaBuyerName
     );
 
-    if (selectedMediaBuyerData) {
-      // Map media buyer names to emails for createdBy field
-      const mediaBuyerEmailMap = {
-        "Jake Hunter": "jake@paragonmedia.io",
-        "Addy Jaloudi": "addy@paragonmedia.io",
-        "Sean Luc": "sean@paragonmedia.io",
-      };
+    // Map media buyer names to emails for createdBy field
+    const mediaBuyerEmailMap = {
+      "Jake Hunter": "jake@paragonmedia.io",
+      "Addy Jaloudi": "addy@paragonmedia.io",
+      "Sean Luc": "sean@paragonmedia.io",
+    };
 
-      const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
+    const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
 
-      // Update form data with media buyer details
+    // If we have campaign details from Ringba (Medicare/Debt PPC), use those
+    if (selectedMediaBuyerData && selectedMediaBuyerData.campaignId && selectedMediaBuyerData.e164Number) {
+      // Update form data with media buyer details from Ringba
       setFormData((prev) => ({
         ...prev,
         ringbaID: selectedMediaBuyerData.campaignId,
         phoneNumber: selectedMediaBuyerData.e164Number,
-        createdBy: selectedEmail, // Set createdBy to selected media buyer's email
+        createdBy: selectedEmail,
+      }));
+    } else {
+      // For non-Medicare/Debt PPC verticals, use hardcoded details
+      let ringbaID = "";
+      let phoneNumber = "";
+
+      if (mediaBuyerName === "Jake Hunter") {
+        ringbaID = JakeDetails.ringbaID;
+        phoneNumber = JakeDetails.phoneNumber;
+      } else if (mediaBuyerName === "Addy Jaloudi") {
+        ringbaID = AddyDetails.ringbaID;
+        phoneNumber = AddyDetails.phoneNumber;
+      } else if (mediaBuyerName === "Sean Luc") {
+        // For Sean, use default details (you may need to add SeanDetails if different)
+        ringbaID = JakeDetails.ringbaID; // Default to Jake's details for now
+        phoneNumber = JakeDetails.phoneNumber;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ringbaID: ringbaID,
+        phoneNumber: phoneNumber,
+        createdBy: selectedEmail,
       }));
     }
   };
@@ -1188,8 +1216,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     </option>
                   ))
                 ) : (
-                  /* For other verticals, show Jake as the only option */
-                  <option value="Jake Hunter">Jake Hunter</option>
+                  /* For other verticals, show all media buyers */
+                  mediaBuyers.map((buyer, index) => (
+                    <option key={index} value={buyer.name}>
+                      {buyer.name}
+                    </option>
+                  ))
                 )}
               </select>
             </div>
