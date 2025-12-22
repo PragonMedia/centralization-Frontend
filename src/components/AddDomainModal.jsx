@@ -30,7 +30,8 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
     if (name === "domain") {
       processedValue = formatDomainName(value);
     } else if (name === "id") {
-      processedValue = sanitizeInput.id(value);
+      // Allow any characters - no sanitization for ID field
+      processedValue = value;
       setIdError(""); // Clear ID error when user types
     } else if (name === "assignedTo") {
       processedValue = sanitizeInput.email(value);
@@ -287,7 +288,7 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   idError ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
-                placeholder="Enter unique ID (e.g., AJ_ELITE_MEDI_PPC_YT9)"
+                placeholder="Enter unique ID"
                 required
                 disabled={isSubmitting}
               />
