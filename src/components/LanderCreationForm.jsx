@@ -26,13 +26,7 @@ const EliteDetails = {
 
 function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   // Vertical options
-  const verticals = [
-    "Medicare PPC",
-    "Debt PPC",
-    "Sweeps",
-    "Nutra",
-    "Casino",
-  ];
+  const verticals = ["Medicare PPC", "Debt PPC", "Sweeps", "Nutra", "Casino"];
 
   // Template options by vertical - stored values (for DB) and display names
   const templatesByVertical = {
@@ -45,9 +39,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "debt-lp2", label: "Debt Landing Page 2" },
       { value: "debt-consolidation", label: "Debt Consolidation" },
     ],
-    Sweeps: [
-      { value: "sweep", label: "Sweep" },
-    ],
+    Sweeps: [{ value: "sweep", label: "Sweep" }],
     Nutra: [
       { value: "nutra-lp1", label: "Nutra Landing Page 1" },
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
@@ -67,9 +59,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "debt-campaign-2", name: "Debt Consolidation Campaign" },
       { id: "debt-campaign-3", name: "Credit Repair Campaign" },
     ],
-    Sweeps: [
-      { id: "sweep", name: "$750 Walmart Gift Card" },
-    ],
+    Sweeps: [{ id: "sweep", name: "$750 Walmart Gift Card" }],
     Nutra: [
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
@@ -258,7 +248,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     }
 
     // For Medicare PPC and Debt PPC, fetch campaign details to get media buyers from Ringba
-    if (selectedVertical === "Medicare PPC" || selectedVertical === "Debt PPC") {
+    if (
+      selectedVertical === "Medicare PPC" ||
+      selectedVertical === "Debt PPC"
+    ) {
       fetchCampaignDetails(campaignId);
       return;
     }
@@ -298,7 +291,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     );
 
     // If we have campaign details from Ringba (Medicare/Debt PPC), use those
-    if (selectedMediaBuyerData && selectedMediaBuyerData.campaignId && selectedMediaBuyerData.e164Number) {
+    if (
+      selectedMediaBuyerData &&
+      selectedMediaBuyerData.campaignId &&
+      selectedMediaBuyerData.e164Number
+    ) {
       // Update form data with media buyer details from Ringba
       // Don't change createdBy - it should remain as the logged-in user
       setFormData((prev) => ({
@@ -550,7 +547,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             parsedUserData.email,
             parsedUserData.role
           );
-          
+
           // Filter by vertical if selected and domain has vertical property
           if (selectedVertical && filtered.length > 0) {
             filtered = filtered.filter((domain) => {
@@ -558,9 +555,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               // Otherwise, include all domains (for backward compatibility)
               return domain.vertical === selectedVertical || !domain.vertical;
             });
-            console.log("Filtered by vertical:", selectedVertical, "Result:", filtered);
+            console.log(
+              "Filtered by vertical:",
+              selectedVertical,
+              "Result:",
+              filtered
+            );
           }
-          
+
           console.log("Filtered result:", filtered);
           setFilteredDomains(filtered);
         } catch (err) {
@@ -606,7 +608,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
         // Extract campaigns array from the response
         const campaignsData = data.campaigns || [];
-        
+
         // Filter campaigns based on vertical
         let filteredCampaigns = [];
         if (vertical === "Medicare PPC") {
@@ -647,7 +649,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       domain: "", // Reset domain
       template: "", // Reset template
     }));
-    
+
     // Fetch campaigns for the selected vertical
     if (vertical) {
       fetchCampaigns(vertical);
@@ -882,13 +884,15 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       const selectedDomain = availableDomains.find(
         (domain) => domain.domain === formData.domain
       );
-      
+
       if (selectedDomain) {
         // Only check assignedTo - createdBy is the admin who created the domain
         const hasAccess = selectedDomain.assignedTo === currentUserEmail;
-        
+
         if (!hasAccess) {
-          alert(`You don't have access to create landing pages for domain: ${formData.domain}`);
+          alert(
+            `You don't have access to create landing pages for domain: ${formData.domain}`
+          );
           return;
         }
       }
@@ -900,20 +904,40 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       return org.trim(); // Just trim whitespace, keep original format
     };
 
-    // Keep domain as-is (should already include .com from form input)
+    // Keep domain as-is (should include .com from form input)
     const domainValue = sanitizeInput.domain(formData.domain || "");
+
+    // Get template value and transform if needed for Elite + Medicare PPC
+    let templateValue = sanitizeInput.text(
+      formData.template || selectedTemplate || ""
+    );
+    const normalizedOrg = normalizeOrganization(formData.organization || "");
+
+    // Transform template values for Elite organization with Medicare PPC vertical
+    if (
+      normalizedOrg.toLowerCase() === "elite" &&
+      selectedVertical === "Medicare PPC"
+    ) {
+      if (templateValue === "cb-groc") {
+        templateValue = "eh-cb-groc";
+      } else if (templateValue === "cb-ss") {
+        templateValue = "eh-cb-ss";
+      }
+    }
 
     // Sanitize and validate form data
     const sanitizedFormData = {
-      organization: normalizeOrganization(formData.organization || ""),
+      organization: normalizedOrg,
       domain: domainValue, // Keep full domain with .com
       route: sanitizeInput.route(formData.route || ""),
-      template: sanitizeInput.text(formData.template || selectedTemplate || ""),
+      template: templateValue,
       platform: sanitizeInput.text(formData.platform || selectedPlatform || ""),
       rtkID: sanitizeInput.id(formData.rtkID || ""),
       ringbaID: sanitizeInput.id(formData.ringbaID || ""),
       phoneNumber: sanitizeInput.phone(formData.phoneNumber || ""),
-      createdBy: sanitizeInput.email(formData.createdBy || currentUserEmail || ""),
+      createdBy: sanitizeInput.email(
+        formData.createdBy || currentUserEmail || ""
+      ),
     };
 
     // Validate sanitized data
@@ -1197,7 +1221,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         {/* Media Buyer Selection - Only for non-mediaBuyer users after campaign selection */}
         {currentUserRole !== "mediaBuyer" &&
           selectedCampaign &&
-          (mediaBuyers.length > 0 || (selectedVertical && selectedVertical !== "Medicare PPC" && selectedVertical !== "Debt PPC")) && (
+          (mediaBuyers.length > 0 ||
+            (selectedVertical &&
+              selectedVertical !== "Medicare PPC" &&
+              selectedVertical !== "Debt PPC")) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Media Buyer <span className="text-red-500">*</span>
@@ -1212,20 +1239,19 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               >
                 <option value="">Select Media Buyer</option>
                 {/* For Medicare PPC and Debt PPC, show media buyers from Ringba API */}
-                {selectedVertical === "Medicare PPC" || selectedVertical === "Debt PPC" ? (
-                  mediaBuyers.map((buyer, index) => (
-                    <option key={index} value={buyer.name}>
-                      {buyer.name}
-                    </option>
-                  ))
-                ) : (
-                  /* For other verticals, show all media buyers */
-                  mediaBuyers.map((buyer, index) => (
-                    <option key={index} value={buyer.name}>
-                      {buyer.name}
-                    </option>
-                  ))
-                )}
+                {selectedVertical === "Medicare PPC" ||
+                selectedVertical === "Debt PPC"
+                  ? mediaBuyers.map((buyer, index) => (
+                      <option key={index} value={buyer.name}>
+                        {buyer.name}
+                      </option>
+                    ))
+                  : /* For other verticals, show all media buyers */
+                    mediaBuyers.map((buyer, index) => (
+                      <option key={index} value={buyer.name}>
+                        {buyer.name}
+                      </option>
+                    ))}
               </select>
             </div>
           )}
