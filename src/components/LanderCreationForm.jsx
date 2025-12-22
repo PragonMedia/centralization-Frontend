@@ -38,11 +38,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-ss", label: "Chatbot Social Security" },
     ],
-    "Debt PPC": [
-      { value: "debt-lp1", label: "Debt Landing Page 1" },
-      { value: "debt-lp2", label: "Debt Landing Page 2" },
-      { value: "debt-consolidation", label: "Debt Consolidation" },
-    ],
+    "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     Sweeps: [{ value: "sweep", label: "Sweep" }],
     Nutra: [
       { value: "nutra-lp1", label: "Nutra Landing Page 1" },

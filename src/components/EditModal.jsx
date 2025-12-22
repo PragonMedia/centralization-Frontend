@@ -13,9 +13,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "eh-cb-ss", label: "Chatbot Social Security" }, // Elite version
     ],
     "Debt PPC": [
-      { value: "debt-lp1", label: "Debt Landing Page 1" },
-      { value: "debt-lp2", label: "Debt Landing Page 2" },
-      { value: "debt-consolidation", label: "Debt Consolidation" },
+      { value: "gg-debt-v1", label: "debt" },
     ],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
@@ -42,7 +40,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "Medicare PPC";
     }
     // Debt PPC templates
-    if (templateValue.startsWith("debt-")) {
+    if (templateValue.startsWith("debt-") || templateValue === "gg-debt-v1") {
       return "Debt PPC";
     }
     // Sweeps templates
