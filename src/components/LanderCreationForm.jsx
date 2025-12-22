@@ -477,6 +477,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
       if (userRole === "mediaBuyer") {
         // For mediaBuyer users, only show domains assigned to them
+        // Only check assignedTo - createdBy is the admin who created the domain, not the mediaBuyer
         const filtered = domains.filter((domain) => {
           console.log(
             "Checking domain:",
@@ -525,6 +526,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               "selectedEmail:",
               selectedEmail
             );
+            // Only check assignedTo - createdBy is the admin who created the domain
             return domain.assignedTo === selectedEmail;
           });
 
@@ -881,13 +883,32 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     // Get current user data to set createdBy
     const userData = localStorage.getItem("userData");
     let currentUserEmail = "";
+    let currentUserRole = "";
 
     if (userData) {
       try {
         const parsedUserData = JSON.parse(userData);
         currentUserEmail = parsedUserData.email || "";
+        currentUserRole = parsedUserData.role || "";
       } catch (err) {
         console.error("Error parsing user data:", err);
+      }
+    }
+
+    // For mediaBuyer users, validate that they have access to the selected domain
+    if (currentUserRole === "mediaBuyer" && formData.domain) {
+      const selectedDomain = availableDomains.find(
+        (domain) => domain.domain === formData.domain
+      );
+      
+      if (selectedDomain) {
+        // Only check assignedTo - createdBy is the admin who created the domain
+        const hasAccess = selectedDomain.assignedTo === currentUserEmail;
+        
+        if (!hasAccess) {
+          alert(`You don't have access to create landing pages for domain: ${formData.domain}`);
+          return;
+        }
       }
     }
 

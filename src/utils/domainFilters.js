@@ -45,26 +45,24 @@ const shouldUserSeeDomain = (domain, currentUser) => {
   const userEmail = currentUser.email;
   const userRole = currentUser.role;
 
-  // Specific user filtering
-  if (
-    userEmail === "jake@paragonmedia.io" &&
-    domain.assignedTo !== "jake@paragonmedia.io"
-  ) {
-    return false;
+  // Specific user filtering - only check assignedTo
+  // createdBy is the admin who created the domain, not the mediaBuyer
+  if (userEmail === "jake@paragonmedia.io") {
+    if (domain.assignedTo !== "jake@paragonmedia.io") {
+      return false;
+    }
   }
 
-  if (
-    userEmail === "addy@paragonmedia.io" &&
-    domain.assignedTo !== "addy@paragonmedia.io"
-  ) {
-    return false;
+  if (userEmail === "addy@paragonmedia.io") {
+    if (domain.assignedTo !== "addy@paragonmedia.io") {
+      return false;
+    }
   }
 
-  if (
-    userEmail === "sean@paragonmedia.io" &&
-    domain.assignedTo !== "sean@paragonmedia.io"
-  ) {
-    return false;
+  if (userEmail === "sean@paragonmedia.io") {
+    if (domain.assignedTo !== "sean@paragonmedia.io") {
+      return false;
+    }
   }
 
   // Tech, CEO, and Admin users can see all domains
