@@ -82,12 +82,19 @@ const DomainTable = ({
                   </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => handleDomainClick(domain)}
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                  >
-                    {domain.domain || "Unknown"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {domain.routes && Array.isArray(domain.routes) && (
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 min-w-[24px]">
+                        {domain.routes.length}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => handleDomainClick(domain)}
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+                    >
+                      {domain.domain || "Unknown"}
+                    </button>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

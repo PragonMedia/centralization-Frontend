@@ -119,16 +119,6 @@ const DomainFilters = ({
           >
             Paragon
           </button>
-          <button
-            onClick={() => setSelectedOrganization("Fluent")}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-              selectedOrganization === "Fluent"
-                ? "bg-orange-100 text-orange-700 border border-orange-200"
-                : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-            }`}
-          >
-            Fluent
-          </button>
         </div>
 
         {/* Platform Filter */}

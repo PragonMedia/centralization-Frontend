@@ -1,14 +1,80 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 
 const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = false }) => {
   const [formData, setFormData] = useState({});
 
-  // Template options - stored values (for DB) and display names
-  const templates = [
-    { value: "cb-groc", label: "Chatbot Grocery" },
-    { value: "cb-ss", label: "Chatbot Social Security" },
-  ];
+  // Template options by vertical - stored values (for DB) and display names
+  const templatesByVertical = {
+    "Medicare PPC": [
+      { value: "cb-groc", label: "Chatbot Grocery" },
+      { value: "cb-ss", label: "Chatbot Social Security" },
+      { value: "eh-cb-groc", label: "Chatbot Grocery" }, // Elite version
+      { value: "eh-cb-ss", label: "Chatbot Social Security" }, // Elite version
+    ],
+    "Debt PPC": [
+      { value: "debt-lp1", label: "Debt Landing Page 1" },
+      { value: "debt-lp2", label: "Debt Landing Page 2" },
+      { value: "debt-consolidation", label: "Debt Consolidation" },
+    ],
+    Sweeps: [
+      { value: "sweep", label: "Sweep" },
+    ],
+    Nutra: [
+      { value: "nutra-lp1", label: "Nutra Landing Page 1" },
+      { value: "nutra-lp2", label: "Nutra Landing Page 2" },
+      { value: "nutra-supplement", label: "Supplement Sales" },
+    ],
+    Casino: [
+      { value: "casino-lp1", label: "Casino Landing Page 1" },
+      { value: "casino-lp2", label: "Casino Landing Page 2" },
+      { value: "casino-signup", label: "Casino Signup" },
+    ],
+  };
+
+  // Function to determine vertical from template value
+  const getVerticalFromTemplate = (templateValue) => {
+    if (!templateValue) return null;
+    
+    // Medicare PPC templates
+    if (templateValue === "cb-groc" || templateValue === "cb-ss" || 
+        templateValue === "eh-cb-groc" || templateValue === "eh-cb-ss") {
+      return "Medicare PPC";
+    }
+    // Debt PPC templates
+    if (templateValue.startsWith("debt-")) {
+      return "Debt PPC";
+    }
+    // Sweeps templates
+    if (templateValue === "sweep") {
+      return "Sweeps";
+    }
+    // Nutra templates
+    if (templateValue.startsWith("nutra-")) {
+      return "Nutra";
+    }
+    // Casino templates
+    if (templateValue.startsWith("casino-")) {
+      return "Casino";
+    }
+    
+    return null;
+  };
+
+  // Get templates based on current template value
+  const getTemplates = () => {
+    if (type !== "route") return [];
+    
+    const currentTemplate = formData.template || initialData?.template;
+    const vertical = getVerticalFromTemplate(currentTemplate);
+    
+    if (vertical && templatesByVertical[vertical]) {
+      return templatesByVertical[vertical];
+    }
+    
+    // Fallback: return all templates if we can't determine vertical
+    return Object.values(templatesByVertical).flat();
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -18,6 +84,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       });
     }
   }, [initialData, type]);
+
+  // Get templates based on current template value - recalculate when formData or initialData changes
+  const templates = useMemo(() => {
+    return getTemplates();
+  }, [formData.template, initialData?.template, type]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
