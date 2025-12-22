@@ -283,20 +283,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // If Elite organization is selected, don't use campaign data
     if (formData.organization === "elite") {
-      // Map media buyer names to emails for Elite organization
-      const mediaBuyerEmailMap = {
-        "Jake Hunter": "jake@paragonmedia.io",
-        "Addy Jaloudi": "addy@paragonmedia.io",
-        "Sean Luc": "sean@paragonmedia.io",
-      };
-
-      const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
-
       setFormData((prev) => ({
         ...prev,
         ringbaID: EliteDetails.ringbaID,
         phoneNumber: EliteDetails.phoneNumber,
-        createdBy: selectedEmail, // Set createdBy to selected media buyer's email
+        // Don't change createdBy - it should remain as the logged-in user
       }));
       return;
     }
@@ -306,23 +297,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       (buyer) => buyer.name === mediaBuyerName
     );
 
-    // Map media buyer names to emails for createdBy field
-    const mediaBuyerEmailMap = {
-      "Jake Hunter": "jake@paragonmedia.io",
-      "Addy Jaloudi": "addy@paragonmedia.io",
-      "Sean Luc": "sean@paragonmedia.io",
-    };
-
-    const selectedEmail = mediaBuyerEmailMap[mediaBuyerName];
-
     // If we have campaign details from Ringba (Medicare/Debt PPC), use those
     if (selectedMediaBuyerData && selectedMediaBuyerData.campaignId && selectedMediaBuyerData.e164Number) {
       // Update form data with media buyer details from Ringba
+      // Don't change createdBy - it should remain as the logged-in user
       setFormData((prev) => ({
         ...prev,
         ringbaID: selectedMediaBuyerData.campaignId,
         phoneNumber: selectedMediaBuyerData.e164Number,
-        createdBy: selectedEmail,
       }));
     } else {
       // For non-Medicare/Debt PPC verticals, use hardcoded details
@@ -345,7 +327,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         ...prev,
         ringbaID: ringbaID,
         phoneNumber: phoneNumber,
-        createdBy: selectedEmail,
+        // Don't change createdBy - it should remain as the logged-in user
       }));
     }
   };
