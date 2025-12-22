@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "./components/Navbar.jsx";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Domains from "./pages/Domains";
 import LanderCreation from "./pages/LanderCreation";
@@ -13,6 +13,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
+  const location = useLocation();
+  const isDomainsPage = location.pathname === "/domains";
+
   return (
     <ErrorBoundary>
       <Navbar />
@@ -44,7 +47,7 @@ function App() {
         />
         <Route path="/test" element={<TestRun />} />
       </Routes>
-      <Footer />
+      {!isDomainsPage && <Footer />}
       <ToastContainer
         position="top-right"
         autoClose={3000}

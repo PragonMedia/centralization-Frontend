@@ -19,6 +19,10 @@ const AddyDetails = {
   ringbaID: "CAd4c016a37829477688c3482fb6fd01de",
   phoneNumber: "+18447840433",
 };
+const SeanDetails = {
+  ringbaID: "CAd4c016a37829477688c3482fb6fd01de",
+  phoneNumber: "+18333530496",
+};
 const EliteDetails = {
   ringbaID: "CA96589cff1d5d4fa48f459da7dbd3a728",
   phoneNumber: "+13213980346",
@@ -187,6 +191,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             phoneNumber: AddyDetails.phoneNumber,
             createdBy: "addy@paragonmedia.io",
           }));
+        } else if (userEmail === "sean@paragonmedia.io") {
+          setFormData((prev) => ({
+            ...prev,
+            ringbaID: SeanDetails.ringbaID,
+            phoneNumber: SeanDetails.phoneNumber,
+            createdBy: "sean@paragonmedia.io",
+          }));
         } else {
           // Default to Jake's details for other users
           setFormData((prev) => ({
@@ -315,9 +326,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         ringbaID = AddyDetails.ringbaID;
         phoneNumber = AddyDetails.phoneNumber;
       } else if (mediaBuyerName === "Sean Luc") {
-        // For Sean, use default details (you may need to add SeanDetails if different)
-        ringbaID = JakeDetails.ringbaID; // Default to Jake's details for now
-        phoneNumber = JakeDetails.phoneNumber;
+        ringbaID = SeanDetails.ringbaID;
+        phoneNumber = SeanDetails.phoneNumber;
       }
 
       setFormData((prev) => ({
@@ -823,6 +833,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               } else if (userEmail === "addy@paragonmedia.io") {
                 ringbaID = AddyDetails.ringbaID;
                 phoneNumber = AddyDetails.phoneNumber;
+              } else if (userEmail === "sean@paragonmedia.io") {
+                ringbaID = SeanDetails.ringbaID;
+                phoneNumber = SeanDetails.phoneNumber;
               } else {
                 // Default for other users
                 ringbaID = EliteDetails.ringbaID;
