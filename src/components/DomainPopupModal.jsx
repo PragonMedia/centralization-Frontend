@@ -561,17 +561,13 @@ const DomainPopupModal = ({
                 setShowSuccessModal(true);
               } else if (deletingItem?.type === "route") {
                 // Handle route deletion
-                const token = localStorage.getItem("authToken");
-                const response = await fetch(API_ENDPOINTS.ROUTES.DELETE_DATA, {
-                  method: "DELETE",
-                  headers: getAuthHeaders(),
-                  body: JSON.stringify({
-                    domain: domain.domain,
-                    route: deletingItem.data.route,
-                    createdBy:
-                      deletingItem.data.createdBy || "jake@paragonmedia.io",
-                  }),
-                });
+                const response = await fetch(
+                  API_ENDPOINTS.ROUTES.DELETE(domain.domain, deletingItem.data.route),
+                  {
+                    method: "DELETE",
+                    headers: getAuthHeaders(),
+                  }
+                );
 
                 if (!response.ok) {
                   let errorMessage = `Failed to delete route: ${response.statusText}`;

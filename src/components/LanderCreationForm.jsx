@@ -928,9 +928,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       selectedVertical === "Medicare PPC"
     ) {
       if (templateValue === "cb-groc") {
-        templateValue = "eh-cb-groc";
+        templateValue = "el-cb-groc";
       } else if (templateValue === "cb-ss") {
-        templateValue = "eh-cb-ss";
+        templateValue = "el-cb-ss";
       }
     }
 

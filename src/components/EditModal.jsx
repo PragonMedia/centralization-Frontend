@@ -9,8 +9,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-ss", label: "Chatbot Social Security" },
-      { value: "eh-cb-groc", label: "Chatbot Grocery" }, // Elite version
-      { value: "eh-cb-ss", label: "Chatbot Social Security" }, // Elite version
+      { value: "el-cb-groc", label: "Chatbot Grocery" }, // Elite version
+      { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "debt" },
@@ -36,7 +36,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     
     // Medicare PPC templates
     if (templateValue === "cb-groc" || templateValue === "cb-ss" || 
-        templateValue === "eh-cb-groc" || templateValue === "eh-cb-ss") {
+        templateValue === "el-cb-groc" || templateValue === "el-cb-ss") {
       return "Medicare PPC";
     }
     // Debt PPC templates

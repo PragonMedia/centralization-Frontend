@@ -189,7 +189,7 @@ When clicking a domain, a modal opens showing:
 **Route Deletion**:
 
 - Confirmation modal before deletion
-- Deletes via DELETE to `/api/v1/deleteData`
+- Deletes via DELETE to `/api/v1/domain/{DOMAIN}/route/{ROUTE}`
 
 ### 5. API Integration
 
@@ -205,7 +205,7 @@ When clicking a domain, a modal opens showing:
 - `POST /data` - Get route data
 - `POST /route` - Create new route
 - `PUT /updateData` - Update route
-- `DELETE /deleteData` - Delete route
+- `DELETE /domain/{DOMAIN}/route/{ROUTE}` - Delete route
 
 **Ringba API Integration**:
 

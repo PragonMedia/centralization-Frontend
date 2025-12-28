@@ -27,7 +27,7 @@ export const API_ENDPOINTS = {
   ROUTES: {
     GET_DATA: `${API_CONFIG.BASE_URL}/data`,
     UPDATE_DATA: `${API_CONFIG.BASE_URL}/updateData`,
-    DELETE_DATA: `${API_CONFIG.BASE_URL}/deleteData`,
+    DELETE: (domain, route) => `${API_CONFIG.BASE_URL}/domain/${domain}/route/${route}`,
     CREATE: `${API_CONFIG.BASE_URL}/route`,
   },
   RINGBA: {
