@@ -30,7 +30,22 @@ const EliteDetails = {
 
 function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   // Vertical options
-  const verticals = ["Medicare PPC", "Debt PPC", "Sweeps", "Nutra", "Casino"];
+  const allVerticals = [
+    "Medicare PPC",
+    "Debt PPC",
+    "Sweeps",
+    "Nutra",
+    "Casino",
+  ];
+
+  // Filter verticals based on organization
+  // When Elite is selected, only show Medicare PPC
+  const getFilteredVerticals = () => {
+    if (formData.organization === "elite") {
+      return ["Medicare PPC"];
+    }
+    return allVerticals;
+  };
 
   // Template options by vertical - stored values (for DB) and display names
   const templatesByVertical = {
@@ -243,15 +258,50 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     setSelectedCampaign(campaignId);
     setSelectedMediaBuyerFromCampaign(""); // Reset media buyer selection
 
-    // If Elite organization is selected, don't fetch campaign details
-    // Use the hardcoded EliteDetails instead
+    // If Elite organization is selected
     if (formData.organization === "elite") {
-      setFormData((prev) => ({
-        ...prev,
-        ringbaID: EliteDetails.ringbaID,
-        phoneNumber: EliteDetails.phoneNumber,
-      }));
-      return;
+      // For CEO/TECH/ADMIN users, still fetch campaign details to show media buyers dropdown
+      // For mediaBuyer users, use EliteDetails directly
+      if (
+        currentUserRole === "tech" ||
+        currentUserRole === "ceo" ||
+        currentUserRole === "admin"
+      ) {
+        // Still fetch campaign details for CEO/TECH/ADMIN to populate media buyers
+        // But set EliteDetails for ringbaID and phoneNumber
+        setFormData((prev) => ({
+          ...prev,
+          ringbaID: EliteDetails.ringbaID,
+          phoneNumber: EliteDetails.phoneNumber,
+        }));
+
+        // For Medicare PPC and Debt PPC, fetch campaign details to get media buyers
+        if (
+          selectedVertical === "Medicare PPC" ||
+          selectedVertical === "Debt PPC"
+        ) {
+          fetchCampaignDetails(campaignId);
+          return;
+        }
+
+        // For other verticals, show all media buyers
+        if (selectedVertical) {
+          setMediaBuyers([
+            { name: "Jake Hunter" },
+            { name: "Addy Jaloudi" },
+            { name: "Sean Luc" },
+          ]);
+          return;
+        }
+      } else {
+        // For mediaBuyer users, use EliteDetails directly and don't fetch campaign details
+        setFormData((prev) => ({
+          ...prev,
+          ringbaID: EliteDetails.ringbaID,
+          phoneNumber: EliteDetails.phoneNumber,
+        }));
+        return;
+      }
     }
 
     // For Medicare PPC and Debt PPC, fetch campaign details to get media buyers from Ringba
@@ -589,7 +639,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   ]);
 
   // Function to fetch campaigns based on selected vertical
-  const fetchCampaigns = async (vertical) => {
+  const fetchCampaigns = async (vertical, organization = null) => {
+    // Use provided organization or fall back to formData.organization
+    const currentOrganization = organization || formData.organization;
     try {
       setIsLoadingCampaigns(true);
 
@@ -615,13 +667,46 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         // Extract campaigns array from the response
         const campaignsData = data.campaigns || [];
 
-        // Filter campaigns based on vertical
+        console.log("All campaigns from API:", campaignsData);
+        console.log("Current organization:", currentOrganization);
+        console.log("Selected vertical:", vertical);
+
+        // Filter campaigns based on vertical and organization
         let filteredCampaigns = [];
         if (vertical === "Medicare PPC") {
-          // Filter to only show "Paragon - Medicare" campaign
-          filteredCampaigns = campaignsData.filter(
-            (campaign) => campaign.name === "Paragon - Medicare"
-          );
+          // If Elite organization is selected, show "Elite - Medicare"
+          // Otherwise, show "Paragon - Medicare"
+          const isElite =
+            currentOrganization === "elite" ||
+            currentOrganization?.toLowerCase() === "elite";
+          console.log("Is Elite organization?", isElite);
+
+          if (isElite) {
+            // For Elite, use "Paragon - Medicare" campaign but display as "Elite - Medicare"
+            filteredCampaigns = campaignsData
+              .filter((campaign) => {
+                const matches =
+                  campaign.name === "Paragon - Medicare" ||
+                  campaign.name?.toLowerCase() === "paragon - medicare";
+                return matches;
+              })
+              .map((campaign) => ({
+                ...campaign,
+                name: "Elite - Medicare", // Change display name to "Elite - Medicare"
+              }));
+            console.log(
+              "Filtered Elite campaigns (displayed as Elite - Medicare):",
+              filteredCampaigns
+            );
+          } else {
+            filteredCampaigns = campaignsData.filter((campaign) => {
+              const matches =
+                campaign.name === "Paragon - Medicare" ||
+                campaign.name?.toLowerCase() === "paragon - medicare";
+              return matches;
+            });
+            console.log("Filtered Paragon campaigns:", filteredCampaigns);
+          }
         } else if (vertical === "Debt PPC") {
           // Filter to only show "Paragon - Debt" campaign
           filteredCampaigns = campaignsData.filter(
@@ -658,7 +743,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // Fetch campaigns for the selected vertical
     if (vertical) {
-      fetchCampaigns(vertical);
+      fetchCampaigns(vertical, formData.organization);
     } else {
       setCampaigns([]);
     }
@@ -794,12 +879,18 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       // Update ringbaID and phoneNumber based on organization
       if (value === "elite") {
         // Always use EliteDetails when Elite is selected
+        // Reset vertical to empty and let user select (but only Medicare PPC will be available)
+        setSelectedVertical("");
+        setSelectedCampaign("");
+        setSelectedMediaBuyerFromCampaign("");
+        setMediaBuyers([]);
         setFormData((prev) => ({
           ...prev,
           organization: value,
           template: newTemplate,
           ringbaID: EliteDetails.ringbaID,
           phoneNumber: EliteDetails.phoneNumber,
+          domain: "", // Reset domain
         }));
       } else {
         // For paragon media, use user-specific details
@@ -1193,7 +1284,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             required
           >
             <option value="">Select Vertical</option>
-            {verticals.map((vertical) => (
+            {getFilteredVerticals().map((vertical) => (
               <option key={vertical} value={vertical}>
                 {vertical}
               </option>
