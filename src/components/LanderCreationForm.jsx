@@ -52,6 +52,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-ss", label: "Chatbot Social Security" },
+      { value: "es-cb-groc", label: "Chatbot Grocery Spanish" },
+      { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
     ],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     Sweeps: [{ value: "sweep", label: "Sweep" }],
@@ -1549,11 +1551,23 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 ? "Please select a vertical first"
                 : "Select Template"}
             </option>
-            {(templatesByVertical[selectedVertical] || []).map((template) => (
-              <option key={template.value} value={template.value}>
-                {template.label}
-              </option>
-            ))}
+            {(() => {
+              // Filter templates based on organization
+              // Spanish templates (es-cb-*) should only show for Paragon Media, not Elite
+              const allTemplates = templatesByVertical[selectedVertical] || [];
+              const filteredTemplates =
+                formData.organization === "elite"
+                  ? allTemplates.filter(
+                      (template) => !template.value.startsWith("es-")
+                    )
+                  : allTemplates;
+
+              return filteredTemplates.map((template) => (
+                <option key={template.value} value={template.value}>
+                  {template.label}
+                </option>
+              ));
+            })()}
           </select>
         </div>
 

@@ -181,10 +181,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                   >
-                    <option value="">Select Organization</option>
-                    <option value="Elite">Elite</option>
+                    <option value="">Select an organization</option>
                     <option value="Paragon">Paragon</option>
-                    <option value="Fluent">Fluent</option>
+                    <option value="Elite">Elite</option>
                   </select>
                 </div>
 
@@ -216,9 +215,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                   >
-                    <option value="">Select Platform</option>
+                    <option value="">Select a platform</option>
                     <option value="Facebook">Facebook</option>
                     <option value="Google">Google</option>
+                    <option value="DV 360">DV 360</option>
                     <option value="Liftoff">Liftoff</option>
                     <option value="Bigo">Bigo</option>
                   </select>
