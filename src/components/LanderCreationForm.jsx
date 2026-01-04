@@ -282,7 +282,23 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           selectedVertical === "Medicare PPC" ||
           selectedVertical === "Debt PPC"
         ) {
-          fetchCampaignDetails(campaignId);
+          // Find the selected campaign to check its name
+          const selectedCampaignObj = campaigns.find(
+            (campaign) => campaign.id === campaignId
+          );
+          const campaignName = selectedCampaignObj?.name || "";
+
+          // If "Paragon - Spanish Medicare" is selected, use "Paragon - Medicare" as fallback
+          // since they share the same media buyers
+          let fallbackCampaignId = null;
+          if (campaignName === "Paragon - Spanish Medicare") {
+            const paragonMedicareCampaign = campaigns.find(
+              (campaign) => campaign.name === "Paragon - Medicare"
+            );
+            fallbackCampaignId = paragonMedicareCampaign?.id || null;
+          }
+
+          fetchCampaignDetails(campaignId, fallbackCampaignId);
           return;
         }
 
@@ -311,7 +327,23 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       selectedVertical === "Medicare PPC" ||
       selectedVertical === "Debt PPC"
     ) {
-      fetchCampaignDetails(campaignId);
+      // Find the selected campaign to check its name
+      const selectedCampaignObj = campaigns.find(
+        (campaign) => campaign.id === campaignId
+      );
+      const campaignName = selectedCampaignObj?.name || "";
+
+      // If "Paragon - Spanish Medicare" is selected, use "Paragon - Medicare" as fallback
+      // since they share the same media buyers
+      let fallbackCampaignId = null;
+      if (campaignName === "Paragon - Spanish Medicare") {
+        const paragonMedicareCampaign = campaigns.find(
+          (campaign) => campaign.name === "Paragon - Medicare"
+        );
+        fallbackCampaignId = paragonMedicareCampaign?.id || null;
+      }
+
+      fetchCampaignDetails(campaignId, fallbackCampaignId);
       return;
     }
 
@@ -326,7 +358,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     }
 
     // Fallback: fetch campaign details if no vertical is selected
-    fetchCampaignDetails(campaignId);
+    fetchCampaignDetails(campaignId, null);
   };
 
   // Function to handle media buyer selection from campaign
@@ -538,11 +570,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       ) {
         // For tech/ceo/admin users, filter based on selected media buyer
         if (selectedMediaBuyerFromCampaign) {
-          // Map media buyer names to emails
+          // Map media buyer names to emails (handle variations in names from Ringba API)
           const mediaBuyerEmailMap = {
             "Jake Hunter": "jake@paragonmedia.io",
+            Jake: "jake@paragonmedia.io", // Ringba API might return just "Jake"
             "Addy Jaloudi": "addy@paragonmedia.io",
+            Addy: "addy@paragonmedia.io", // Ringba API might return just "Addy"
             "Sean Luc": "sean@paragonmedia.io",
+            Sean: "sean@paragonmedia.io", // Ringba API might return just "Sean"
           };
 
           const selectedEmail =
@@ -677,7 +712,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         let filteredCampaigns = [];
         if (vertical === "Medicare PPC") {
           // If Elite organization is selected, show "Elite - Medicare"
-          // Otherwise, show "Paragon - Medicare"
+          // Otherwise, show "Paragon - Medicare" and "Paragon - Spanish Medicare"
           const isElite =
             currentOrganization === "elite" ||
             currentOrganization?.toLowerCase() === "elite";
@@ -701,10 +736,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               filteredCampaigns
             );
           } else {
+            // For Paragon Media, show both "Paragon - Medicare" and "Paragon - Spanish Medicare"
             filteredCampaigns = campaignsData.filter((campaign) => {
+              const campaignName = campaign.name?.toLowerCase() || "";
               const matches =
                 campaign.name === "Paragon - Medicare" ||
-                campaign.name?.toLowerCase() === "paragon - medicare";
+                campaignName === "paragon - medicare" ||
+                campaign.name === "Paragon - Spanish Medicare" ||
+                campaignName === "paragon - spanish medicare";
               return matches;
             });
             console.log("Filtered Paragon campaigns:", filteredCampaigns);
@@ -752,7 +791,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   };
 
   // Function to fetch campaign details and extract media buyers
-  const fetchCampaignDetails = async (campaignId) => {
+  const fetchCampaignDetails = async (
+    campaignId,
+    fallbackCampaignId = null
+  ) => {
     if (!campaignId) return;
 
     try {
@@ -786,10 +828,26 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         console.log("Extracted media buyers:", mediaBuyersArray);
         setMediaBuyers(mediaBuyersArray);
       } else {
+        // If no media buyers found and fallback is available, try fallback
+        if (fallbackCampaignId) {
+          console.log(
+            "No media buyers found, trying fallback campaign:",
+            fallbackCampaignId
+          );
+          return fetchCampaignDetails(fallbackCampaignId);
+        }
         setMediaBuyers([]);
       }
     } catch (error) {
       console.error("Error fetching campaign details:", error);
+      // If fetch failed and fallback is available, try fallback
+      if (fallbackCampaignId) {
+        console.log(
+          "Fetch failed, trying fallback campaign:",
+          fallbackCampaignId
+        );
+        return fetchCampaignDetails(fallbackCampaignId);
+      }
       setCampaignDetails(null);
       setMediaBuyers([]);
     }
@@ -1552,15 +1610,46 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 : "Select Template"}
             </option>
             {(() => {
-              // Filter templates based on organization
-              // Spanish templates (es-cb-*) should only show for Paragon Media, not Elite
+              // Filter templates based on selected campaign
               const allTemplates = templatesByVertical[selectedVertical] || [];
-              const filteredTemplates =
-                formData.organization === "elite"
-                  ? allTemplates.filter(
-                      (template) => !template.value.startsWith("es-")
-                    )
-                  : allTemplates;
+
+              // Find the selected campaign to get its name
+              const selectedCampaignObj = campaigns.find(
+                (campaign) => campaign.id === selectedCampaign
+              );
+              const campaignName = selectedCampaignObj?.name || "";
+
+              let filteredTemplates = [];
+
+              if (selectedVertical === "Medicare PPC") {
+                if (campaignName === "Paragon - Medicare") {
+                  // For "Paragon - Medicare", show only cb-groc and cb-ss
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "cb-groc" || template.value === "cb-ss"
+                  );
+                } else if (campaignName === "Paragon - Spanish Medicare") {
+                  // For "Paragon - Spanish Medicare", show only es-cb-groc and es-cb-ss
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "es-cb-groc" ||
+                      template.value === "es-cb-ss"
+                  );
+                } else if (campaignName === "Elite - Medicare") {
+                  // For "Elite - Medicare", show only cb-groc and cb-ss
+                  // (these will be transformed to el-cb-groc and el-cb-ss at submission time)
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "cb-groc" || template.value === "cb-ss"
+                  );
+                } else {
+                  // Fallback: show all templates (for other campaigns or if campaign not selected)
+                  filteredTemplates = allTemplates;
+                }
+              } else {
+                // For other verticals, show all templates
+                filteredTemplates = allTemplates;
+              }
 
               return filteredTemplates.map((template) => (
                 <option key={template.value} value={template.value}>
