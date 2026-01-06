@@ -135,24 +135,79 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return;
       }
 
-      // Get user's full name
-      const userFullName = `${userData.firstName} ${userData.lastName}`;
-      console.log("Looking for user:", userFullName);
+      // Get user's name variations for flexible matching
+      const firstName = (userData.firstName || "").trim();
+      const lastName = (userData.lastName || "").trim();
+      const userFullName = `${firstName} ${lastName}`.trim();
+      const userFirstName = firstName;
 
-      // Find matching media buyer in jsTags
-      const matchingMediaBuyer = mediaBuyers.find(
-        (buyer) => buyer.name === userFullName
+      console.log("Looking for user with flexible matching:", {
+        fullName: userFullName,
+        firstName: userFirstName,
+        availableMediaBuyers: mediaBuyers.map((b) => b.name),
+      });
+
+      // Try multiple matching strategies:
+      // 1. Exact match (full name)
+      // 2. First name match (case-insensitive)
+      // 3. Partial match (name contains first name, case-insensitive)
+      let matchingMediaBuyer = null;
+
+      // Strategy 1: Exact match
+      matchingMediaBuyer = mediaBuyers.find(
+        (buyer) => buyer.name && buyer.name.trim() === userFullName
       );
 
+      // Strategy 2: First name match (case-insensitive)
+      if (!matchingMediaBuyer && userFirstName) {
+        matchingMediaBuyer = mediaBuyers.find(
+          (buyer) =>
+            buyer.name &&
+            buyer.name.trim().toLowerCase() === userFirstName.toLowerCase()
+        );
+      }
+
+      // Strategy 3: Partial match - Ringba name contains first name (case-insensitive)
+      if (!matchingMediaBuyer && userFirstName) {
+        matchingMediaBuyer = mediaBuyers.find(
+          (buyer) =>
+            buyer.name &&
+            buyer.name
+              .trim()
+              .toLowerCase()
+              .includes(userFirstName.toLowerCase())
+        );
+      }
+
+      // Strategy 4: Reverse partial match - first name contains Ringba name (case-insensitive)
+      if (!matchingMediaBuyer && userFirstName) {
+        matchingMediaBuyer = mediaBuyers.find(
+          (buyer) =>
+            buyer.name &&
+            userFirstName
+              .toLowerCase()
+              .includes(buyer.name.trim().toLowerCase())
+        );
+      }
+
       if (matchingMediaBuyer) {
-        console.log("Found matching media buyer:", matchingMediaBuyer);
+        console.log("Found matching media buyer with flexible matching:", {
+          matchedName: matchingMediaBuyer.name,
+          userFullName: userFullName,
+          campaignId: matchingMediaBuyer.campaignId,
+          e164Number: matchingMediaBuyer.e164Number,
+        });
         setFormData((prev) => ({
           ...prev,
           ringbaID: matchingMediaBuyer.campaignId,
           phoneNumber: matchingMediaBuyer.e164Number,
         }));
       } else {
-        console.log("No matching media buyer found for:", userFullName);
+        console.warn("No matching media buyer found for:", {
+          userFullName: userFullName,
+          firstName: userFirstName,
+          availableNames: mediaBuyers.map((b) => b.name),
+        });
       }
     },
     [campaignDetails, mediaBuyers, formData.organization]
