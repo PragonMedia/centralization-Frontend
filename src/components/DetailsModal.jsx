@@ -1,6 +1,6 @@
 import React from "react";
 
-const DetailsModal = ({ isOpen, onClose, routeData, domainName, domainRtkID }) => {
+const DetailsModal = ({ isOpen, onClose, routeData, domainName }) => {
   if (!isOpen || !routeData) return null;
 
   const formatDate = (dateString) => {
@@ -17,7 +17,6 @@ const DetailsModal = ({ isOpen, onClose, routeData, domainName, domainRtkID }) =
     { label: "Route", value: routeData.route || "N/A" },
     { label: "Template", value: routeData.template || "N/A" },
     { label: "Platform", value: routeData.platform || "N/A" },
-    { label: "RTK ID", value: domainRtkID || "N/A" }, // RTK ID comes from domain level, not route
     { label: "Ringba ID", value: routeData.ringbaID || "N/A" },
     { label: "Phone Number", value: routeData.phoneNumber || "N/A" },
     { label: "Created At", value: formatDate(routeData.createdAt) },

@@ -8,8 +8,11 @@ const DomainFilters = ({
   selectedPlatform,
   setSelectedPlatform,
   selectedMediaBuyer,
-  // setSelectedMediaBuyer, // Not used in this component
-  // getMediaBuyerName, // Not used in this component
+  setSelectedMediaBuyer,
+  getMediaBuyerName,
+  availableMediaBuyers = [],
+  availablePlatforms = [],
+  currentUserRole,
   onClearFilters,
 }) => {
   return (
@@ -122,65 +125,104 @@ const DomainFilters = ({
         </div>
 
         {/* Platform Filter */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">
-                Platform:
-              </span>
+        {availablePlatforms.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Platform:
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedPlatform("")}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                  !selectedPlatform
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                }`}
+              >
+                All Platforms
+              </button>
+              {availablePlatforms.map((platform) => {
+                // Get color based on platform name
+                const getPlatformColor = (platformName) => {
+                  const name = platformName?.toLowerCase() || "";
+                  if (name === "google") {
+                    return "bg-red-100 text-red-700 border border-red-200";
+                  } else if (name === "liftoff") {
+                    return "bg-green-100 text-green-700 border border-green-200";
+                  } else if (name === "bigo") {
+                    return "bg-purple-100 text-purple-700 border border-purple-200";
+                  } else if (name === "facebook") {
+                    return "bg-blue-100 text-blue-700 border border-blue-200";
+                  } else if (name === "dv 360" || name === "dv360") {
+                    return "bg-indigo-100 text-indigo-700 border border-indigo-200";
+                  }
+                  // Default color
+                  return "bg-gray-100 text-gray-700 border border-gray-200";
+                };
+
+                return (
+                  <button
+                    key={platform}
+                    onClick={() =>
+                      setSelectedPlatform(
+                        selectedPlatform === platform ? "" : platform
+                      )
+                    }
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                      selectedPlatform === platform
+                        ? getPlatformColor(platform)
+                        : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                    }`}
+                  >
+                    {platform}
+                  </button>
+                );
+              })}
             </div>
-            <button
-              onClick={() => setSelectedPlatform("")}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                !selectedPlatform
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              All Platforms
-            </button>
-            <button
-              onClick={() => setSelectedPlatform("Facebook")}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                selectedPlatform === "Facebook"
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              Facebook
-            </button>
-            <button
-              onClick={() => setSelectedPlatform("Google")}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                selectedPlatform === "Google"
-                  ? "bg-red-100 text-red-700 border border-red-200"
-                  : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              Google
-            </button>
-            <button
-              onClick={() => setSelectedPlatform("Liftoff")}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                selectedPlatform === "Liftoff"
-                  ? "bg-green-100 text-green-700 border border-green-200"
-                  : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              Liftoff
-            </button>
-            <button
-              onClick={() => setSelectedPlatform("Bigo")}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                selectedPlatform === "Bigo"
-                  ? "bg-purple-100 text-purple-700 border border-purple-200"
-                  : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              Bigo
-            </button>
           </div>
-        </div>
+        )}
+
+        {/* Media Buyer Filter - Only show for Tech/CEO/Admin users */}
+        {availableMediaBuyers.length > 0 && currentUserRole !== "mediaBuyer" && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Media Buyer:
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedMediaBuyer("")}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                  !selectedMediaBuyer
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                }`}
+              >
+                All Media Buyers
+              </button>
+              {availableMediaBuyers.map((email) => (
+                <button
+                  key={email}
+                  onClick={() =>
+                    setSelectedMediaBuyer(
+                      selectedMediaBuyer === email ? "" : email
+                    )
+                  }
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                    selectedMediaBuyer === email
+                      ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
+                      : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                  }`}
+                >
+                  {getMediaBuyerName ? getMediaBuyerName(email) : email}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Clear Filters Button */}
         <div className="mt-4 pt-4 border-t border-gray-200">

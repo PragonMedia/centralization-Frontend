@@ -10,7 +10,6 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
     organization: "Paragon", // Default to match API default
     id: "",
     platform: "",
-    certificationTags: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -52,16 +51,6 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
         domain: value + ".com",
       }));
     }
-  };
-
-  const handleCertificationChange = (e) => {
-    const { value, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      certificationTags: checked
-        ? [...prev.certificationTags, value]
-        : prev.certificationTags.filter((tag) => tag !== value),
-    }));
   };
 
   // Check ID uniqueness
@@ -176,7 +165,6 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
         organization: "Paragon",
         id: "",
         platform: "",
-        certificationTags: [],
       });
 
       // Show success modal
@@ -278,6 +266,26 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                Platform <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="platform"
+                value={formData.platform}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                disabled={isSubmitting}
+              >
+                    <option value="">Select a platform</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Google">Google</option>
+                    <option value="DV 360">DV 360</option>
+                    <option value="Bigo">Bigo</option>
+                  </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 ID <span className="text-red-500">*</span>
               </label>
               <input
@@ -295,57 +303,6 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
               {idError && (
                 <p className="text-red-500 text-sm mt-1">{idError}</p>
               )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Platform <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="platform"
-                value={formData.platform}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-                disabled={isSubmitting}
-              >
-                <option value="">Select a platform</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Google">Google</option>
-                <option value="DV 360">DV 360</option>
-                <option value="Liftoff">Liftoff</option>
-                <option value="Bigo">Bigo</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Certification Tags
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    value="G2"
-                    checked={formData.certificationTags.includes("G2")}
-                    onChange={handleCertificationChange}
-                    className="mr-2 w-4 h-4 text-blue-600 bg-white border border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-gray-700">G2</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    value="Political"
-                    checked={formData.certificationTags.includes("Political")}
-                    onChange={handleCertificationChange}
-                    className="mr-2 w-4 h-4 text-blue-600 bg-white border border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-gray-700">Political</span>
-                </label>
-              </div>
             </div>
 
             {error && (

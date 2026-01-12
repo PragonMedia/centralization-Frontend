@@ -127,7 +127,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
         )}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">
-            Edit {type === "domain" ? "Domain" : "Route"}
+            {type === "domain" && initialData?.isRtkIDOnly
+              ? "Edit RT ID"
+              : `Edit ${type === "domain" ? "Domain" : "Route"}`}
           </h2>
           <button
             onClick={onClose}
@@ -151,7 +153,24 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
 
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {type === "domain" ? (
+            {type === "domain" && initialData?.isRtkIDOnly ? (
+              // RT ID Only Edit (for mediaBuyers)
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  RT Campaign ID
+                </label>
+                <input
+                  type="text"
+                  name="rtkID"
+                  value={formData.rtkID || ""}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  placeholder={initialData?.rtkID || "Enter RT Campaign ID"}
+                  required
+                />
+              </div>
+            ) : type === "domain" ? (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,9 +238,23 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     <option value="Facebook">Facebook</option>
                     <option value="Google">Google</option>
                     <option value="DV 360">DV 360</option>
-                    <option value="Liftoff">Liftoff</option>
                     <option value="Bigo">Bigo</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    RT Campaign ID
+                  </label>
+                  <input
+                    type="text"
+                    name="rtkID"
+                    value={formData.rtkID || ""}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder={initialData?.rtkID || "Enter RT Campaign ID"}
+                  />
                 </div>
 
                 <div>
@@ -315,21 +348,6 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    RTK ID
-                  </label>
-                  <input
-                    type="text"
-                    name="rtkID"
-                    value={formData.rtkID || ""}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    placeholder="Enter RTK ID"
-                  />
                 </div>
               </>
             )}

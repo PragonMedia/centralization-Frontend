@@ -9,7 +9,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import ErrorMessage from "./ErrorMessage";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { cachedFetch, CACHE_CONFIG } from "../utils/cache.js";
-import { filterDomains } from "../utils/domainFilters.js";
+import { filterDomains, getFilterOptions } from "../utils/domainFilters.js";
 
 function DomainsName() {
   const [domainData, setDomainData] = useState(null); // Start with null to show loading state
@@ -88,16 +88,9 @@ function DomainsName() {
         (d) => d.domain === selectedDomain.domain
       );
       if (updatedDomain) {
-        // Only update if the domain object has actually changed
-        // Compare routes to detect changes
-        const currentRoutes = JSON.stringify(selectedDomain.routes || []);
-        const updatedRoutes = JSON.stringify(updatedDomain.routes || []);
-        if (currentRoutes !== updatedRoutes || 
-            selectedDomain.id !== updatedDomain.id ||
-            selectedDomain.organization !== updatedDomain.organization ||
-            selectedDomain.platform !== updatedDomain.platform) {
-          setSelectedDomain(updatedDomain);
-        }
+        // Always update to ensure modal shows latest data after edits
+        // This ensures rtkID and other field changes are reflected immediately
+        setSelectedDomain(updatedDomain);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +123,9 @@ function DomainsName() {
         selectedMediaBuyer,
       })
     : [];
+
+  // Get available filter options (including media buyers)
+  const filterOptions = domainData ? getFilterOptions(domainData) : { mediaBuyers: [] };
 
   // Debug logging
   console.log("Filtering Debug:", {
@@ -198,7 +194,7 @@ function DomainsName() {
   const shouldShowMediaBuyerColumn = () => {
     const currentUser = getCurrentUser();
     return (
-      currentUser && (currentUser.role === "tech" || currentUser.role === "ceo")
+      currentUser && (currentUser.role === "tech" || currentUser.role === "ceo" || currentUser.role === "admin")
     );
   };
 
@@ -266,9 +262,9 @@ function DomainsName() {
               variant="error"
             />
           </div>
-        ) : Array.isArray(filteredDomains) && filteredDomains.length > 0 ? (
+        ) : (
           <>
-            {/* Search & Filter Bar */}
+            {/* Search & Filter Bar - Always visible */}
             <DomainFilters
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
@@ -279,93 +275,98 @@ function DomainsName() {
               selectedMediaBuyer={selectedMediaBuyer}
               setSelectedMediaBuyer={setSelectedMediaBuyer}
               getMediaBuyerName={getMediaBuyerName}
+              availableMediaBuyers={filterOptions.mediaBuyers}
+              availablePlatforms={filterOptions.platforms}
+              currentUserRole={getCurrentUser()?.role}
               onClearFilters={clearAllFilters}
             />
 
-            {/* Domain Table */}
-            <DomainTable
-              filteredDomains={filteredDomains}
-              shouldShowMediaBuyerColumn={shouldShowMediaBuyerColumn()}
-              getOrganizationColor={getOrganizationColor}
-              getCertificationColor={getCertificationColor}
-              getMediaBuyerName={getMediaBuyerName}
-              handleDomainClick={handleDomainClick}
-              handleMediaBuyerClick={handleMediaBuyerClick}
-              selectedMediaBuyer={selectedMediaBuyer}
-            />
-          </>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-            </div>
-            <p className="text-gray-600 text-lg mb-4">
-              {searchTerm
-                ? `No domains found matching "${searchTerm}"`
-                : selectedMediaBuyer
-                ? `No domains found for ${getMediaBuyerName(
-                    selectedMediaBuyer
-                  )} yet`
-                : selectedOrganization && selectedPlatform
-                ? `No domains found for ${selectedOrganization} organization on ${selectedPlatform} platform yet`
-                : selectedOrganization
-                ? `No domains found for ${selectedOrganization} organization yet`
-                : selectedPlatform
-                ? `No domains found for ${selectedPlatform} platform yet`
-                : "No domains found"}
-            </p>
-            {(searchTerm ||
-              selectedOrganization ||
-              selectedPlatform ||
-              selectedMediaBuyer) && (
-              <div className="flex gap-3 justify-center flex-wrap">
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+            {/* Domain Table or Empty State */}
+            {Array.isArray(filteredDomains) && filteredDomains.length > 0 ? (
+              <DomainTable
+                filteredDomains={filteredDomains}
+                shouldShowMediaBuyerColumn={shouldShowMediaBuyerColumn()}
+                getOrganizationColor={getOrganizationColor}
+                getCertificationColor={getCertificationColor}
+                getMediaBuyerName={getMediaBuyerName}
+                handleDomainClick={handleDomainClick}
+                handleMediaBuyerClick={handleMediaBuyerClick}
+                selectedMediaBuyer={selectedMediaBuyer}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-8 h-8 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Clear Search
-                  </button>
-                )}
-                {selectedOrganization && (
-                  <button
-                    onClick={() => setSelectedOrganization("")}
-                    className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Show All Organizations
-                  </button>
-                )}
-                {selectedPlatform && (
-                  <button
-                    onClick={() => setSelectedPlatform("")}
-                    className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Show All Platforms
-                  </button>
-                )}
-                {selectedMediaBuyer && (
-                  <button
-                    onClick={() => setSelectedMediaBuyer("")}
-                    className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Show All Media Buyers
-                  </button>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-lg mb-4">
+                  {searchTerm
+                    ? `No domains found matching "${searchTerm}"`
+                    : selectedMediaBuyer
+                    ? `No domains found for ${getMediaBuyerName(
+                        selectedMediaBuyer
+                      )} yet`
+                    : selectedOrganization && selectedPlatform
+                    ? `No domains found for ${selectedOrganization} organization on ${selectedPlatform} platform yet`
+                    : selectedOrganization
+                    ? `No domains found for ${selectedOrganization} organization yet`
+                    : selectedPlatform
+                    ? `No domains found for ${selectedPlatform} platform yet`
+                    : "No domains found"}
+                </p>
+                {(searchTerm ||
+                  selectedOrganization ||
+                  selectedPlatform ||
+                  selectedMediaBuyer) && (
+                  <div className="flex gap-3 justify-center flex-wrap">
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Clear Search
+                      </button>
+                    )}
+                    {selectedOrganization && (
+                      <button
+                        onClick={() => setSelectedOrganization("")}
+                        className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
+                      >
+                        Show All Organizations
+                      </button>
+                    )}
+                    {selectedPlatform && (
+                      <button
+                        onClick={() => setSelectedPlatform("")}
+                        className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
+                      >
+                        Show All Platforms
+                      </button>
+                    )}
+                    {selectedMediaBuyer && (
+                      <button
+                        onClick={() => setSelectedMediaBuyer("")}
+                        className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
+                      >
+                        Show All Media Buyers
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 

@@ -23,16 +23,18 @@ const DomainPopupModal = ({
   const [deletingItem, setDeletingItem] = useState(null);
   const [copiedUrl, setCopiedUrl] = useState(null);
 
-  // Auto-close success modal after 5 seconds
+  // Auto-close success modal after 3 seconds and refresh data
   useEffect(() => {
     if (showSuccessModal) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         setShowSuccessModal(false);
         setSuccessMessage("");
-      }, 5000);
+        // Refresh data to ensure latest domain info is shown
+        await refreshData();
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [showSuccessModal]);
+  }, [showSuccessModal, refreshData]);
 
   if (!isOpen || !domain) return null;
 
@@ -60,6 +62,16 @@ const DomainPopupModal = ({
   const canEditDomains = () => {
     const currentUser = getCurrentUser();
     return currentUser && currentUser.role !== "mediaBuyer";
+  };
+
+  // Check if mediaBuyer can edit RT ID (only for domains assigned to them)
+  const canEditRtkID = () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return false;
+    if (currentUser.role === "mediaBuyer") {
+      return domain.assignedTo === currentUser.email;
+    }
+    return false;
   };
 
   // Check if current user can edit routes
@@ -111,9 +123,20 @@ const DomainPopupModal = ({
       organization: domain.organization,
       id: domain.id,
       platform: domain.platform,
+      rtkID: domain.rtkID || "",
       certificationTags: domain.certificationTags || [],
       assignedTo: domain.assignedTo || domain.createdBy,
       isDomain: true,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleRtkIDEdit = () => {
+    setEditingRoute({
+      domain: domain.domain,
+      rtkID: domain.rtkID || "",
+      isDomain: true,
+      isRtkIDOnly: true, // Flag to show only RT ID field
     });
     setShowEditModal(true);
   };
@@ -198,6 +221,14 @@ const DomainPopupModal = ({
               </div>
               <div className="mt-4">
                 <label className="text-sm font-medium text-gray-500">
+                  RTK ID
+                </label>
+                <p className="text-lg font-semibold text-gray-900 break-all">
+                  {domain.rtkID || "N/A"}
+                </p>
+              </div>
+              <div className="mt-4">
+                <label className="text-sm font-medium text-gray-500">
                   Certification Tags
                 </label>
                 <div className="flex flex-wrap gap-2 mt-1">
@@ -232,6 +263,18 @@ const DomainPopupModal = ({
                   className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
                   Delete Domain
+                </button>
+              </div>
+            )}
+
+            {/* Media Buyer RT ID Edit Button */}
+            {canEditRtkID() && (
+              <div className="mb-6 flex gap-3">
+                <button
+                  onClick={handleRtkIDEdit}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Edit RT ID
                 </button>
               </div>
             )}
@@ -322,15 +365,7 @@ const DomainPopupModal = ({
                         Template: {route.template || "N/A"}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                        <div>
-                          <label className="font-medium text-gray-500">
-                            RTK ID:
-                          </label>
-                          <p className="text-gray-900">
-                            {domain.rtkID || "N/A"}
-                          </p>
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                         <div>
                           <label className="font-medium text-gray-500">
                             Ringba ID:
@@ -386,52 +421,110 @@ const DomainPopupModal = ({
             setIsEditing(true);
             try {
               if (editingRoute?.isDomain) {
-                // Handle domain editing
-                const updateData = {
-                  oldDomain: domain.domain, // Current domain name
-                  newDomain: data.domain, // New domain name from form
-                  oldOrganization: domain.organization,
-                  newOrganization: data.organization,
-                  oldId: domain.id,
-                  newId: data.id,
-                  oldPlatform: domain.platform,
-                  newPlatform: data.platform,
-                  oldCertificationTags: domain.certificationTags || [],
-                  newCertificationTags: Array.isArray(data.certificationTags) 
-                    ? data.certificationTags 
-                    : [],
-                  oldAssignedTo: domain.assignedTo || domain.createdBy,
-                  newAssignedTo: data.assignedTo,
-                };
+                // Check if this is RT ID only edit (for mediaBuyers)
+                if (editingRoute?.isRtkIDOnly) {
+                  // RT ID only update (for mediaBuyers)
+                  const updateData = {
+                    oldDomain: domain.domain,
+                    newDomain: domain.domain, // Keep same domain
+                    oldOrganization: domain.organization,
+                    newOrganization: domain.organization, // Keep same organization
+                    oldId: domain.id,
+                    newId: domain.id, // Keep same ID
+                    oldPlatform: domain.platform,
+                    newPlatform: domain.platform, // Keep same platform
+                    oldRtkID: domain.rtkID || "",
+                    newRtkID: data.rtkID || "",
+                    oldCertificationTags: domain.certificationTags || [],
+                    newCertificationTags: domain.certificationTags || [], // Keep same tags
+                    oldAssignedTo: domain.assignedTo || domain.createdBy,
+                    newAssignedTo: domain.assignedTo || domain.createdBy, // Keep same assignedTo
+                  };
 
-                console.log("Sending domain update data to API:", updateData);
+                  console.log("Sending RT ID only update data to API:", updateData);
 
-                const response = await fetch(API_ENDPOINTS.DOMAINS.UPDATE, {
-                  method: "PUT",
-                  headers: getAuthHeaders(),
-                  body: JSON.stringify(updateData),
-                });
+                  const response = await fetch(API_ENDPOINTS.DOMAINS.UPDATE, {
+                    method: "PUT",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(updateData),
+                  });
 
-                if (!response.ok) {
-                  let errorMessage = `Failed to update domain: ${response.statusText}`;
-                  try {
-                    const errorData = await response.json();
-                    console.error("API Error Response:", errorData);
-                    errorMessage = errorData.error || errorData.message || errorMessage;
-                  } catch (parseError) {
-                    const errorText = await response.text();
-                    console.error("Error response text:", errorText);
-                    errorMessage = errorText || errorMessage;
+                  if (!response.ok) {
+                    let errorMessage = `Failed to update RT Campaign ID: ${response.statusText}`;
+                    try {
+                      const errorData = await response.json();
+                      console.error("API Error Response:", errorData);
+                      errorMessage = errorData.error || errorData.message || errorMessage;
+                    } catch (parseError) {
+                      const errorText = await response.text();
+                      console.error("Error response text:", errorText);
+                      errorMessage = errorText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
                   }
-                  throw new Error(errorMessage);
-                }
 
-                const result = await response.json();
-                console.log("Domain updated successfully:", result);
-                
-                // Show success modal
-                setSuccessMessage("Edit successful");
-                setShowSuccessModal(true);
+                  const result = await response.json();
+                  console.log("RT Campaign ID updated successfully:", result);
+                  
+                  // Close edit modal
+                  setShowEditModal(false);
+                  setEditingRoute(null);
+                  
+                  // Refresh data to get updated domain info
+                  await refreshData();
+                } else {
+                  // Full domain editing (for Tech/CEO/Admin)
+                  const updateData = {
+                    oldDomain: domain.domain, // Current domain name
+                    newDomain: data.domain, // New domain name from form
+                    oldOrganization: domain.organization,
+                    newOrganization: data.organization,
+                    oldId: domain.id,
+                    newId: data.id,
+                    oldPlatform: domain.platform,
+                    newPlatform: data.platform,
+                    oldRtkID: domain.rtkID || "",
+                    newRtkID: data.rtkID || "",
+                    oldCertificationTags: domain.certificationTags || [],
+                    newCertificationTags: Array.isArray(data.certificationTags) 
+                      ? data.certificationTags 
+                      : [],
+                    oldAssignedTo: domain.assignedTo || domain.createdBy,
+                    newAssignedTo: data.assignedTo,
+                  };
+
+                  console.log("Sending domain update data to API:", updateData);
+
+                  const response = await fetch(API_ENDPOINTS.DOMAINS.UPDATE, {
+                    method: "PUT",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(updateData),
+                  });
+
+                  if (!response.ok) {
+                    let errorMessage = `Failed to update domain: ${response.statusText}`;
+                    try {
+                      const errorData = await response.json();
+                      console.error("API Error Response:", errorData);
+                      errorMessage = errorData.error || errorData.message || errorMessage;
+                    } catch (parseError) {
+                      const errorText = await response.text();
+                      console.error("Error response text:", errorText);
+                      errorMessage = errorText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                  }
+
+                  const result = await response.json();
+                  console.log("Domain updated successfully:", result);
+                  
+                  // Close edit modal
+                  setShowEditModal(false);
+                  setEditingRoute(null);
+                  
+                  // Refresh data to get updated domain info
+                  await refreshData();
+                }
               } else {
                 // Handle route editing
                 const updateData = {
@@ -440,8 +533,6 @@ const DomainPopupModal = ({
                   newRoute: data.route, // New route path from form
                   oldTemplate: editingRoute.template,
                   newTemplate: data.template,
-                  oldRtkID: editingRoute.rtkID,
-                  newRtkID: data.rtkID,
                   organization: editingRoute.organization || "paragon media",
                   ringbaID: editingRoute.ringbaID,
                   phoneNumber: editingRoute.phoneNumber,
@@ -477,17 +568,16 @@ const DomainPopupModal = ({
                 const result = await response.json();
                 console.log("Route updated successfully:", result);
                 
-                // Show success modal
-                setSuccessMessage("Edit successful");
-                setShowSuccessModal(true);
+                // Close edit modal
+                setShowEditModal(false);
+                setEditingRoute(null);
+                
+                // Refresh data to get updated route info
+                await refreshData();
+                
+                // Keep domain details modal open to show updated route info
+                // Success is indicated by the refresh
               }
-
-              // Close modal and refresh data
-              setShowEditModal(false);
-              setEditingRoute(null);
-              
-              // Refresh data - parent will update selectedDomain
-              await refreshData();
             } catch (error) {
               console.error("Error updating:", error);
               alert(`Error: ${error.message}`);
@@ -514,7 +604,6 @@ const DomainPopupModal = ({
           }}
           routeData={viewingRoute}
           domainName={domain.domain}
-          domainRtkID={domain.rtkID}
         />
       )}
 
@@ -619,9 +708,11 @@ const DomainPopupModal = ({
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900">Success</h3>
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowSuccessModal(false);
                   setSuccessMessage("");
+                  // Refresh data one more time to ensure latest data is shown
+                  await refreshData();
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >

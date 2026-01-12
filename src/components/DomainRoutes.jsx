@@ -121,8 +121,6 @@ function DomainRoutes({ title, answer, refreshData, organization, domainRtkID })
         newRoute: formData.route, // New route value
         template: editingRoute.template, // Old template
         newTemplate: formData.template, // New template
-        rtkID: editingRoute.rtkID, // Old RTK ID
-        newRtkID: formData.rtkID, // New RTK ID
         organization: organization,
         ringbaID: editingRoute.ringbaID,
         phoneNumber: editingRoute.phoneNumber,
@@ -331,15 +329,7 @@ function DomainRoutes({ title, answer, refreshData, organization, domainRtkID })
                       </div>
 
                       {/* Route Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                        <div className="bg-white p-3 rounded-lg border border-gray-200">
-                          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                            RTK ID
-                          </p>
-                          <p className="text-sm font-medium text-gray-900 font-mono">
-                            {domainRtkID || "N/A"}
-                          </p>
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div className="bg-white p-3 rounded-lg border border-gray-200">
                           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                             Ringba ID
@@ -441,7 +431,6 @@ function DomainRoutes({ title, answer, refreshData, organization, domainRtkID })
         onClose={() => setShowDetailsModal(false)}
         routeData={selectedRouteForDetails}
         domainName={title}
-        domainRtkID={domainRtkID}
       />
 
       <DeleteConfirmationModal

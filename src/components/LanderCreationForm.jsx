@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import TemplatePreview from "./TemplatePreview";
+import EditModal from "./EditModal";
 import {
   API_ENDPOINTS,
   getAuthHeaders,
@@ -93,6 +94,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
   const [url, setURL] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showRtkIDEditModal, setShowRtkIDEditModal] = useState(false);
+  const [isUpdatingRtkID, setIsUpdatingRtkID] = useState(false);
   const [availableDomains, setAvailableDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const [formData, setFormData] = useState({
@@ -107,6 +110,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     platform: "",
   });
   const [currentUserRole, setCurrentUserRole] = useState("");
+  const [selectedDomainHasRtkID, setSelectedDomainHasRtkID] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState("");
@@ -533,7 +537,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           alert("Please select a template");
           return false;
         }
-        if (!formData.rtkID) {
+        // Only require rtkID if domain doesn't already have one
+        if (!selectedDomainHasRtkID && !formData.rtkID) {
           alert("Please enter RT Campaign ID");
           return false;
         }
@@ -575,7 +580,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       alert("Please select a template");
       return false;
     }
-    if (!formData.rtkID) {
+    // Only require rtkID if domain doesn't already have one
+    if (!selectedDomainHasRtkID && !formData.rtkID) {
       alert("Please enter RT Campaign ID");
       return false;
     }
@@ -1140,6 +1146,15 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
+    // Get rtkID from domain if available, otherwise use form input
+    const domainRtkID = formData.domain
+      ? availableDomains.find((d) => d.domain === formData.domain)?.rtkID || ""
+      : "";
+    const finalRtkID =
+      domainRtkID && domainRtkID.trim() !== ""
+        ? domainRtkID
+        : formData.rtkID || "";
+
     // Sanitize and validate form data
     const sanitizedFormData = {
       organization: normalizedOrg,
@@ -1147,7 +1162,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       route: sanitizeInput.route(formData.route || ""),
       template: templateValue,
       platform: sanitizeInput.text(formData.platform || selectedPlatform || ""),
-      rtkID: sanitizeInput.id(formData.rtkID || ""),
+      rtkID: sanitizeInput.id(finalRtkID), // Use domain's rtkID if available
       ringbaID: sanitizeInput.id(formData.ringbaID || ""),
       phoneNumber: sanitizeInput.phone(formData.phoneNumber || ""),
       createdBy: sanitizeInput.email(
@@ -1186,7 +1201,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
 
-    if (!validateInput.required(sanitizedFormData.rtkID)) {
+    // Validate rtkID - use finalRtkID which includes domain's rtkID if available
+    if (!finalRtkID || finalRtkID.trim() === "") {
       alert("Please enter a valid RTK ID");
       return;
     }
@@ -1263,6 +1279,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       invalidateCache.domains();
 
       // Reset form
+      setSelectedDomainHasRtkID(false);
       setFormData({
         organization: "paragon media",
         domain: "",
@@ -1506,9 +1523,24 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             <input
               type="text"
               value={formData.domain}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, domain: e.target.value }))
-              }
+              onChange={(e) => {
+                const domainValue = e.target.value;
+                // Check if the typed domain exists and has rtkID
+                const matchedDomain = availableDomains.find(
+                  (d) => d.domain === domainValue
+                );
+                const hasRtkID =
+                  matchedDomain?.rtkID && matchedDomain.rtkID.trim() !== "";
+                setSelectedDomainHasRtkID(hasRtkID);
+
+                setFormData((prev) => ({
+                  ...prev,
+                  domain: domainValue,
+                  rtkID: hasRtkID
+                    ? matchedDomain.rtkID || prev.rtkID
+                    : prev.rtkID,
+                }));
+              }}
               onFocus={() => setShowDomainDropdown(true)}
               onBlur={() => {
                 // Delay hiding dropdown to allow clicks on options
@@ -1551,10 +1583,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       key={index}
                       className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                       onClick={() => {
+                        // Check if domain has rtkID and auto-populate it
+                        const hasRtkID =
+                          domain.rtkID && domain.rtkID.trim() !== "";
+                        setSelectedDomainHasRtkID(hasRtkID);
+
                         setFormData((prev) => ({
                           ...prev,
                           domain: domain.domain,
                           platform: domain.platform || prev.platform,
+                          rtkID: hasRtkID ? domain.rtkID : prev.rtkID, // Use domain's rtkID if available
                         }));
                         setSelectedPlatform(domain.platform || "");
                         setShowDomainDropdown(false);
@@ -1576,10 +1614,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       key={index}
                       className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                       onClick={() => {
+                        // Check if domain has rtkID and auto-populate it
+                        const hasRtkID =
+                          domain.rtkID && domain.rtkID.trim() !== "";
+                        setSelectedDomainHasRtkID(hasRtkID);
+
                         setFormData((prev) => ({
                           ...prev,
                           domain: domain.domain,
                           platform: domain.platform || prev.platform,
+                          rtkID: hasRtkID ? domain.rtkID : prev.rtkID, // Use domain's rtkID if available
                         }));
                         setSelectedPlatform(domain.platform || "");
                         setShowDomainDropdown(false);
@@ -1715,20 +1759,48 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            RT Campaign ID
-          </label>
-          <input
-            type="text"
-            name="rtkID"
-            value={formData.rtkID}
-            onChange={handleChange}
-            placeholder="677086c62cca41d88a6b6e2d"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        {!selectedDomainHasRtkID && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              RT Campaign ID
+            </label>
+            <input
+              type="text"
+              name="rtkID"
+              value={formData.rtkID}
+              onChange={handleChange}
+              placeholder="677086c62cca41d88a6b6e2d"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        )}
+        {selectedDomainHasRtkID && (
+          <div className="space-y-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">RT Campaign ID:</span>{" "}
+                {formData.rtkID ||
+                  availableDomains.find((d) => d.domain === formData.domain)
+                    ?.rtkID ||
+                  "N/A"}
+                <span className="ml-2 text-xs text-blue-600">
+                  (Using domain's RT Campaign ID)
+                </span>
+              </p>
+            </div>
+            {/* Edit RT ID Button for Media Buyers */}
+            {currentUserRole === "mediaBuyer" && (
+              <button
+                type="button"
+                onClick={() => setShowRtkIDEditModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+              >
+                Edit RT ID
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Template Preview Below Form Fields */}
@@ -1842,6 +1914,108 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit RT ID Modal for Media Buyers */}
+      {showRtkIDEditModal && (
+        <EditModal
+          isOpen={showRtkIDEditModal}
+          onClose={() => {
+            setShowRtkIDEditModal(false);
+          }}
+          onSave={async (data) => {
+            setIsUpdatingRtkID(true);
+            try {
+              const selectedDomain = availableDomains.find(
+                (d) => d.domain === formData.domain
+              );
+
+              if (!selectedDomain) {
+                throw new Error("Domain not found");
+              }
+
+              const updateData = {
+                oldDomain: selectedDomain.domain,
+                newDomain: selectedDomain.domain,
+                oldOrganization: selectedDomain.organization,
+                newOrganization: selectedDomain.organization,
+                oldId: selectedDomain.id,
+                newId: selectedDomain.id,
+                oldPlatform: selectedDomain.platform,
+                newPlatform: selectedDomain.platform,
+                oldRtkID: selectedDomain.rtkID || "",
+                newRtkID: data.rtkID || "",
+                oldCertificationTags: selectedDomain.certificationTags || [],
+                newCertificationTags: selectedDomain.certificationTags || [],
+                oldAssignedTo:
+                  selectedDomain.assignedTo || selectedDomain.createdBy,
+                newAssignedTo:
+                  selectedDomain.assignedTo || selectedDomain.createdBy,
+              };
+
+              const response = await fetch(API_ENDPOINTS.DOMAINS.UPDATE, {
+                method: "PUT",
+                headers: getAuthHeaders(),
+                body: JSON.stringify(updateData),
+              });
+
+              if (!response.ok) {
+                let errorMessage = `Failed to update RT Campaign ID: ${response.statusText}`;
+                try {
+                  const errorData = await response.json();
+                  errorMessage =
+                    errorData.error || errorData.message || errorMessage;
+                } catch {
+                  try {
+                    const errorText = await response.text();
+                    errorMessage = errorText || errorMessage;
+                  } catch {
+                    // Keep default errorMessage
+                  }
+                }
+                throw new Error(errorMessage);
+              }
+
+              const result = await response.json();
+              console.log("RT Campaign ID updated successfully:", result);
+
+              // Update formData with new rtkID
+              setFormData((prev) => ({
+                ...prev,
+                rtkID: data.rtkID || "",
+              }));
+
+              // Refresh available domains to get updated rtkID
+              const domainsResponse = await fetch(API_ENDPOINTS.DOMAINS.LIST, {
+                headers: getAuthHeaders(),
+              });
+              if (domainsResponse.ok) {
+                const domainsData = await domainsResponse.json();
+                const domains = Array.isArray(domainsData)
+                  ? domainsData
+                  : domainsData.domains || domainsData.data || [];
+                setAvailableDomains(domains);
+              }
+
+              // Close modal
+              setShowRtkIDEditModal(false);
+            } catch (error) {
+              console.error("Error updating RT Campaign ID:", error);
+              alert(`Error: ${error.message}`);
+            } finally {
+              setIsUpdatingRtkID(false);
+            }
+          }}
+          isLoading={isUpdatingRtkID}
+          type="domain"
+          initialData={{
+            domain: formData.domain,
+            rtkID:
+              availableDomains.find((d) => d.domain === formData.domain)
+                ?.rtkID || "",
+            isRtkIDOnly: true,
+          }}
+        />
       )}
     </>
   );
