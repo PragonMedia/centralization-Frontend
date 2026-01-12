@@ -361,28 +361,6 @@ const DomainPopupModal = ({
                         </div>
                       </div>
 
-                      <div className="text-sm text-gray-600 mb-2">
-                        Template: {route.template || "N/A"}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <label className="font-medium text-gray-500">
-                            Ringba ID:
-                          </label>
-                          <p className="text-gray-900">
-                            {route.ringbaID || "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="font-medium text-gray-500">
-                            Phone Number:
-                          </label>
-                          <p className="text-gray-900">
-                            {route.phoneNumber || "N/A"}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   ))}
                 </div>

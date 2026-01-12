@@ -169,6 +169,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                   placeholder={initialData?.rtkID || "Enter RT Campaign ID"}
                   required
                 />
+                <p className="mt-2 text-sm text-red-600 font-medium">
+                  By editing this you will change the RedTrack Campaign ID for all pages under this domain!
+                </p>
               </div>
             ) : type === "domain" ? (
               <>
