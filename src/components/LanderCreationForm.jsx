@@ -57,7 +57,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
     ],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
-    Sweeps: [{ value: "sweep", label: "Sweep" }],
+    Sweeps: [
+      { value: "sweep", label: "Sweep" },
+      { value: "stimulus", label: "Stimulus" },
+    ],
     Nutra: [
       { value: "nutra-lp1", label: "Nutra Landing Page 1" },
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
@@ -77,7 +80,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "debt-campaign-2", name: "Debt Consolidation Campaign" },
       { id: "debt-campaign-3", name: "Credit Repair Campaign" },
     ],
-    Sweeps: [{ id: "sweep", name: "$750 Walmart Gift Card" }],
+    Sweeps: [
+      { id: "sweep", name: "$750 Walmart Gift Card" },
+      { id: "stimulus", name: "Stimulus" },
+    ],
     Nutra: [
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
@@ -1740,6 +1746,21 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "cb-groc" || template.value === "cb-ss"
+                  );
+                } else {
+                  // Fallback: show all templates (for other campaigns or if campaign not selected)
+                  filteredTemplates = allTemplates;
+                }
+              } else if (selectedVertical === "Sweeps") {
+                if (campaignName === "Stimulus") {
+                  // For "Stimulus" campaign, show only Stimulus template
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "stimulus"
+                  );
+                } else if (campaignName === "$750 Walmart Gift Card") {
+                  // For "$750 Walmart Gift Card" campaign, show only Sweep template
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "sweep"
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
