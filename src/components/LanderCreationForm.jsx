@@ -53,8 +53,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-ss", label: "Chatbot Social Security" },
+      { value: "cb-groc-short", label: "Chatbot Grocery Short" },
+      { value: "cb-ss-short", label: "Chatbot Social Security Short" },
       { value: "es-cb-groc", label: "Chatbot Grocery Spanish" },
       { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
+      { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
+      { value: "es-cb-ss-short", label: "Chatbot Social Security Short" },
     ],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     Sweeps: [
@@ -1728,10 +1732,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
               if (selectedVertical === "Medicare PPC") {
                 if (campaignName === "Paragon - Medicare") {
-                  // For "Paragon - Medicare", show only cb-groc and cb-ss
+                  // For "Paragon - Medicare", show cb-groc, cb-ss, cb-groc-short, cb-ss-short
                   filteredTemplates = allTemplates.filter(
                     (template) =>
-                      template.value === "cb-groc" || template.value === "cb-ss"
+                      template.value === "cb-groc" ||
+                      template.value === "cb-ss" ||
+                      template.value === "cb-groc-short" ||
+                      template.value === "cb-ss-short"
                   );
                 } else if (campaignName === "Paragon - Spanish Medicare") {
                   // For "Paragon - Spanish Medicare", show only es-cb-groc and es-cb-ss
@@ -1741,11 +1748,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "es-cb-ss"
                   );
                 } else if (campaignName === "Elite - Medicare") {
-                  // For "Elite - Medicare", show only cb-groc and cb-ss
-                  // (these will be transformed to el-cb-groc and el-cb-ss at submission time)
+                  // For "Elite - Medicare", show cb-groc, cb-ss (transformed at submit) and es-cb-groc-short, es-cb-ss-short (saved as-is)
                   filteredTemplates = allTemplates.filter(
                     (template) =>
-                      template.value === "cb-groc" || template.value === "cb-ss"
+                      template.value === "cb-groc" ||
+                      template.value === "cb-ss" ||
+                      template.value === "es-cb-groc-short" ||
+                      template.value === "es-cb-ss-short"
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
