@@ -242,6 +242,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     <option value="Google">Google</option>
                     <option value="DV 360">DV 360</option>
                     <option value="Bigo">Bigo</option>
+                    <option value="Roku">Roku</option>
+                    <option value="Media Go">Media Go</option>
                   </select>
                 </div>
 
