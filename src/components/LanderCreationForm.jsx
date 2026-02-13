@@ -55,6 +55,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "cb-groc-short", label: "Chatbot Grocery Short" },
       { value: "cb-ss-short", label: "Chatbot Social Security Short" },
+      { value: "cb-groc-geoedge", label: "Chatbot Grocery GeoEdge" },
       { value: "es-cb-groc", label: "Chatbot Grocery Spanish" },
       { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
       { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
@@ -1732,13 +1733,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
               if (selectedVertical === "Medicare PPC") {
                 if (campaignName === "Paragon - Medicare") {
-                  // For "Paragon - Medicare", show cb-groc, cb-ss, cb-groc-short, cb-ss-short
+                  // For "Paragon - Medicare", show cb-groc, cb-ss, cb-groc-short, cb-ss-short, cb-groc-geoedge
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "cb-groc" ||
                       template.value === "cb-ss" ||
                       template.value === "cb-groc-short" ||
-                      template.value === "cb-ss-short"
+                      template.value === "cb-ss-short" ||
+                      template.value === "cb-groc-geoedge"
                   );
                 } else if (campaignName === "Paragon - Spanish Medicare") {
                   // For "Paragon - Spanish Medicare", show only es-cb-groc and es-cb-ss
