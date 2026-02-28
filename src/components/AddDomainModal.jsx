@@ -242,6 +242,7 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                 <option value="">Select a user</option>
                 <option value="addy@paragonmedia.io">Addy</option>
                 <option value="jake@paragonmedia.io">Jake</option>
+                <option value="nick@paragonmedia.io">Nick</option>
                 <option value="sean@paragonmedia.io">Sean</option>
               </select>
             </div>
