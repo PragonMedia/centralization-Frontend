@@ -102,7 +102,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ],
   };
 
-  const platformOptions = ["Facebook", "Google", "DV 360", "Bigo", "Roku", "Media Go"];
+  const platformOptions = ["Facebook", "Google", "DV 360", "Bigo", "Roku", "Media Go", "StackAdapt"];
 
   const [url, setURL] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -651,6 +651,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             Addy: "addy@paragonmedia.io", // Ringba API might return just "Addy"
             "Sean Luc": "sean@paragonmedia.io",
             Sean: "sean@paragonmedia.io", // Ringba API might return just "Sean"
+            Nick: "nick@paragonmedia.io", // Ringba API might return just "Nick"
           };
 
           const selectedEmail =

@@ -284,6 +284,7 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                     <option value="Bigo">Bigo</option>
                     <option value="Roku">Roku</option>
                     <option value="Media Go">Media Go</option>
+                    <option value="StackAdapt">StackAdapt</option>
                   </select>
             </div>
 

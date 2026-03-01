@@ -53,6 +53,12 @@ const shouldUserSeeDomain = (domain, currentUser) => {
     }
   }
 
+  if (userEmail === "nick@paragonmedia.io") {
+    if (domain.assignedTo !== "nick@paragonmedia.io") {
+      return false;
+    }
+  }
+
   if (userEmail === "addy@paragonmedia.io") {
     if (domain.assignedTo !== "addy@paragonmedia.io") {
       return false;
