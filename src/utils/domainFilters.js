@@ -45,38 +45,26 @@ const shouldUserSeeDomain = (domain, currentUser) => {
   const userEmail = currentUser.email;
   const userRole = currentUser.role;
 
-  // Specific user filtering - only check assignedTo
-  // createdBy is the admin who created the domain, not the mediaBuyer
-  if (userEmail === "jake@paragonmedia.io") {
-    if (domain.assignedTo !== "jake@paragonmedia.io") {
-      return false;
-    }
-  }
-
-  if (userEmail === "nick@paragonmedia.io") {
-    if (domain.assignedTo !== "nick@paragonmedia.io") {
-      return false;
-    }
-  }
-
-  if (userEmail === "addy@paragonmedia.io") {
-    if (domain.assignedTo !== "addy@paragonmedia.io") {
-      return false;
-    }
-  }
-
-  if (userEmail === "sean@paragonmedia.io") {
-    if (domain.assignedTo !== "sean@paragonmedia.io") {
-      return false;
-    }
-  }
-
-  // Tech, CEO, and Admin users can see all domains
+  // Tech, CEO, and Admin users can see all domains (check role first)
   if (userRole === "tech" || userRole === "ceo" || userRole === "admin") {
     return true;
   }
 
-  // Default: show all domains
+  // For mediaBuyer (and any other role), only show domains assigned to them
+  if (userEmail === "jake@paragonmedia.io") {
+    return domain.assignedTo === "jake@paragonmedia.io";
+  }
+  if (userEmail === "nick@paragonmedia.io") {
+    return domain.assignedTo === "nick@paragonmedia.io";
+  }
+  if (userEmail === "addy@paragonmedia.io") {
+    return domain.assignedTo === "addy@paragonmedia.io";
+  }
+  if (userEmail === "sean@paragonmedia.io") {
+    return domain.assignedTo === "sean@paragonmedia.io";
+  }
+
+  // Default: show all domains (unknown role/email)
   return true;
 };
 
