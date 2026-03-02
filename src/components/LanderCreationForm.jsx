@@ -1841,7 +1841,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       {/* Template Preview Below Form Fields */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="border rounded-lg overflow-hidden h-[80vh] overflow-y-auto">
-          <TemplatePreview selectedTemplate={selectedTemplate} />
+          <TemplatePreview selectedTemplate={selectedTemplate} organization={formData.organization} />
         </div>
       </div>
     </div>
