@@ -20,6 +20,8 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     { id: "es-cb-ss-short", name: "Chatbot Social Security Short", previewUrl: `${base}/es-cb-ss-short/`, elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/ss-short-el" },
     // Paragon Media - Debt PPC
     { id: "gg-debt-v1", name: "debt", previewUrl: "https://pgnmapprovedlanderv-templates.com/debt" },
+    // Paragon Media - Final Expense
+    { id: "cb-fe", name: "Final Expense", previewUrl: `${base}/cb-fe/` },
     // Paragon Media - Sweeps
     { id: "sweep", name: "Sweep", previewUrl: "https://pgnmapprovedlander.com/sweeps" },
     { id: "stimulus", name: "Stimulus", previewUrl: "https://pgnmapprovedlander.com/stim" },

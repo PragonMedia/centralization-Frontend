@@ -34,6 +34,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   const allVerticals = [
     "Medicare PPC",
     "Debt PPC",
+    "Final Expense",
     "Sweeps",
     "Nutra",
     "Casino",
@@ -63,6 +64,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "es-cb-ss-short", label: "Chatbot Social Security Short" },
     ],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
+    "Final Expense": [{ value: "cb-fe", label: "Final Expense" }],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
       { value: "stimulus", label: "Stimulus" },
@@ -348,10 +350,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC and Debt PPC, fetch campaign details to get media buyers
+        // For Medicare PPC, Debt PPC, and Final Expense, fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
-          selectedVertical === "Debt PPC"
+          selectedVertical === "Debt PPC" ||
+          selectedVertical === "Final Expense"
         ) {
           // Find the selected campaign to check its name
           const selectedCampaignObj = campaigns.find(
@@ -393,10 +396,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC and Debt PPC, fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
-      selectedVertical === "Debt PPC"
+      selectedVertical === "Debt PPC" ||
+      selectedVertical === "Final Expense"
     ) {
       // Find the selected campaign to check its name
       const selectedCampaignObj = campaigns.find(
@@ -756,8 +760,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC and Debt PPC, fetch from Ringba API
-      if (vertical === "Medicare PPC" || vertical === "Debt PPC") {
+      // For Medicare PPC, Debt PPC, and Final Expense, fetch from Ringba API
+      if (vertical === "Medicare PPC" || vertical === "Debt PPC" || vertical === "Final Expense") {
         const response = await cachedFetch(
           API_ENDPOINTS.RINGBA.CAMPAIGNS,
           {
@@ -826,6 +830,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           // Filter to only show "Paragon - Debt" campaign
           filteredCampaigns = campaignsData.filter(
             (campaign) => campaign.name === "Paragon - Debt"
+          );
+        } else if (vertical === "Final Expense") {
+          // Filter to only show "Paragon - Final Expense" campaign
+          filteredCampaigns = campaignsData.filter(
+            (campaign) =>
+              campaign.name === "Paragon - Final Expense" ||
+              campaign.name?.toLowerCase() === "paragon - final expense"
           );
         }
 
@@ -1483,9 +1494,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 required
               >
                 <option value="">Select Media Buyer</option>
-                {/* For Medicare PPC and Debt PPC, show media buyers from Ringba API */}
+                {/* For Medicare PPC, Debt PPC, and Final Expense, show media buyers from Ringba API */}
                 {selectedVertical === "Medicare PPC" ||
-                selectedVertical === "Debt PPC"
+                selectedVertical === "Debt PPC" ||
+                selectedVertical === "Final Expense"
                   ? mediaBuyers.map((buyer, index) => (
                       <option key={index} value={buyer.name}>
                         {buyer.name}
@@ -1778,6 +1790,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
+                  filteredTemplates = allTemplates;
+                }
+              } else if (selectedVertical === "Final Expense") {
+                if (campaignName === "Paragon - Final Expense") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "cb-fe"
+                  );
+                } else {
                   filteredTemplates = allTemplates;
                 }
               } else {
