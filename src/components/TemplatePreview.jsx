@@ -7,19 +7,19 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
 
   const templates = [
     // Paragon Media / Elite - Medicare PPC
-    { id: "cb-groc", name: "Chatbot Grocery", previewUrl: "https://pgnmapprovedlanderv-templates.com/groc", elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/groc-el" },
-    { id: "cb-ss", name: "Chatbot Social Security", previewUrl: "https://pgnmapprovedlanderv-templates.com/ss", elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/ss-el" },
-    { id: "cb-groc-short", name: "Chatbot Grocery Short", previewUrl: "https://pgnmapprovedlanderv-templates.com/nn-short" },
-    { id: "cb-ss-short", name: "Chatbot Social Security Short", previewUrl: "https://pgnmapprovedlanderv-templates.com/ss-short", elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/ss-short-el" },
-    { id: "cb-groc-geoedge", name: "Chatbot Grocery GeoEdge", previewUrl: "https://pgnmapprovedlanderv-templates.com/nn-geo" },
-    { id: "quiz-grocery", name: "Grocery Quiz", previewUrl: "https://pgnmapprovedlanderv-templates.com/nnquiz" },
+    { id: "cb-groc", name: "Chatbot Grocery", previewUrl: "https://approved-template.com/groc", elitePreviewUrl: "https://approved-template.com/el-groc" },
+    { id: "cb-ss", name: "Chatbot Social Security", previewUrl: "https://approved-template.com/ss", elitePreviewUrl: "https://approved-template.com/el-ss" },
+    { id: "cb-groc-short", name: "Chatbot Grocery Short", previewUrl: "https://approved-template.com/groc-short", elitePreviewUrl: "https://approved-template.com/el-groc-short" },
+    { id: "cb-ss-short", name: "Chatbot Social Security Short", previewUrl: "https://approved-template.com/ss-short", elitePreviewUrl: "https://approved-template.com/el-ss-short" },
+    { id: "cb-groc-geoedge", name: "Chatbot Grocery GeoEdge", previewUrl: "https://approved-template.com/geo" },
+    { id: "quiz-grocery", name: "Grocery Quiz", previewUrl: "https://approved-template.com/quiz" },
     // Paragon Media - Spanish Medicare
     { id: "es-cb-groc-short", name: "Chatbot Grocery Short", previewUrl: `${base}/es-cb-groc-short/`, elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/nn-short-el" },
     { id: "es-cb-groc", name: "Chatbot Grocery Spanish", previewUrl: "https://pgnmapprovedlander.com/nn-span" },
     { id: "es-cb-ss", name: "Chatbot Social Security Spanish", previewUrl: "https://pgnmapprovedlander.com/ss-span" },
     { id: "es-cb-ss-short", name: "Chatbot Social Security Short", previewUrl: `${base}/es-cb-ss-short/`, elitePreviewUrl: "https://pgnmapprovedlanderv-templates.com/ss-short-el" },
     // Paragon Media - Debt PPC
-    { id: "gg-debt-v1", name: "debt", previewUrl: "https://pgnmapprovedlanderv-templates.com/debt" },
+    { id: "gg-debt-v1", name: "debt", previewUrl: "https://approved-template.com/debt" },
     // Paragon Media - Final Expense
     { id: "cb-fe", name: "Final Expense", previewUrl: `${base}/cb-fe/` },
     // Paragon Media - Sweeps

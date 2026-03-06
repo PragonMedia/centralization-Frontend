@@ -6,6 +6,8 @@ import LogoutConfirmationModal from "./LogoutConfirmationModal";
 function NavbarMenu() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const role = user?.role?.toLowerCase() || "";
+  const canAccessAccounting = ["tech", "ceo", "admin"].includes(role);
 
   // // Call debug function to see full state
   // debug();
@@ -49,6 +51,13 @@ function NavbarMenu() {
                 Domains
               </button>
             </Link>
+            {canAccessAccounting && (
+              <Link to="/accounting">
+                <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+                  Accounting
+                </button>
+              </Link>
+            )}
 
             {/* User info and logout */}
             <div className="flex items-center space-x-3">

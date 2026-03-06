@@ -6,7 +6,9 @@ import Domains from "./pages/Domains";
 import LanderCreation from "./pages/LanderCreation";
 import Footer from "./components/Footer.jsx";
 import EditRoute from "./pages/EditRoute.jsx";
+import Accounting from "./pages/Accounting.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import RoleProtectedRoute from "./components/RoleProtectedRoute.jsx";
 import TestRun from "./testing/TestRun.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { ToastContainer } from "react-toastify";
@@ -43,6 +45,14 @@ function App() {
             <ProtectedRoute>
               <EditRoute />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/accounting"
+          element={
+            <RoleProtectedRoute allowedRoles={["tech", "ceo", "admin"]}>
+              <Accounting />
+            </RoleProtectedRoute>
           }
         />
         <Route path="/test" element={<TestRun />} />
