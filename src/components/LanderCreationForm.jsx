@@ -62,8 +62,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
       { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
       { value: "es-cb-ss-short", label: "Chatbot Social Security Short" },
-      { value: "el-cb-groc-3000", label: "Chatbot Grocery (3000)" },
-      { value: "el-cb-groc-short-3000", label: "Chatbot Grocery Short (3000)" },
+      { value: "el-cb-groc-3000", label: "Chatbot Grocery ($3300)" },
+      { value: "el-cb-groc-short-3000", label: "Chatbot Grocery Short ($3300)" },
+      { value: "el-ss-groc-174", label: "Chatbot Social Security ($174)" },
+      { value: "el-cb-ss-short-174", label: "Chatbot Social Security Short ($174)" },
     ],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     "Final Expense": [{ value: "cb-fe", label: "Final Expense" }],
@@ -1767,7 +1769,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "es-cb-ss"
                   );
                 } else if (campaignName === "Elite - Medicare") {
-                  // For "Elite - Medicare", show cb-groc, cb-ss (transformed at submit), es-cb-groc-short, es-cb-ss-short, el-cb-groc-3000, el-cb-groc-short-3000 (saved as-is)
+                  // For "Elite - Medicare", show cb-groc, cb-ss (transformed at submit), es-cb-groc-short, es-cb-ss-short, and Elite (3000) templates (saved as-is)
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "cb-groc" ||
@@ -1775,7 +1777,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "es-cb-groc-short" ||
                       template.value === "es-cb-ss-short" ||
                       template.value === "el-cb-groc-3000" ||
-                      template.value === "el-cb-groc-short-3000"
+                      template.value === "el-cb-groc-short-3000" ||
+                      template.value === "el-ss-groc-174" ||
+                      template.value === "el-cb-ss-short-174"
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)

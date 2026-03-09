@@ -21,6 +21,8 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     // Elite - Medicare (3000)
     { id: "el-cb-groc-3000", name: "Chatbot Grocery (3000)", previewUrl: "https://approved-template.com/nn3000/" },
     { id: "el-cb-groc-short-3000", name: "Chatbot Grocery Short (3000)", previewUrl: "https://approved-template.com/nn-short-3000/" },
+    { id: "el-ss-groc-174", name: "Chatbot Social Security ($174)", previewUrl: "https://approved-template.com/ss174/" },
+    { id: "el-cb-ss-short-174", name: "Chatbot Social Security Short ($174)", previewUrl: "https://approved-template.com/ss-short-174/" },
     // Paragon Media - Debt PPC
     { id: "gg-debt-v1", name: "debt", previewUrl: "https://approved-template.com/debt" },
     // Paragon Media - Final Expense
