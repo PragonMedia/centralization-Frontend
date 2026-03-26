@@ -99,7 +99,15 @@ export const getFilterOptions = (domains) => {
     ...new Set(domains.map((d) => d.organization).filter(Boolean)),
   ];
   const platforms = [
-    ...new Set(domains.map((d) => d.platform).filter(Boolean)),
+    ...new Set(
+      domains
+        .map((d) => d.platform)
+        .filter(Boolean)
+        .filter((platform) => {
+          const normalized = String(platform).toLowerCase().replace(/\s+/g, "");
+          return normalized !== "dv360" && normalized !== "stackadapt";
+        })
+    ),
   ];
   const mediaBuyers = [
     ...new Set(domains.map((d) => d.assignedTo).filter(Boolean)),

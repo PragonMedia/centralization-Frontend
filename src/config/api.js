@@ -35,6 +35,10 @@ export const API_ENDPOINTS = {
     CAMPAIGN_DETAILS: (id) =>
       `https://api.ringba.com/v2/${API_CONFIG.RINGBA_ACCOUNT_ID}/campaigns/${id}`,
   },
+  ACCOUNTING: {
+    REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue`,
+    COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,
+  },
 };
 
 // HTTP Headers

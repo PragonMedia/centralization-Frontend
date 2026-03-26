@@ -280,11 +280,10 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                     <option value="">Select a platform</option>
                     <option value="Facebook">Facebook</option>
                     <option value="Google">Google</option>
-                    <option value="DV 360">DV 360</option>
                     <option value="Bigo">Bigo</option>
                     <option value="Roku">Roku</option>
                     <option value="Media Go">Media Go</option>
-                    <option value="StackAdapt">StackAdapt</option>
+                    <option value="Comcast">Comcast</option>
                   </select>
             </div>
 
