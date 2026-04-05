@@ -8,6 +8,7 @@ function NavbarMenu() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const role = user?.role?.toLowerCase() || "";
   const canAccessAccounting = ["tech", "ceo", "admin"].includes(role);
+  const canAccessRokuLogs = ["tech", "ceo"].includes(role);
 
   // // Call debug function to see full state
   // debug();
@@ -55,6 +56,13 @@ function NavbarMenu() {
               <Link to="/accounting">
                 <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
                   Accounting
+                </button>
+              </Link>
+            )}
+            {canAccessRokuLogs && (
+              <Link to="/roku-logs">
+                <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+                  Roku Logs
                 </button>
               </Link>
             )}

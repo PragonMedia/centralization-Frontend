@@ -38,6 +38,11 @@ export const API_ENDPOINTS = {
   ACCOUNTING: {
     REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue`,
     COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,
+    UPDATE_COMPANY: (accountID) =>
+      `${API_CONFIG.BASE_URL}/accounting/companies/${encodeURIComponent(accountID)}`,
+  },
+  ROKU_LOGS: {
+    LIST: `${API_CONFIG.BASE_URL}/roku-logs`,
   },
 };
 

@@ -27,6 +27,8 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     { id: "gg-debt-v1", name: "debt", previewUrl: "https://approved-template.com/debt" },
     // Paragon Media - Final Expense
     { id: "cb-fe", name: "Final Expense", previewUrl: `${base}/cb-fe/` },
+    // Paragon Media - Medicaid
+    { id: "medicaid", name: "Medicaid", previewUrl: `${base}/medicaid/` },
     // Paragon Media - Sweeps
     { id: "sweep", name: "Sweep", previewUrl: "https://pgnmapprovedlander.com/sweeps" },
     { id: "stimulus", name: "Stimulus", previewUrl: "https://pgnmapprovedlander.com/stim" },

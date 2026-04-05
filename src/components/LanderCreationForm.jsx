@@ -33,6 +33,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   // Vertical options
   const allVerticals = [
     "Medicare PPC",
+    "Medicaid",
     "Debt PPC",
     "Final Expense",
     "Sweeps",
@@ -67,6 +68,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "el-ss-groc-174", label: "Chatbot Social Security ($174)" },
       { value: "el-cb-ss-short-174", label: "Chatbot Social Security Short ($174)" },
     ],
+    Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     "Final Expense": [{ value: "cb-fe", label: "Final Expense" }],
     Sweeps: [
@@ -354,9 +356,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC, Debt PPC, and Final Expense, fetch campaign details to get media buyers
+        // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
+          selectedVertical === "Medicaid" ||
           selectedVertical === "Debt PPC" ||
           selectedVertical === "Final Expense"
         ) {
@@ -400,9 +403,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
+      selectedVertical === "Medicaid" ||
       selectedVertical === "Debt PPC" ||
       selectedVertical === "Final Expense"
     ) {
@@ -764,8 +768,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC, Debt PPC, and Final Expense, fetch from Ringba API
-      if (vertical === "Medicare PPC" || vertical === "Debt PPC" || vertical === "Final Expense") {
+      // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch from Ringba API
+      if (
+        vertical === "Medicare PPC" ||
+        vertical === "Medicaid" ||
+        vertical === "Debt PPC" ||
+        vertical === "Final Expense"
+      ) {
         const response = await cachedFetch(
           API_ENDPOINTS.RINGBA.CAMPAIGNS,
           {
@@ -842,6 +851,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               campaign.name === "Paragon - Final Expense" ||
               campaign.name?.toLowerCase() === "paragon - final expense"
           );
+        } else if (vertical === "Medicaid") {
+          // Paragon Media — match Ringba campaign name (adjust if your Ringba label differs)
+          filteredCampaigns = campaignsData.filter(
+            (campaign) =>
+              campaign.name === "Paragon - Medicaid" ||
+              campaign.name?.toLowerCase() === "paragon - medicaid"
+          );
         }
 
         setCampaigns(filteredCampaigns);
@@ -865,10 +881,15 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     setSelectedCampaign(""); // Reset campaign selection
     setSelectedMediaBuyerFromCampaign(""); // Reset media buyer selection
     setMediaBuyers([]); // Reset media buyers
+    if (vertical === "Medicaid") {
+      setSelectedTemplate("medicaid");
+    } else {
+      setSelectedTemplate("");
+    }
     setFormData((prev) => ({
       ...prev,
       domain: "", // Reset domain
-      template: "", // Reset template
+      template: vertical === "Medicaid" ? "medicaid" : "", // Reset template
     }));
 
     // Fetch campaigns for the selected vertical
@@ -1484,7 +1505,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           (mediaBuyers.length > 0 ||
             (selectedVertical &&
               selectedVertical !== "Medicare PPC" &&
-              selectedVertical !== "Debt PPC")) && (
+              selectedVertical !== "Debt PPC" &&
+              selectedVertical !== "Final Expense" &&
+              selectedVertical !== "Medicaid")) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Media Buyer <span className="text-red-500">*</span>
@@ -1498,8 +1521,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 required
               >
                 <option value="">Select Media Buyer</option>
-                {/* For Medicare PPC, Debt PPC, and Final Expense, show media buyers from Ringba API */}
+                {/* For Medicare PPC, Medicaid, Debt PPC, and Final Expense, show media buyers from Ringba API */}
                 {selectedVertical === "Medicare PPC" ||
+                selectedVertical === "Medicaid" ||
                 selectedVertical === "Debt PPC" ||
                 selectedVertical === "Final Expense"
                   ? mediaBuyers.map((buyer, index) => (
@@ -1808,6 +1832,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 } else {
                   filteredTemplates = allTemplates;
                 }
+              } else if (selectedVertical === "Medicaid") {
+                filteredTemplates = allTemplates.filter(
+                  (template) => template.value === "medicaid"
+                );
               } else {
                 // For other verticals, show all templates
                 filteredTemplates = allTemplates;

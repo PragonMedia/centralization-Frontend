@@ -7,6 +7,7 @@ import LanderCreation from "./pages/LanderCreation";
 import Footer from "./components/Footer.jsx";
 import EditRoute from "./pages/EditRoute.jsx";
 import Accounting from "./pages/Accounting.jsx";
+import RokuLogs from "./pages/RokuLogs.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import RoleProtectedRoute from "./components/RoleProtectedRoute.jsx";
 import TestRun from "./testing/TestRun.jsx";
@@ -52,6 +53,14 @@ function App() {
           element={
             <RoleProtectedRoute allowedRoles={["tech", "ceo", "admin"]}>
               <Accounting />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/roku-logs"
+          element={
+            <RoleProtectedRoute allowedRoles={["tech", "ceo"]}>
+              <RokuLogs />
             </RoleProtectedRoute>
           }
         />

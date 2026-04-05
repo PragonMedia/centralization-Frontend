@@ -15,6 +15,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Debt PPC": [
       { value: "gg-debt-v1", label: "debt" },
     ],
+    Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
     ],
@@ -42,6 +43,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     // Debt PPC templates
     if (templateValue.startsWith("debt-") || templateValue === "gg-debt-v1") {
       return "Debt PPC";
+    }
+    if (templateValue === "medicaid") {
+      return "Medicaid";
     }
     // Sweeps templates
     if (templateValue === "sweep") {
