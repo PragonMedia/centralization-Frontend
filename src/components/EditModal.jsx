@@ -24,11 +24,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
-    Casino: [
-      { value: "casino-lp1", label: "Casino Landing Page 1" },
-      { value: "casino-lp2", label: "Casino Landing Page 2" },
-      { value: "casino-signup", label: "Casino Signup" },
-    ],
+    Casino: [{ value: "casino", label: "casino" }],
   };
 
   // Function to determine vertical from template value
@@ -56,6 +52,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "Nutra";
     }
     // Casino templates
+    if (templateValue === "casino") {
+      return "Casino";
+    }
     if (templateValue.startsWith("casino-")) {
       return "Casino";
     }

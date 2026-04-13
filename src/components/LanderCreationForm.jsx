@@ -80,11 +80,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
-    Casino: [
-      { value: "casino-lp1", label: "Casino Landing Page 1" },
-      { value: "casino-lp2", label: "Casino Landing Page 2" },
-      { value: "casino-signup", label: "Casino Signup" },
-    ],
+    Casino: [{ value: "casino", label: "casino" }],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -102,11 +98,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
       { id: "nutra-campaign-3", name: "Vitamin Supplement Campaign" },
-    ],
-    Casino: [
-      { id: "casino-campaign-1", name: "Casino Signup Bonus Campaign" },
-      { id: "casino-campaign-2", name: "Online Casino Promo Campaign" },
-      { id: "casino-campaign-3", name: "Casino Welcome Bonus Campaign" },
     ],
   };
 
@@ -356,12 +347,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers
+        // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
           selectedVertical === "Medicaid" ||
           selectedVertical === "Debt PPC" ||
-          selectedVertical === "Final Expense"
+          selectedVertical === "Final Expense" ||
+          selectedVertical === "Casino"
         ) {
           // Find the selected campaign to check its name
           const selectedCampaignObj = campaigns.find(
@@ -403,12 +395,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
       selectedVertical === "Medicaid" ||
       selectedVertical === "Debt PPC" ||
-      selectedVertical === "Final Expense"
+      selectedVertical === "Final Expense" ||
+      selectedVertical === "Casino"
     ) {
       // Find the selected campaign to check its name
       const selectedCampaignObj = campaigns.find(
@@ -768,12 +761,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch from Ringba API
+      // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch from Ringba API
       if (
         vertical === "Medicare PPC" ||
         vertical === "Medicaid" ||
         vertical === "Debt PPC" ||
-        vertical === "Final Expense"
+        vertical === "Final Expense" ||
+        vertical === "Casino"
       ) {
         const response = await cachedFetch(
           API_ENDPOINTS.RINGBA.CAMPAIGNS,
@@ -858,6 +852,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               campaign.name === "Paragon - Medicaid" ||
               campaign.name?.toLowerCase() === "paragon - medicaid"
           );
+        } else if (vertical === "Casino") {
+          filteredCampaigns = campaignsData.filter(
+            (campaign) =>
+              campaign.name === "Paragon - Casino" ||
+              campaign.name?.toLowerCase() === "paragon - casino"
+          );
         }
 
         setCampaigns(filteredCampaigns);
@@ -883,13 +883,20 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     setMediaBuyers([]); // Reset media buyers
     if (vertical === "Medicaid") {
       setSelectedTemplate("medicaid");
+    } else if (vertical === "Casino") {
+      setSelectedTemplate("casino");
     } else {
       setSelectedTemplate("");
     }
     setFormData((prev) => ({
       ...prev,
       domain: "", // Reset domain
-      template: vertical === "Medicaid" ? "medicaid" : "", // Reset template
+      template:
+        vertical === "Medicaid"
+          ? "medicaid"
+          : vertical === "Casino"
+            ? "casino"
+            : "", // Reset template
     }));
 
     // Fetch campaigns for the selected vertical
@@ -1507,7 +1514,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               selectedVertical !== "Medicare PPC" &&
               selectedVertical !== "Debt PPC" &&
               selectedVertical !== "Final Expense" &&
-              selectedVertical !== "Medicaid")) && (
+              selectedVertical !== "Medicaid" &&
+              selectedVertical !== "Casino")) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Media Buyer <span className="text-red-500">*</span>
@@ -1521,11 +1529,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 required
               >
                 <option value="">Select Media Buyer</option>
-                {/* For Medicare PPC, Medicaid, Debt PPC, and Final Expense, show media buyers from Ringba API */}
+                {/* Ringba media buyers */}
                 {selectedVertical === "Medicare PPC" ||
                 selectedVertical === "Medicaid" ||
                 selectedVertical === "Debt PPC" ||
-                selectedVertical === "Final Expense"
+                selectedVertical === "Final Expense" ||
+                selectedVertical === "Casino"
                   ? mediaBuyers.map((buyer, index) => (
                       <option key={index} value={buyer.name}>
                         {buyer.name}
@@ -1835,6 +1844,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               } else if (selectedVertical === "Medicaid") {
                 filteredTemplates = allTemplates.filter(
                   (template) => template.value === "medicaid"
+                );
+              } else if (selectedVertical === "Casino") {
+                filteredTemplates = allTemplates.filter(
+                  (template) => template.value === "casino"
                 );
               } else {
                 // For other verticals, show all templates
