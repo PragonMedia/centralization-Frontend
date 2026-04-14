@@ -94,6 +94,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "sweep", name: "$750 Walmart Gift Card" },
       { id: "stimulus", name: "Stimulus" },
     ],
+    Casino: [{ id: "paragon-casino", name: "Paragon Casino" }],
     Nutra: [
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
@@ -347,13 +348,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch campaign details to get media buyers
+        // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
           selectedVertical === "Medicaid" ||
           selectedVertical === "Debt PPC" ||
-          selectedVertical === "Final Expense" ||
-          selectedVertical === "Casino"
+          selectedVertical === "Final Expense"
         ) {
           // Find the selected campaign to check its name
           const selectedCampaignObj = campaigns.find(
@@ -375,13 +375,17 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           return;
         }
 
-        // For other verticals, show all media buyers
+        // For other verticals, show local media buyers
         if (selectedVertical) {
-          setMediaBuyers([
-            { name: "Jake Hunter" },
-            { name: "Addy Jaloudi" },
-            { name: "Sean Luc" },
-          ]);
+          if (selectedVertical === "Casino") {
+            setMediaBuyers([{ name: "Nick" }, { name: "You" }]);
+          } else {
+            setMediaBuyers([
+              { name: "Jake Hunter" },
+              { name: "Addy Jaloudi" },
+              { name: "Sean Luc" },
+            ]);
+          }
           return;
         }
       } else {
@@ -395,13 +399,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
       selectedVertical === "Medicaid" ||
       selectedVertical === "Debt PPC" ||
-      selectedVertical === "Final Expense" ||
-      selectedVertical === "Casino"
+      selectedVertical === "Final Expense"
     ) {
       // Find the selected campaign to check its name
       const selectedCampaignObj = campaigns.find(
@@ -423,13 +426,17 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
 
-    // For other non-Medicare PPC verticals, show all media buyers
+    // For other non-Ringba verticals, show local media buyers
     if (selectedVertical) {
-      setMediaBuyers([
-        { name: "Jake Hunter" },
-        { name: "Addy Jaloudi" },
-        { name: "Sean Luc" },
-      ]);
+      if (selectedVertical === "Casino") {
+        setMediaBuyers([{ name: "Nick" }, { name: "You" }]);
+      } else {
+        setMediaBuyers([
+          { name: "Jake Hunter" },
+          { name: "Addy Jaloudi" },
+          { name: "Sean Luc" },
+        ]);
+      }
       return;
     }
 
@@ -457,7 +464,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       (buyer) => buyer.name === mediaBuyerName
     );
 
-    // If we have campaign details from Ringba (Medicare/Debt PPC), use those
+    // If we have campaign details from Ringba, use those
     if (
       selectedMediaBuyerData &&
       selectedMediaBuyerData.campaignId &&
@@ -471,11 +478,15 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         phoneNumber: selectedMediaBuyerData.e164Number,
       }));
     } else {
-      // For non-Medicare/Debt PPC verticals, use hardcoded details
+      // For non-Ringba verticals, use local mappings.
       let ringbaID = "";
       let phoneNumber = "";
 
-      if (mediaBuyerName === "Jake Hunter") {
+      if (selectedVertical === "Casino" && (mediaBuyerName === "Nick" || mediaBuyerName === "You")) {
+        // Casino dummy options should not override existing values.
+        ringbaID = formData.ringbaID;
+        phoneNumber = formData.phoneNumber;
+      } else if (mediaBuyerName === "Jake Hunter") {
         ringbaID = JakeDetails.ringbaID;
         phoneNumber = JakeDetails.phoneNumber;
       } else if (mediaBuyerName === "Addy Jaloudi") {
@@ -761,13 +772,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC, Medicaid, Debt PPC, Final Expense, Casino — fetch from Ringba API
+      // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch from Ringba API
       if (
         vertical === "Medicare PPC" ||
         vertical === "Medicaid" ||
         vertical === "Debt PPC" ||
-        vertical === "Final Expense" ||
-        vertical === "Casino"
+        vertical === "Final Expense"
       ) {
         const response = await cachedFetch(
           API_ENDPOINTS.RINGBA.CAMPAIGNS,
@@ -851,12 +861,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             (campaign) =>
               campaign.name === "Paragon - Medicaid" ||
               campaign.name?.toLowerCase() === "paragon - medicaid"
-          );
-        } else if (vertical === "Casino") {
-          filteredCampaigns = campaignsData.filter(
-            (campaign) =>
-              campaign.name === "Paragon - Casino" ||
-              campaign.name?.toLowerCase() === "paragon - casino"
           );
         }
 
@@ -1533,8 +1537,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 {selectedVertical === "Medicare PPC" ||
                 selectedVertical === "Medicaid" ||
                 selectedVertical === "Debt PPC" ||
-                selectedVertical === "Final Expense" ||
-                selectedVertical === "Casino"
+                selectedVertical === "Final Expense"
                   ? mediaBuyers.map((buyer, index) => (
                       <option key={index} value={buyer.name}>
                         {buyer.name}
