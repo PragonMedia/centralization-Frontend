@@ -80,7 +80,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
-    Casino: [{ value: "casino", label: "casino" }],
+    Casino: [
+      { value: "casino", label: "casino" },
+      { value: "casino-v2", label: "Casino v2" },
+    ],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -1850,7 +1853,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 );
               } else if (selectedVertical === "Casino") {
                 filteredTemplates = allTemplates.filter(
-                  (template) => template.value === "casino"
+                  (template) =>
+                    template.value === "casino" ||
+                    template.value === "casino-v2"
                 );
               } else {
                 // For other verticals, show all templates

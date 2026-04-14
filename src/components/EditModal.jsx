@@ -24,7 +24,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "nutra-lp2", label: "Nutra Landing Page 2" },
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
-    Casino: [{ value: "casino", label: "casino" }],
+    Casino: [
+      { value: "casino", label: "casino" },
+      { value: "casino-v2", label: "Casino v2" },
+    ],
   };
 
   // Function to determine vertical from template value

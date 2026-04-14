@@ -37,6 +37,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     { id: "nutra-lp2", name: "Nutra Landing Page 2", previewUrl: `${base}/nutra-lp2/` },
     { id: "nutra-supplement", name: "Supplement Sales", previewUrl: `${base}/nutra-supplement/` },
     { id: "casino", name: "casino", previewUrl: "https://approved-template.com/casino/" },
+    { id: "casino-v2", name: "Casino v2", previewUrl: "https://approved-template.com/casv2/" },
   ];
 
   const matched = templates.find((t) => t.id === selectedTemplate) || templates[0];
