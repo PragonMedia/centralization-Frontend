@@ -70,7 +70,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
-    "Final Expense": [{ value: "cb-fe", label: "Final Expense" }],
+    "Final Expense": [{ value: "cb-fe", label: "Final Expense (4DK)" }],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
       { value: "stimulus", label: "Stimulus" },
@@ -485,8 +485,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       let ringbaID = "";
       let phoneNumber = "";
 
-      if (selectedVertical === "Casino" && (mediaBuyerName === "Nick" || mediaBuyerName === "You")) {
-        // Casino dummy options should not override existing values.
+      if (
+        (selectedVertical === "Casino" &&
+          (mediaBuyerName === "Nick" || mediaBuyerName === "You")) ||
+        (selectedVertical === "Final Expense" && mediaBuyerName === "Nick")
+      ) {
+        // Local preview/test options should not override existing values.
         ringbaID = formData.ringbaID;
         phoneNumber = formData.phoneNumber;
       } else if (mediaBuyerName === "Jake Hunter") {
@@ -948,6 +952,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           campaignId: jsTag.campaignId,
           e164Number: jsTag.previousNumber?.e164Number || "N/A",
         }));
+
+        if (selectedVertical === "Final Expense") {
+          mediaBuyersArray.push({ name: "Nick" });
+        }
 
         console.log("Extracted media buyers:", mediaBuyersArray);
         setMediaBuyers(mediaBuyersArray);
