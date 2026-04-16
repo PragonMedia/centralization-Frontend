@@ -64,13 +64,22 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
       { value: "es-cb-ss-short", label: "Chatbot Social Security Short" },
       { value: "el-cb-groc-3000", label: "Chatbot Grocery ($3300)" },
-      { value: "el-cb-groc-short-3000", label: "Chatbot Grocery Short ($3300)" },
+      {
+        value: "el-cb-groc-short-3000",
+        label: "Chatbot Grocery Short ($3300)",
+      },
       { value: "el-ss-groc-174", label: "Chatbot Social Security ($174)" },
-      { value: "el-cb-ss-short-174", label: "Chatbot Social Security Short ($174)" },
+      {
+        value: "el-cb-ss-short-174",
+        label: "Chatbot Social Security Short ($174)",
+      },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
-    "Final Expense": [{ value: "cb-fe", label: "Final Expense (40K)" }],
+    "Final Expense": [
+      { value: "cb-fe", label: "Final Expense $40k" },
+      { value: "fe-40", label: "Final Expense ($0)" },
+    ],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
       { value: "stimulus", label: "Stimulus" },
@@ -105,7 +114,15 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ],
   };
 
-  const platformOptions = ["Facebook", "Google", "DV 360", "Bigo", "Roku", "Media Go", "StackAdapt"];
+  const platformOptions = [
+    "Facebook",
+    "Google",
+    "DV 360",
+    "Bigo",
+    "Roku",
+    "Media Go",
+    "StackAdapt",
+  ];
 
   const [url, setURL] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -174,7 +191,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
       // Strategy 1: Exact match
       matchingMediaBuyer = mediaBuyers.find(
-        (buyer) => buyer.name && buyer.name.trim() === userFullName
+        (buyer) => buyer.name && buyer.name.trim() === userFullName,
       );
 
       // Strategy 2: First name match (case-insensitive)
@@ -182,7 +199,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         matchingMediaBuyer = mediaBuyers.find(
           (buyer) =>
             buyer.name &&
-            buyer.name.trim().toLowerCase() === userFirstName.toLowerCase()
+            buyer.name.trim().toLowerCase() === userFirstName.toLowerCase(),
         );
       }
 
@@ -194,7 +211,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             buyer.name
               .trim()
               .toLowerCase()
-              .includes(userFirstName.toLowerCase())
+              .includes(userFirstName.toLowerCase()),
         );
       }
 
@@ -205,7 +222,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             buyer.name &&
             userFirstName
               .toLowerCase()
-              .includes(buyer.name.trim().toLowerCase())
+              .includes(buyer.name.trim().toLowerCase()),
         );
       }
 
@@ -229,7 +246,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         });
       }
     },
-    [campaignDetails, mediaBuyers, formData.organization]
+    [campaignDetails, mediaBuyers, formData.organization],
   );
 
   // Initialize form with user details from localStorage and fetch domains
@@ -360,7 +377,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         ) {
           // Find the selected campaign to check its name
           const selectedCampaignObj = campaigns.find(
-            (campaign) => campaign.id === campaignId
+            (campaign) => campaign.id === campaignId,
           );
           const campaignName = selectedCampaignObj?.name || "";
 
@@ -369,7 +386,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           let fallbackCampaignId = null;
           if (campaignName === "Paragon - Spanish Medicare") {
             const paragonMedicareCampaign = campaigns.find(
-              (campaign) => campaign.name === "Paragon - Medicare"
+              (campaign) => campaign.name === "Paragon - Medicare",
             );
             fallbackCampaignId = paragonMedicareCampaign?.id || null;
           }
@@ -411,7 +428,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ) {
       // Find the selected campaign to check its name
       const selectedCampaignObj = campaigns.find(
-        (campaign) => campaign.id === campaignId
+        (campaign) => campaign.id === campaignId,
       );
       const campaignName = selectedCampaignObj?.name || "";
 
@@ -420,7 +437,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       let fallbackCampaignId = null;
       if (campaignName === "Paragon - Spanish Medicare") {
         const paragonMedicareCampaign = campaigns.find(
-          (campaign) => campaign.name === "Paragon - Medicare"
+          (campaign) => campaign.name === "Paragon - Medicare",
         );
         fallbackCampaignId = paragonMedicareCampaign?.id || null;
       }
@@ -464,7 +481,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // Find the selected media buyer in the current media buyers list
     const selectedMediaBuyerData = mediaBuyers.find(
-      (buyer) => buyer.name === mediaBuyerName
+      (buyer) => buyer.name === mediaBuyerName,
     );
 
     // If we have campaign details from Ringba, use those
@@ -637,7 +654,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       console.log("Sample domain object:", domains[0]);
       console.log(
         "Domain object keys:",
-        domains[0] ? Object.keys(domains[0]) : "No domains"
+        domains[0] ? Object.keys(domains[0]) : "No domains",
       );
 
       if (userRole === "mediaBuyer") {
@@ -650,7 +667,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             "assignedTo:",
             domain.assignedTo,
             "userEmail:",
-            userEmail
+            userEmail,
           );
           return domain.assignedTo === userEmail;
         });
@@ -683,7 +700,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             "Filtering domains for selected media buyer:",
             selectedMediaBuyerFromCampaign,
             "email:",
-            selectedEmail
+            selectedEmail,
           );
 
           const filtered = domains.filter((domain) => {
@@ -693,7 +710,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               "assignedTo:",
               domain.assignedTo,
               "selectedEmail:",
-              selectedEmail
+              selectedEmail,
             );
             // Only check assignedTo - createdBy is the admin who created the domain
             return domain.assignedTo === selectedEmail;
@@ -712,7 +729,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return domains;
       }
     },
-    [selectedMediaBuyerFromCampaign]
+    [selectedMediaBuyerFromCampaign],
   );
 
   // Update filtered domains when availableDomains, user, or vertical changes
@@ -730,12 +747,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             "with role:",
             parsedUserData.role,
             "and vertical:",
-            selectedVertical
+            selectedVertical,
           );
           let filtered = filterDomainsByUser(
             availableDomains,
             parsedUserData.email,
-            parsedUserData.role
+            parsedUserData.role,
           );
 
           // Filter by vertical if selected and domain has vertical property
@@ -749,7 +766,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               "Filtered by vertical:",
               selectedVertical,
               "Result:",
-              filtered
+              filtered,
             );
           }
 
@@ -792,7 +809,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             method: "GET",
             headers: getRingbaHeaders(),
           },
-          CACHE_CONFIG.CAMPAIGNS
+          CACHE_CONFIG.CAMPAIGNS,
         );
 
         if (!response.ok) {
@@ -835,7 +852,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               }));
             console.log(
               "Filtered Elite campaigns (displayed as Elite - Medicare):",
-              filteredCampaigns
+              filteredCampaigns,
             );
           } else {
             // For Paragon Media, show both "Paragon - Medicare" and "Paragon - Spanish Medicare"
@@ -853,21 +870,21 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         } else if (vertical === "Debt PPC") {
           // Filter to only show "Paragon - Debt" campaign
           filteredCampaigns = campaignsData.filter(
-            (campaign) => campaign.name === "Paragon - Debt"
+            (campaign) => campaign.name === "Paragon - Debt",
           );
         } else if (vertical === "Final Expense") {
           // Filter to only show "Paragon - Final Expense" campaign
           filteredCampaigns = campaignsData.filter(
             (campaign) =>
               campaign.name === "Paragon - Final Expense" ||
-              campaign.name?.toLowerCase() === "paragon - final expense"
+              campaign.name?.toLowerCase() === "paragon - final expense",
           );
         } else if (vertical === "Medicaid") {
           // Paragon Media — match Ringba campaign name (adjust if your Ringba label differs)
           filteredCampaigns = campaignsData.filter(
             (campaign) =>
               campaign.name === "Paragon - Medicaid" ||
-              campaign.name?.toLowerCase() === "paragon - medicaid"
+              campaign.name?.toLowerCase() === "paragon - medicaid",
           );
         }
 
@@ -921,7 +938,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   // Function to fetch campaign details and extract media buyers
   const fetchCampaignDetails = async (
     campaignId,
-    fallbackCampaignId = null
+    fallbackCampaignId = null,
   ) => {
     if (!campaignId) return;
 
@@ -932,7 +949,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           method: "GET",
           headers: getRingbaHeaders(),
         },
-        CACHE_CONFIG.CAMPAIGN_DETAILS
+        CACHE_CONFIG.CAMPAIGN_DETAILS,
       );
 
       if (!response.ok) {
@@ -964,7 +981,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         if (fallbackCampaignId) {
           console.log(
             "No media buyers found, trying fallback campaign:",
-            fallbackCampaignId
+            fallbackCampaignId,
           );
           return fetchCampaignDetails(fallbackCampaignId);
         }
@@ -976,7 +993,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       if (fallbackCampaignId) {
         console.log(
           "Fetch failed, trying fallback campaign:",
-          fallbackCampaignId
+          fallbackCampaignId,
         );
         return fetchCampaignDetails(fallbackCampaignId);
       }
@@ -1004,7 +1021,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         {
           headers: getAuthHeaders(),
         },
-        CACHE_CONFIG.DOMAINS
+        CACHE_CONFIG.DOMAINS,
       );
 
       console.log("API response status:", response.status);
@@ -1033,7 +1050,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         console.error(
           "API response not ok:",
           response.status,
-          response.statusText
+          response.statusText,
         );
       }
     } catch (error) {
@@ -1054,7 +1071,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // Check if domain exists in availableDomains (which are now objects)
     const isValid = availableDomains.some(
-      (domainObj) => domainObj.domain === domain
+      (domainObj) => domainObj.domain === domain,
     );
 
     return isValid;
@@ -1174,7 +1191,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     // For mediaBuyer users, validate that they have access to the selected domain
     if (currentUserRole === "mediaBuyer" && formData.domain) {
       const selectedDomain = availableDomains.find(
-        (domain) => domain.domain === formData.domain
+        (domain) => domain.domain === formData.domain,
       );
 
       if (selectedDomain) {
@@ -1183,7 +1200,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
         if (!hasAccess) {
           alert(
-            `You don't have access to create landing pages for domain: ${formData.domain}`
+            `You don't have access to create landing pages for domain: ${formData.domain}`,
           );
           return;
         }
@@ -1201,7 +1218,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // Get template value and transform if needed for Elite + Medicare PPC
     let templateValue = sanitizeInput.text(
-      formData.template || selectedTemplate || ""
+      formData.template || selectedTemplate || "",
     );
     const normalizedOrg = normalizeOrganization(formData.organization || "");
 
@@ -1237,7 +1254,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       ringbaID: sanitizeInput.id(formData.ringbaID || ""),
       phoneNumber: sanitizeInput.phone(formData.phoneNumber || ""),
       createdBy: sanitizeInput.email(
-        formData.createdBy || currentUserEmail || ""
+        formData.createdBy || currentUserEmail || "",
       ),
     };
 
@@ -1510,8 +1527,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               {!selectedVertical
                 ? "Please select a vertical first"
                 : isLoadingCampaigns
-                ? "Loading campaigns..."
-                : "Select Campaign"}
+                  ? "Loading campaigns..."
+                  : "Select Campaign"}
             </option>
             {campaigns.map((campaign) => (
               <option key={campaign.id} value={campaign.id}>
@@ -1572,19 +1589,19 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     console.log("renderStep3 - filteredDomains:", filteredDomains);
     console.log(
       "renderStep3 - filteredDomains length:",
-      filteredDomains.length
+      filteredDomains.length,
     );
     console.log("renderStep3 - isLoadingDomains:", isLoadingDomains);
     console.log("renderStep3 - currentUserRole:", currentUserRole);
     console.log("renderStep3 - availableDomains:", availableDomains);
     console.log(
       "renderStep3 - availableDomains length:",
-      availableDomains.length
+      availableDomains.length,
     );
 
     // Filter domains based on input
     const filteredByInput = filteredDomains.filter((domain) =>
-      domain.domain.toLowerCase().includes(formData.domain.toLowerCase())
+      domain.domain.toLowerCase().includes(formData.domain.toLowerCase()),
     );
 
     return (
@@ -1603,7 +1620,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 const domainValue = e.target.value;
                 // Check if the typed domain exists and has rtkID
                 const matchedDomain = availableDomains.find(
-                  (d) => d.domain === domainValue
+                  (d) => d.domain === domainValue,
                 );
                 const hasRtkID =
                   matchedDomain?.rtkID && matchedDomain.rtkID.trim() !== "";
@@ -1790,7 +1807,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
               // Find the selected campaign to get its name
               const selectedCampaignObj = campaigns.find(
-                (campaign) => campaign.id === selectedCampaign
+                (campaign) => campaign.id === selectedCampaign,
               );
               const campaignName = selectedCampaignObj?.name || "";
 
@@ -1806,14 +1823,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "cb-groc-short" ||
                       template.value === "cb-ss-short" ||
                       template.value === "cb-groc-geoedge" ||
-                      template.value === "quiz-grocery"
+                      template.value === "quiz-grocery",
                   );
                 } else if (campaignName === "Paragon - Spanish Medicare") {
                   // For "Paragon - Spanish Medicare", show only es-cb-groc and es-cb-ss
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "es-cb-groc" ||
-                      template.value === "es-cb-ss"
+                      template.value === "es-cb-ss",
                   );
                 } else if (campaignName === "Elite - Medicare") {
                   // For "Elite - Medicare", show cb-groc, cb-ss (transformed at submit), es-cb-groc-short, es-cb-ss-short, and Elite (3000) templates (saved as-is)
@@ -1826,7 +1843,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "el-cb-groc-3000" ||
                       template.value === "el-cb-groc-short-3000" ||
                       template.value === "el-ss-groc-174" ||
-                      template.value === "el-cb-ss-short-174"
+                      template.value === "el-cb-ss-short-174",
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
@@ -1836,12 +1853,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 if (campaignName === "Stimulus") {
                   // For "Stimulus" campaign, show only Stimulus template
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "stimulus"
+                    (template) => template.value === "stimulus",
                   );
                 } else if (campaignName === "$750 Walmart Gift Card") {
                   // For "$750 Walmart Gift Card" campaign, show only Sweep template
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "sweep"
+                    (template) => template.value === "sweep",
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
@@ -1850,20 +1867,21 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               } else if (selectedVertical === "Final Expense") {
                 if (campaignName === "Paragon - Final Expense") {
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "cb-fe"
+                    (template) =>
+                      template.value === "cb-fe" || template.value === "fe-40",
                   );
                 } else {
                   filteredTemplates = allTemplates;
                 }
               } else if (selectedVertical === "Medicaid") {
                 filteredTemplates = allTemplates.filter(
-                  (template) => template.value === "medicaid"
+                  (template) => template.value === "medicaid",
                 );
               } else if (selectedVertical === "Casino") {
                 filteredTemplates = allTemplates.filter(
                   (template) =>
                     template.value === "casino" ||
-                    template.value === "casino-v2"
+                    template.value === "casino-v2",
                 );
               } else {
                 // For other verticals, show all templates
@@ -1926,7 +1944,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       {/* Template Preview Below Form Fields */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="border rounded-lg overflow-hidden h-[80vh] overflow-y-auto">
-          <TemplatePreview selectedTemplate={selectedTemplate} organization={formData.organization} />
+          <TemplatePreview
+            selectedTemplate={selectedTemplate}
+            organization={formData.organization}
+          />
         </div>
       </div>
     </div>
@@ -2047,7 +2068,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             setIsUpdatingRtkID(true);
             try {
               const selectedDomain = availableDomains.find(
-                (d) => d.domain === formData.domain
+                (d) => d.domain === formData.domain,
               );
 
               if (!selectedDomain) {
