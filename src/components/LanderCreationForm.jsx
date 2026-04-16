@@ -70,7 +70,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
-    "Final Expense": [{ value: "cb-fe", label: "Final Expense (4DK)" }],
+    "Final Expense": [{ value: "cb-fe", label: "Final Expense (40K)" }],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
       { value: "stimulus", label: "Stimulus" },
