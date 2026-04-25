@@ -77,7 +77,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
     "Final Expense": [
-      { value: "cb-fe", label: "Final Expense $40k" },
+      { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
     ],
     Sweeps: [
@@ -92,6 +92,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     Casino: [
       { value: "casino", label: "casino" },
       { value: "casino-v2", label: "Casino v2" },
+      { value: "casino-german", label: "casino-german" },
     ],
   };
 
@@ -1881,7 +1882,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 filteredTemplates = allTemplates.filter(
                   (template) =>
                     template.value === "casino" ||
-                    template.value === "casino-v2",
+                    template.value === "casino-v2" ||
+                    template.value === "casino-german",
                 );
               } else {
                 // For other verticals, show all templates

@@ -31,6 +31,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     Casino: [
       { value: "casino", label: "casino" },
       { value: "casino-v2", label: "Casino v2" },
+      { value: "casino-german", label: "casino-german" },
     ],
   };
 

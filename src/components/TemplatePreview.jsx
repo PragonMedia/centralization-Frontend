@@ -146,6 +146,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Casino v2",
       previewUrl: "https://approved-template.com/casv2/",
     },
+    {
+      id: "casino-german",
+      name: "casino-german",
+      previewUrl: "https://approved-template.com/cas-ger/",
+    },
   ];
 
   const matched =
