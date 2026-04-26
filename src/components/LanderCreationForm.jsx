@@ -90,9 +90,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
     Casino: [
-      { value: "casino", label: "casino" },
+      { value: "casino", label: "Casino" },
       { value: "casino-v2", label: "Casino v2" },
-      { value: "casino-german", label: "casino-german" },
+      { value: "casino-german", label: "Casino-German" },
     ],
   };
 
@@ -107,7 +107,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "sweep", name: "$750 Walmart Gift Card" },
       { id: "stimulus", name: "Stimulus" },
     ],
-    Casino: [{ id: "paragon-casino", name: "Paragon Casino" }],
+    Casino: [
+      { id: "casino-portugal", name: "Casino Portugal" },
+      { id: "casino-german", name: "Casino German" },
+    ],
     Nutra: [
       { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
@@ -399,7 +402,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         // For other verticals, show local media buyers
         if (selectedVertical) {
           if (selectedVertical === "Casino") {
-            setMediaBuyers([{ name: "Nick" }, { name: "You" }]);
+            setMediaBuyers([{ name: "Nick" }, { name: "You" }, { name: "Sean Luc" }]);
           } else {
             setMediaBuyers([
               { name: "Jake Hunter" },
@@ -450,7 +453,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     // For other non-Ringba verticals, show local media buyers
     if (selectedVertical) {
       if (selectedVertical === "Casino") {
-        setMediaBuyers([{ name: "Nick" }, { name: "You" }]);
+        setMediaBuyers([{ name: "Nick" }, { name: "You" }, { name: "Sean Luc" }]);
       } else {
         setMediaBuyers([
           { name: "Jake Hunter" },
@@ -1879,12 +1882,19 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   (template) => template.value === "medicaid",
                 );
               } else if (selectedVertical === "Casino") {
-                filteredTemplates = allTemplates.filter(
-                  (template) =>
-                    template.value === "casino" ||
-                    template.value === "casino-v2" ||
-                    template.value === "casino-german",
-                );
+                if (campaignName === "Casino Portugal") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "casino" ||
+                      template.value === "casino-v2",
+                  );
+                } else if (campaignName === "Casino German") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "casino-german",
+                  );
+                } else {
+                  filteredTemplates = allTemplates;
+                }
               } else {
                 // For other verticals, show all templates
                 filteredTemplates = allTemplates;

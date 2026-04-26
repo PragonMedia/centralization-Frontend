@@ -1,5 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
+  // BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1",
   BASE_URL:
     import.meta.env.VITE_API_BASE_URL || "http://138.68.231.226:3000/api/v1",
   RINGBA_ACCOUNT_ID:
@@ -27,7 +28,8 @@ export const API_ENDPOINTS = {
   ROUTES: {
     GET_DATA: `${API_CONFIG.BASE_URL}/data`,
     UPDATE_DATA: `${API_CONFIG.BASE_URL}/updateData`,
-    DELETE: (domain, route) => `${API_CONFIG.BASE_URL}/domain/${domain}/route/${route}`,
+    DELETE: (domain, route) =>
+      `${API_CONFIG.BASE_URL}/domain/${domain}/route/${route}`,
     CREATE: `${API_CONFIG.BASE_URL}/route`,
   },
   RINGBA: {

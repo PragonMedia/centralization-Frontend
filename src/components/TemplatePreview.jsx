@@ -138,7 +138,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     },
     {
       id: "casino",
-      name: "casino",
+      name: "Casino",
       previewUrl: "https://approved-template.com/casino/",
     },
     {
@@ -148,7 +148,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     },
     {
       id: "casino-german",
-      name: "casino-german",
+      name: "Casino-German",
       previewUrl: "https://approved-template.com/cas-ger/",
     },
   ];

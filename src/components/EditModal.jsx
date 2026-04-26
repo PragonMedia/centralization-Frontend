@@ -29,9 +29,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "nutra-supplement", label: "Supplement Sales" },
     ],
     Casino: [
-      { value: "casino", label: "casino" },
+      { value: "casino", label: "Casino" },
       { value: "casino-v2", label: "Casino v2" },
-      { value: "casino-german", label: "casino-german" },
+      { value: "casino-german", label: "Casino-German" },
     ],
   };
 
