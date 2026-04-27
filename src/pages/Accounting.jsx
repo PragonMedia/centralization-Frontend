@@ -439,6 +439,7 @@ function Accounting() {
     buyer: "",
     accountID: "",
     net: "weekly",
+    platform: "ringba",
   });
   const [addBuyerErrors, setAddBuyerErrors] = useState({});
   const [addBuyerSubmitting, setAddBuyerSubmitting] = useState(false);
@@ -728,7 +729,12 @@ function Accounting() {
 
   const closeAddBuyerModal = () => {
     setShowAddBuyerModal(false);
-    setAddBuyerForm({ buyer: "", accountID: "", net: "weekly" });
+    setAddBuyerForm({
+      buyer: "",
+      accountID: "",
+      net: "weekly",
+      platform: "ringba",
+    });
     setAddBuyerErrors({});
     setAddBuyerSubmitError(null);
   };
@@ -738,6 +744,8 @@ function Accounting() {
     if (!addBuyerForm.buyer?.trim()) errs.buyer = "Buyer is required.";
     if (!addBuyerForm.accountID?.trim())
       errs.accountID = "Account ID is required.";
+    if (!addBuyerForm.platform?.trim())
+      errs.platform = "Platform is required.";
     setAddBuyerErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -755,6 +763,7 @@ function Accounting() {
           companyName: addBuyerForm.buyer.trim(),
           accountID: addBuyerForm.accountID.trim(),
           net: addBuyerForm.net,
+          platform: addBuyerForm.platform,
           apiToken:
             "09f0c9f0610c100d3fd39e42bcdd71327611addf812f3767339281515f52231e5c4470281d7ab1cfa456fed246be0b07c8fed2ee9eb5137ce8f3dde3c2d042a337d39d9f692c78e58a48b251deef9375d89fa04159778f44d89696be0051ed44ccffdd67ec4c35bb6f79e8167139015f2e671e5a",
         }),
@@ -1355,6 +1364,33 @@ function Accounting() {
                     {addBuyerErrors.buyer && (
                       <p className="text-red-600 text-xs mt-1">
                         {addBuyerErrors.buyer}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="add-buyer-platform"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Platform <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="add-buyer-platform"
+                      value={addBuyerForm.platform}
+                      onChange={(e) =>
+                        setAddBuyerForm((f) => ({
+                          ...f,
+                          platform: e.target.value,
+                        }))
+                      }
+                      className={netSelectClassName()}
+                    >
+                      <option value="ringba">Ringba</option>
+                      <option value="retriever">Retriever</option>
+                    </select>
+                    {addBuyerErrors.platform && (
+                      <p className="text-red-600 text-xs mt-1">
+                        {addBuyerErrors.platform}
                       </p>
                     )}
                   </div>
