@@ -38,7 +38,7 @@ export const API_ENDPOINTS = {
       `https://api.ringba.com/v2/${API_CONFIG.RINGBA_ACCOUNT_ID}/campaigns/${id}`,
   },
   ACCOUNTING: {
-    REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue`,
+    REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue/cached`,
     COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,
     UPDATE_COMPANY: (accountID) =>
       `${API_CONFIG.BASE_URL}/accounting/companies/${encodeURIComponent(accountID)}`,

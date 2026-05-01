@@ -465,10 +465,16 @@ function Accounting() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_ENDPOINTS.ACCOUNTING.REVENUE, {
-        method: "POST",
+      const params = new URLSearchParams();
+      if (start) params.set("start", start);
+      if (end) params.set("end", end);
+      const revenueUrl = params.toString()
+        ? `${API_ENDPOINTS.ACCOUNTING.REVENUE}?${params.toString()}`
+        : API_ENDPOINTS.ACCOUNTING.REVENUE;
+
+      const res = await fetch(revenueUrl, {
+        method: "GET",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ start, end }),
       });
 
       if (!res.ok) {
