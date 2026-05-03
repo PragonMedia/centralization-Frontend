@@ -197,6 +197,33 @@ function parseCompaniesListResponse(json) {
   return null;
 }
 
+/** Normalize Ringba PGNM buyers API payload to a list of display strings. */
+function parseRingbaBuyersListResponse(json) {
+  if (json == null) return [];
+  if (Array.isArray(json)) {
+    return json
+      .map((item) => {
+        if (typeof item === "string") return item.trim();
+        if (item && typeof item === "object") {
+          const n =
+            item.name ??
+            item.buyer ??
+            item.companyName ??
+            item.label ??
+            item.title;
+          return n != null ? String(n).trim() : "";
+        }
+        return "";
+      })
+      .filter(Boolean);
+  }
+  const nested = [json.buyers, json.data, json.items, json.results];
+  for (const c of nested) {
+    if (Array.isArray(c)) return parseRingbaBuyersListResponse(c);
+  }
+  return [];
+}
+
 /** Map normalized company name → { accountID, net } from API `companies` list (same as DB docs). */
 function buildCompanyLookup(allCompanies) {
   const byNorm = new Map();
@@ -444,6 +471,11 @@ function Accounting() {
   const [addBuyerErrors, setAddBuyerErrors] = useState({});
   const [addBuyerSubmitting, setAddBuyerSubmitting] = useState(false);
   const [addBuyerSubmitError, setAddBuyerSubmitError] = useState(null);
+  const [buyersFromRingba, setBuyersFromRingba] = useState([]);
+  const [buyersFromRingbaLoading, setBuyersFromRingbaLoading] =
+    useState(false);
+  const [buyersFromRingbaError, setBuyersFromRingbaError] = useState(null);
+  const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
 
   const [showEditBuyerModal, setShowEditBuyerModal] = useState(false);
   const [editBuyerOriginalAccountId, setEditBuyerOriginalAccountId] =
@@ -523,6 +555,57 @@ function Accounting() {
       cancelled = true;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!showAddBuyerModal) return;
+    let cancelled = false;
+    (async () => {
+      setBuyersFromRingbaLoading(true);
+      setBuyersFromRingbaError(null);
+      try {
+        const res = await fetch(API_ENDPOINTS.ACCOUNTING.RINGBA_PGNM_BUYERS, {
+          method: "GET",
+          headers: getAuthHeaders(),
+        });
+        if (cancelled) return;
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          setBuyersFromRingba([]);
+          setBuyersFromRingbaError(
+            errBody.error ||
+              errBody.message ||
+              `Could not load buyers (HTTP ${res.status})`,
+          );
+          return;
+        }
+        const json = await res.json().catch(() => null);
+        if (cancelled) return;
+        const raw = parseRingbaBuyersListResponse(json);
+        const seen = new Set();
+        const deduped = [];
+        for (const name of raw) {
+          const key = name.toLowerCase();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          deduped.push(name);
+        }
+        deduped.sort((a, b) => a.localeCompare(b));
+        setBuyersFromRingba(deduped);
+      } catch (err) {
+        if (!cancelled) {
+          setBuyersFromRingba([]);
+          setBuyersFromRingbaError(
+            err?.message || "Failed to load buyer suggestions.",
+          );
+        }
+      } finally {
+        if (!cancelled) setBuyersFromRingbaLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showAddBuyerModal]);
 
   const companies = data?.companies ?? [];
   const companiesForLookup = useMemo(
@@ -648,6 +731,15 @@ function Accounting() {
   }, [companiesForLookup]);
   const filteredBuyerDirectoryRows = filterRows(buyerDirectoryRows);
 
+  const ringbaBuyerInputSuggestions = useMemo(() => {
+    const q = addBuyerForm.buyer.trim().toLowerCase();
+    if (!buyersFromRingba.length) return [];
+    if (!q) return buyersFromRingba;
+    return buyersFromRingba.filter((name) =>
+      name.toLowerCase().startsWith(q),
+    );
+  }, [addBuyerForm.buyer, buyersFromRingba]);
+
   const closeEditBuyerModal = () => {
     setShowEditBuyerModal(false);
     setEditBuyerOriginalAccountId("");
@@ -735,6 +827,7 @@ function Accounting() {
 
   const closeAddBuyerModal = () => {
     setShowAddBuyerModal(false);
+    setShowBuyerDropdown(false);
     setAddBuyerForm({
       buyer: "",
       accountID: "",
@@ -1353,20 +1446,82 @@ function Accounting() {
                     >
                       Buyer <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="add-buyer-name"
-                      type="text"
-                      required
-                      value={addBuyerForm.buyer}
-                      onChange={(e) =>
-                        setAddBuyerForm((f) => ({
-                          ...f,
-                          buyer: e.target.value,
-                        }))
-                      }
-                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder="e.g. DigiPeak"
-                    />
+                    <div className="relative">
+                      <input
+                        id="add-buyer-name"
+                        type="text"
+                        required
+                        autoComplete="off"
+                        value={addBuyerForm.buyer}
+                        onChange={(e) =>
+                          setAddBuyerForm((f) => ({
+                            ...f,
+                            buyer: e.target.value,
+                          }))
+                        }
+                        onFocus={() => setShowBuyerDropdown(true)}
+                        onBlur={() => {
+                          setTimeout(() => setShowBuyerDropdown(false), 200);
+                        }}
+                        disabled={buyersFromRingbaLoading}
+                        placeholder={
+                          buyersFromRingbaLoading
+                            ? "Loading buyers…"
+                            : "Type to search or click to see all buyers…"
+                        }
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                      {showBuyerDropdown && buyersFromRingba.length > 0 && (
+                        <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {ringbaBuyerInputSuggestions.length > 0 ? (
+                            ringbaBuyerInputSuggestions.map((name) => (
+                              <div
+                                key={name}
+                                role="option"
+                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 text-sm text-gray-900"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setAddBuyerForm((f) => ({
+                                    ...f,
+                                    buyer: name,
+                                  }));
+                                  setShowBuyerDropdown(false);
+                                }}
+                              >
+                                {name}
+                              </div>
+                            ))
+                          ) : addBuyerForm.buyer.trim() ? (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              No buyers starting with &quot;
+                              {addBuyerForm.buyer.trim()}&quot;
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                    {buyersFromRingbaError && (
+                      <p className="text-amber-700 text-xs mt-1">
+                        {buyersFromRingbaError} — you can still type a buyer
+                        name manually.
+                      </p>
+                    )}
                     {addBuyerErrors.buyer && (
                       <p className="text-red-600 text-xs mt-1">
                         {addBuyerErrors.buyer}

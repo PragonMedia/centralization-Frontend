@@ -42,6 +42,10 @@ export const API_ENDPOINTS = {
     COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,
     UPDATE_COMPANY: (accountID) =>
       `${API_CONFIG.BASE_URL}/accounting/companies/${encodeURIComponent(accountID)}`,
+    /** Buyer name suggestions (Ringba PGNM). Same host as other accounting APIs; override with VITE_ACCOUNTING_RINGBA_BUYERS_URL for local backend. */
+    RINGBA_PGNM_BUYERS:
+      import.meta.env.VITE_ACCOUNTING_RINGBA_BUYERS_URL ||
+      `${API_CONFIG.BASE_URL}/accounting/ringba/pgnm/buyers`,
   },
   ROKU_LOGS: {
     LIST: `${API_CONFIG.BASE_URL}/roku-logs`,
