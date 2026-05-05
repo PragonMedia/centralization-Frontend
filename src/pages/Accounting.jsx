@@ -411,25 +411,59 @@ function isOverThreshold(ourAmount, buyerAmount) {
   return buyer < our * 0.97;
 }
 
-function rowTotals(row) {
+/** Sum only the amounts for the currently displayed date labels. */
+function sumCellByLabels(cell, labels) {
+  const isObj = typeof cell === "object" && cell !== null;
+  if (!isObj || !Array.isArray(labels) || labels.length === 0) {
+    return {
+      our: isObj ? cell?.conversionAmount ?? "" : "",
+      buyer: isObj ? cell?.buyerConversionAmount ?? "" : "",
+    };
+  }
+
+  let our = 0;
+  let buyer = 0;
+  let hasOur = false;
+  let hasBuyer = false;
+
+  labels.forEach((label) => {
+    const per = cell.perDateByLabel?.[label];
+    if (!per) return;
+    if (per.conversionAmount !== "" && per.conversionAmount != null) {
+      our += parseAmount(per.conversionAmount);
+      hasOur = true;
+    }
+    if (per.buyerConversionAmount !== "" && per.buyerConversionAmount != null) {
+      buyer += parseAmount(per.buyerConversionAmount);
+      hasBuyer = true;
+    }
+  });
+
+  return {
+    our: hasOur ? our : "",
+    buyer: hasBuyer ? buyer : "",
+  };
+}
+
+function rowTotalsForDisplayedRange(row, columnDateParts) {
   let sumOur = 0;
   let sumBuyer = 0;
   let hasOur = false;
   let hasBuyer = false;
-  TABLE_DAYS.forEach((day) => {
-    const cell = row[day];
-    const isObj = typeof cell === "object" && cell !== null;
-    if (isObj) {
-      if (cell.conversionAmount !== "") {
-        sumOur += parseAmount(cell.conversionAmount);
-        hasOur = true;
-      }
-      if (cell.buyerConversionAmount !== "") {
-        sumBuyer += parseAmount(cell.buyerConversionAmount);
-        hasBuyer = true;
-      }
+
+  TABLE_DAYS.forEach((day, dayIndex) => {
+    const labels = columnDateParts?.[dayIndex] || [];
+    const { our, buyer } = sumCellByLabels(row[day], labels);
+    if (our !== "" && our != null) {
+      sumOur += parseAmount(our);
+      hasOur = true;
+    }
+    if (buyer !== "" && buyer != null) {
+      sumBuyer += parseAmount(buyer);
+      hasBuyer = true;
     }
   });
+
   return {
     totalOur: hasOur ? sumOur : "",
     totalBuyer: hasBuyer ? sumBuyer : "",
@@ -1117,12 +1151,11 @@ function Accounting() {
                               const cell = row[day];
                               const isObj =
                                 typeof cell === "object" && cell !== null;
-                              const ourAmountTotal = isObj
-                                ? cell.conversionAmount
-                                : (cell ?? "");
-                              const buyerAmountTotal = isObj
-                                ? (cell.buyerConversionAmount ?? "")
-                                : "";
+                              const labelsForDay = columnDateParts?.[dayIndex] || [];
+                              const {
+                                our: ourAmountTotal,
+                                buyer: buyerAmountTotal,
+                              } = sumCellByLabels(cell, labelsForDay);
                               const highlightTotal =
                                 buyerAmountTotal !== "" &&
                                 buyerAmountTotal != null &&
@@ -1207,7 +1240,8 @@ function Accounting() {
                               );
                             })}
                             {(() => {
-                              const { totalOur, totalBuyer } = rowTotals(row);
+                              const { totalOur, totalBuyer } =
+                                rowTotalsForDisplayedRange(row, columnDateParts);
                               const totalHighlight =
                                 totalBuyer !== "" &&
                                 totalBuyer != null &&
