@@ -414,10 +414,16 @@ function isOverThreshold(ourAmount, buyerAmount) {
 /** Sum only the amounts for the currently displayed date labels. */
 function sumCellByLabels(cell, labels) {
   const isObj = typeof cell === "object" && cell !== null;
-  if (!isObj || !Array.isArray(labels) || labels.length === 0) {
+  if (!isObj) {
     return {
-      our: isObj ? cell?.conversionAmount ?? "" : "",
-      buyer: isObj ? cell?.buyerConversionAmount ?? "" : "",
+      our: "",
+      buyer: "",
+    };
+  }
+  if (!Array.isArray(labels) || labels.length === 0) {
+    return {
+      our: "",
+      buyer: "",
     };
   }
 
