@@ -18,6 +18,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
       { value: "fe-40", label: "Final Expense ($40k)" },
+      { value: "cb-fe-25", label: "Final Expense ($25)" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     Sweeps: [
@@ -48,7 +49,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (templateValue.startsWith("debt-") || templateValue === "gg-debt-v1") {
       return "Debt PPC";
     }
-    if (templateValue === "cb-fe" || templateValue === "fe-40") {
+    if (
+      templateValue === "cb-fe" ||
+      templateValue === "fe-40" ||
+      templateValue === "cb-fe-25"
+    ) {
       return "Final Expense";
     }
     if (templateValue === "medicaid") {

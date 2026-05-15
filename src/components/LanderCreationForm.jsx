@@ -79,6 +79,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
+      { value: "cb-fe-25", label: "Final Expense ($25)" },
     ],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
@@ -1872,7 +1873,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 if (campaignName === "Paragon - Final Expense") {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
-                      template.value === "cb-fe" || template.value === "fe-40",
+                      template.value === "cb-fe" ||
+                      template.value === "fe-40" ||
+                      template.value === "cb-fe-25",
                   );
                 } else {
                   filteredTemplates = allTemplates;
