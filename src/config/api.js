@@ -46,6 +46,8 @@ export const API_ENDPOINTS = {
     RINGBA_PGNM_BUYERS:
       import.meta.env.VITE_ACCOUNTING_RINGBA_BUYERS_URL ||
       `${API_CONFIG.BASE_URL}/accounting/ringba/pgnm/buyers`,
+    /** Resolve CallGrid organizationId from API key (server calls CallGrid). */
+    CALLGRID_RESOLVE_ORG: `${API_CONFIG.BASE_URL}/accounting/callgrid/resolve-org`,
   },
   ROKU_LOGS: {
     LIST: `${API_CONFIG.BASE_URL}/roku-logs`,

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api";
+import { resolveCallGridOrganization } from "../utils/callgridResolveOrganization";
 
 const DAY_NAMES = [
   "Sunday",
@@ -507,6 +508,7 @@ function Accounting() {
     accountID: "",
     net: "weekly",
     platform: "ringba",
+    apiToken: "",
   });
   const [addBuyerErrors, setAddBuyerErrors] = useState({});
   const [addBuyerSubmitting, setAddBuyerSubmitting] = useState(false);
@@ -516,6 +518,10 @@ function Accounting() {
     useState(false);
   const [buyersFromRingbaError, setBuyersFromRingbaError] = useState(null);
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
+  const [callgridResolveStatus, setCallgridResolveStatus] = useState("idle");
+  const [callgridResolveError, setCallgridResolveError] = useState(null);
+  const [callgridOrgLabel, setCallgridOrgLabel] = useState("");
+  const callgridResolveRequestId = useRef(0);
 
   const [showEditBuyerModal, setShowEditBuyerModal] = useState(false);
   const [editBuyerOriginalAccountId, setEditBuyerOriginalAccountId] =
@@ -865,14 +871,62 @@ function Accounting() {
     }
   };
 
+  const resetCallgridResolve = useCallback(() => {
+    callgridResolveRequestId.current += 1;
+    setCallgridResolveStatus("idle");
+    setCallgridResolveError(null);
+    setCallgridOrgLabel("");
+  }, []);
+
+  const resolveCallgridFromApiToken = useCallback(
+    async (apiToken) => {
+      const trimmed = apiToken?.trim();
+      if (!trimmed) {
+        resetCallgridResolve();
+        setAddBuyerForm((f) => ({ ...f, accountID: "" }));
+        return { ok: false };
+      }
+
+      const requestId = ++callgridResolveRequestId.current;
+      setCallgridResolveStatus("loading");
+      setCallgridResolveError(null);
+      setCallgridOrgLabel("");
+      setAddBuyerForm((f) => ({ ...f, accountID: "" }));
+
+      try {
+        const { organizationId, label } =
+          await resolveCallGridOrganization(trimmed);
+        if (requestId !== callgridResolveRequestId.current) {
+          return { ok: false };
+        }
+        setAddBuyerForm((f) => ({ ...f, accountID: organizationId }));
+        setCallgridOrgLabel(label);
+        setCallgridResolveStatus("success");
+        return { ok: true, organizationId, label };
+      } catch (err) {
+        if (requestId !== callgridResolveRequestId.current) {
+          return { ok: false };
+        }
+        const message =
+          err?.message || "Failed to resolve CallGrid organization.";
+        setCallgridResolveStatus("error");
+        setCallgridResolveError(message);
+        return { ok: false, error: message };
+      }
+    },
+    [resetCallgridResolve],
+  );
+
   const closeAddBuyerModal = () => {
     setShowAddBuyerModal(false);
     setShowBuyerDropdown(false);
+    resetCallgridResolve();
     setAddBuyerForm({
       buyer: "",
       accountID: "",
       net: "weekly",
       platform: "ringba",
+      apiToken: "",
     });
     setAddBuyerErrors({});
     setAddBuyerSubmitError(null);
@@ -881,31 +935,79 @@ function Accounting() {
   const validateAddBuyer = () => {
     const errs = {};
     if (!addBuyerForm.buyer?.trim()) errs.buyer = "Buyer is required.";
-    if (!addBuyerForm.accountID?.trim())
-      errs.accountID = "Account ID is required.";
     if (!addBuyerForm.platform?.trim())
       errs.platform = "Platform is required.";
+
+    if (addBuyerForm.platform === "callgrid") {
+      if (!addBuyerForm.apiToken?.trim()) {
+        errs.apiToken = "API Token is required for CallGrid.";
+      }
+      if (callgridResolveStatus === "loading") {
+        errs.apiToken =
+          errs.apiToken ||
+          "Wait for CallGrid Account ID to finish resolving.";
+      } else if (
+        callgridResolveStatus !== "success" ||
+        !addBuyerForm.accountID?.trim()
+      ) {
+        errs.apiToken =
+          errs.apiToken ||
+          callgridResolveError ||
+          "Enter a valid CallGrid API token to resolve Account ID.";
+      }
+    } else if (!addBuyerForm.accountID?.trim()) {
+      errs.accountID = "Account ID is required.";
+    }
+
     setAddBuyerErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  const isCallgridAddBuyerBlocked =
+    addBuyerForm.platform === "callgrid" &&
+    (callgridResolveStatus !== "success" ||
+      !addBuyerForm.accountID?.trim());
+
   const handleAddBuyerSubmit = async (e) => {
     e.preventDefault();
+    let accountIDForSubmit = addBuyerForm.accountID.trim();
+
+    if (addBuyerForm.platform === "callgrid") {
+      if (callgridResolveStatus !== "success" || !accountIDForSubmit) {
+        const result = await resolveCallgridFromApiToken(
+          addBuyerForm.apiToken,
+        );
+        if (!result.ok || !result.organizationId) {
+          setAddBuyerErrors({
+            apiToken:
+              result.error ||
+              callgridResolveError ||
+              "Could not resolve CallGrid Account ID from API key.",
+          });
+          return;
+        }
+        accountIDForSubmit = result.organizationId;
+      }
+    }
+
     if (!validateAddBuyer()) return;
     setAddBuyerSubmitting(true);
     setAddBuyerSubmitError(null);
     try {
+      const body = {
+        companyName: addBuyerForm.buyer.trim(),
+        accountID: accountIDForSubmit,
+        net: addBuyerForm.net,
+        platform: addBuyerForm.platform,
+      };
+      if (addBuyerForm.platform === "callgrid") {
+        body.apiToken = addBuyerForm.apiToken.trim();
+      }
+
       const res = await fetch(API_ENDPOINTS.ACCOUNTING.COMPANIES, {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          companyName: addBuyerForm.buyer.trim(),
-          accountID: addBuyerForm.accountID.trim(),
-          net: addBuyerForm.net,
-          platform: addBuyerForm.platform,
-          apiToken:
-            "09f0c9f0610c100d3fd39e42bcdd71327611addf812f3767339281515f52231e5c4470281d7ab1cfa456fed246be0b07c8fed2ee9eb5137ce8f3dde3c2d042a337d39d9f692c78e58a48b251deef9375d89fa04159778f44d89696be0051ed44ccffdd67ec4c35bb6f79e8167139015f2e671e5a",
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
@@ -1578,16 +1680,21 @@ function Accounting() {
                     <select
                       id="add-buyer-platform"
                       value={addBuyerForm.platform}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const platform = e.target.value;
+                        resetCallgridResolve();
                         setAddBuyerForm((f) => ({
                           ...f,
-                          platform: e.target.value,
-                        }))
-                      }
+                          platform,
+                          apiToken: "",
+                          accountID: "",
+                        }));
+                      }}
                       className={netSelectClassName()}
                     >
                       <option value="ringba">Ringba</option>
-                      <option value="retriever">Retriever</option>
+                      <option value="retriever">Retreaver</option>
+                      <option value="callgrid">CallGrid</option>
                     </select>
                     {addBuyerErrors.platform && (
                       <p className="text-red-600 text-xs mt-1">
@@ -1595,26 +1702,97 @@ function Accounting() {
                       </p>
                     )}
                   </div>
+                  {addBuyerForm.platform === "callgrid" && (
+                    <div>
+                      <label
+                        htmlFor="add-buyer-api-token"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        API Token <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="add-buyer-api-token"
+                        type="password"
+                        autoComplete="new-password"
+                        required
+                        value={addBuyerForm.apiToken}
+                        onChange={(e) => {
+                          const apiToken = e.target.value;
+                          resetCallgridResolve();
+                          setAddBuyerForm((f) => ({
+                            ...f,
+                            apiToken,
+                            accountID: "",
+                          }));
+                        }}
+                        onBlur={(e) => {
+                          if (addBuyerForm.platform === "callgrid") {
+                            resolveCallgridFromApiToken(e.target.value);
+                          }
+                        }}
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
+                        placeholder="Paste CallGrid API key"
+                        disabled={callgridResolveStatus === "loading"}
+                      />
+                      {callgridResolveStatus === "loading" && (
+                        <p className="text-gray-500 text-xs mt-1">
+                          Resolving CallGrid organization…
+                        </p>
+                      )}
+                      {callgridResolveError && (
+                        <p className="text-red-600 text-xs mt-1">
+                          {callgridResolveError}
+                        </p>
+                      )}
+                      {callgridResolveStatus === "success" &&
+                        callgridOrgLabel && (
+                          <p className="text-green-700 text-xs mt-1">
+                            Organization: {callgridOrgLabel}
+                          </p>
+                        )}
+                      {addBuyerErrors.apiToken && (
+                        <p className="text-red-600 text-xs mt-1">
+                          {addBuyerErrors.apiToken}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <label
                       htmlFor="add-buyer-account"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       Account ID <span className="text-red-500">*</span>
+                      {addBuyerForm.platform === "callgrid" && (
+                        <span className="font-normal text-gray-500">
+                          {" "}
+                          (auto-filled from API key)
+                        </span>
+                      )}
                     </label>
                     <input
                       id="add-buyer-account"
                       type="text"
                       required
+                      readOnly={addBuyerForm.platform === "callgrid"}
                       value={addBuyerForm.accountID}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        if (addBuyerForm.platform === "callgrid") return;
                         setAddBuyerForm((f) => ({
                           ...f,
                           accountID: e.target.value,
-                        }))
+                        }));
+                      }}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 read-only:bg-gray-50 read-only:text-gray-700 disabled:bg-gray-50"
+                      placeholder={
+                        addBuyerForm.platform === "callgrid"
+                          ? "Resolved after valid API key"
+                          : "e.g. RA110a95eea0454b979be600f48e4b6d5e"
                       }
-                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder="e.g. RA110a95eea0454b979be600f48e4b6d5e"
+                      disabled={
+                        addBuyerForm.platform === "callgrid" &&
+                        callgridResolveStatus === "loading"
+                      }
                     />
                     {addBuyerErrors.accountID && (
                       <p className="text-red-600 text-xs mt-1">
@@ -1656,7 +1834,9 @@ function Accounting() {
                   </button>
                   <button
                     type="submit"
-                    disabled={addBuyerSubmitting}
+                    disabled={
+                      addBuyerSubmitting || isCallgridAddBuyerBlocked
+                    }
                     className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {addBuyerSubmitting ? "Saving…" : "Save"}
