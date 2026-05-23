@@ -14,6 +14,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "debt" },
+      { value: "homepage-debt", label: "debt-homepage" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
@@ -21,6 +22,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cb-fe-25", label: "Final Expense ($25)" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
+    ACA: [{ value: "aca-58", label: "ACA 58" }],
     Sweeps: [
       { value: "sweep", label: "Sweep" },
     ],
@@ -33,6 +35,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "casino", label: "Casino" },
       { value: "casino-v2", label: "Casino v2" },
       { value: "casino-german", label: "Casino-German" },
+      { value: "cas-ie", label: "cas-ie" },
+      { value: "cas-uk", label: "cas-uk" },
     ],
   };
 
@@ -46,7 +50,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "Medicare PPC";
     }
     // Debt PPC templates
-    if (templateValue.startsWith("debt-") || templateValue === "gg-debt-v1") {
+    if (
+      templateValue === "gg-debt-v1" ||
+      templateValue === "homepage-debt" ||
+      templateValue.startsWith("debt-")
+    ) {
       return "Debt PPC";
     }
     if (
@@ -59,6 +67,9 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (templateValue === "medicaid") {
       return "Medicaid";
     }
+    if (templateValue === "aca-58" || templateValue.startsWith("aca-")) {
+      return "ACA";
+    }
     // Sweeps templates
     if (templateValue === "sweep") {
       return "Sweeps";
@@ -68,10 +79,13 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "Nutra";
     }
     // Casino templates
-    if (templateValue === "casino") {
-      return "Casino";
-    }
-    if (templateValue.startsWith("casino-")) {
+    if (
+      templateValue === "casino" ||
+      templateValue === "cas-ie" ||
+      templateValue === "cas-uk" ||
+      templateValue.startsWith("casino-") ||
+      templateValue.startsWith("cas-")
+    ) {
       return "Casino";
     }
     

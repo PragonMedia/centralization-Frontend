@@ -92,6 +92,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "debt",
       previewUrl: "https://approved-template.com/debt",
     },
+    {
+      id: "homepage-debt",
+      name: "debt-homepage",
+      previewUrl: "https://approved-template.com/homepage-debt/",
+    },
     // Paragon Media - Final Expense
     {
       id: "cb-fe",
@@ -113,6 +118,12 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "medicaid",
       name: "Medicaid",
       previewUrl: "http://approved-template.com/med",
+    },
+    // Paragon Media - ACA
+    {
+      id: "aca-58",
+      name: "ACA 58",
+      previewUrl: "https://approved-template.com/aca58/",
     },
     // Paragon Media - Sweeps
     {
@@ -155,6 +166,16 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "casino-german",
       name: "Casino-German",
       previewUrl: "https://approved-template.com/cas-ger/",
+    },
+    {
+      id: "cas-ie",
+      name: "cas-ie",
+      previewUrl: "https://approved-template.com/cas-ie/",
+    },
+    {
+      id: "cas-uk",
+      name: "cas-uk",
+      previewUrl: "https://approved-template.com/cas-uk/",
     },
   ];
 

@@ -34,6 +34,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   const allVerticals = [
     "Medicare PPC",
     "Medicaid",
+    "ACA",
     "Debt PPC",
     "Final Expense",
     "Sweeps",
@@ -75,7 +76,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
-    "Debt PPC": [{ value: "gg-debt-v1", label: "debt" }],
+    ACA: [{ value: "aca-58", label: "ACA 58" }],
+    "Debt PPC": [
+      { value: "gg-debt-v1", label: "debt" },
+      { value: "homepage-debt", label: "debt-homepage" },
+    ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
@@ -94,6 +99,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "casino", label: "Casino" },
       { value: "casino-v2", label: "Casino v2" },
       { value: "casino-german", label: "Casino-German" },
+      { value: "cas-ie", label: "cas-ie" },
+      { value: "cas-uk", label: "cas-uk" },
     ],
   };
 
@@ -109,6 +116,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "stimulus", name: "Stimulus" },
     ],
     Casino: [
+      { id: "casino", name: "Casino" },
       { id: "casino-portugal", name: "Casino Portugal" },
       { id: "casino-german", name: "Casino German" },
     ],
@@ -373,10 +381,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers
+        // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
           selectedVertical === "Medicaid" ||
+          selectedVertical === "ACA" ||
           selectedVertical === "Debt PPC" ||
           selectedVertical === "Final Expense"
         ) {
@@ -424,10 +433,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
       selectedVertical === "Medicaid" ||
+      selectedVertical === "ACA" ||
       selectedVertical === "Debt PPC" ||
       selectedVertical === "Final Expense"
     ) {
@@ -510,7 +520,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       if (
         (selectedVertical === "Casino" &&
           (mediaBuyerName === "Nick" || mediaBuyerName === "You")) ||
-        (selectedVertical === "Final Expense" && mediaBuyerName === "Nick")
+        (selectedVertical === "Final Expense" && mediaBuyerName === "Nick") ||
+        (selectedVertical === "ACA" && mediaBuyerName === "Nick")
       ) {
         // Local preview/test options should not override existing values.
         ringbaID = formData.ringbaID;
@@ -651,6 +662,19 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     }
   };
 
+  /** Nick sees every domain on step 3 (not only assignedTo). */
+  const isNickMediaBuyerSelection = useCallback((mediaBuyerName) => {
+    if (mediaBuyerName == null || String(mediaBuyerName).trim() === "") {
+      return false;
+    }
+    return String(mediaBuyerName).trim().toLowerCase() === "nick";
+  }, []);
+
+  const isNickMediaBuyerEmail = useCallback((email) => {
+    if (email == null || String(email).trim() === "") return false;
+    return String(email).trim().toLowerCase() === "nick@paragonmedia.io";
+  }, []);
+
   // Function to filter domains based on user role
   const filterDomainsByUser = useCallback(
     (domains, userEmail, userRole) => {
@@ -662,7 +686,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         domains[0] ? Object.keys(domains[0]) : "No domains",
       );
 
+      if (isNickMediaBuyerSelection(selectedMediaBuyerFromCampaign)) {
+        console.log("Nick selected as media buyer — showing all domains");
+        return domains;
+      }
+
       if (userRole === "mediaBuyer") {
+        if (isNickMediaBuyerEmail(userEmail)) {
+          console.log("Logged-in Nick — showing all domains");
+          return domains;
+        }
         // For mediaBuyer users, only show domains assigned to them
         // Only check assignedTo - createdBy is the admin who created the domain, not the mediaBuyer
         const filtered = domains.filter((domain) => {
@@ -734,7 +767,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return domains;
       }
     },
-    [selectedMediaBuyerFromCampaign],
+    [
+      selectedMediaBuyerFromCampaign,
+      isNickMediaBuyerSelection,
+      isNickMediaBuyerEmail,
+    ],
   );
 
   // Update filtered domains when availableDomains, user, or vertical changes
@@ -801,10 +838,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC, Medicaid, Debt PPC, and Final Expense, fetch from Ringba API
+      // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch from Ringba API
       if (
         vertical === "Medicare PPC" ||
         vertical === "Medicaid" ||
+        vertical === "ACA" ||
         vertical === "Debt PPC" ||
         vertical === "Final Expense"
       ) {
@@ -891,6 +929,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               campaign.name === "Paragon - Medicaid" ||
               campaign.name?.toLowerCase() === "paragon - medicaid",
           );
+        } else if (vertical === "ACA") {
+          filteredCampaigns = campaignsData.filter(
+            (campaign) =>
+              campaign.name === "Paragon - ACA" ||
+              campaign.name?.toLowerCase() === "paragon - aca",
+          );
         }
 
         setCampaigns(filteredCampaigns);
@@ -916,6 +960,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     setMediaBuyers([]); // Reset media buyers
     if (vertical === "Medicaid") {
       setSelectedTemplate("medicaid");
+    } else if (vertical === "ACA") {
+      setSelectedTemplate("aca-58");
     } else if (vertical === "Casino") {
       setSelectedTemplate("casino");
     } else {
@@ -927,6 +973,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       template:
         vertical === "Medicaid"
           ? "medicaid"
+          : vertical === "ACA"
+            ? "aca-58"
           : vertical === "Casino"
             ? "casino"
             : "", // Reset template
@@ -975,7 +1023,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           e164Number: jsTag.previousNumber?.e164Number || "N/A",
         }));
 
-        if (selectedVertical === "Final Expense") {
+        if (
+          selectedVertical === "Final Expense" ||
+          selectedVertical === "ACA"
+        ) {
           mediaBuyersArray.push({ name: "Nick" });
         }
 
@@ -990,7 +1041,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           );
           return fetchCampaignDetails(fallbackCampaignId);
         }
-        setMediaBuyers([]);
+        if (
+          selectedVertical === "Final Expense" ||
+          selectedVertical === "ACA"
+        ) {
+          setMediaBuyers([{ name: "Nick" }]);
+        } else {
+          setMediaBuyers([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching campaign details:", error);
@@ -1003,7 +1061,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return fetchCampaignDetails(fallbackCampaignId);
       }
       setCampaignDetails(null);
-      setMediaBuyers([]);
+      if (
+        selectedVertical === "Final Expense" ||
+        selectedVertical === "ACA"
+      ) {
+        setMediaBuyers([{ name: "Nick" }]);
+      } else {
+        setMediaBuyers([]);
+      }
     }
   };
 
@@ -1193,14 +1258,18 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For mediaBuyer users, validate that they have access to the selected domain
-    if (currentUserRole === "mediaBuyer" && formData.domain) {
+    // For mediaBuyer users, validate domain access (Nick may use any domain)
+    if (
+      currentUserRole === "mediaBuyer" &&
+      formData.domain &&
+      !isNickMediaBuyerEmail(currentUserEmail) &&
+      !isNickMediaBuyerSelection(selectedMediaBuyerFromCampaign)
+    ) {
       const selectedDomain = availableDomains.find(
         (domain) => domain.domain === formData.domain,
       );
 
       if (selectedDomain) {
-        // Only check assignedTo - createdBy is the admin who created the domain
         const hasAccess = selectedDomain.assignedTo === currentUserEmail;
 
         if (!hasAccess) {
@@ -1552,6 +1621,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               selectedVertical !== "Debt PPC" &&
               selectedVertical !== "Final Expense" &&
               selectedVertical !== "Medicaid" &&
+              selectedVertical !== "ACA" &&
               selectedVertical !== "Casino")) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1569,6 +1639,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 {/* Ringba media buyers */}
                 {selectedVertical === "Medicare PPC" ||
                 selectedVertical === "Medicaid" ||
+                selectedVertical === "ACA" ||
                 selectedVertical === "Debt PPC" ||
                 selectedVertical === "Final Expense"
                   ? mediaBuyers.map((buyer, index) => (
@@ -1880,12 +1951,32 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 } else {
                   filteredTemplates = allTemplates;
                 }
+              } else if (selectedVertical === "Debt PPC") {
+                if (campaignName === "Paragon - Debt") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "gg-debt-v1" ||
+                      template.value === "homepage-debt",
+                  );
+                } else {
+                  filteredTemplates = allTemplates;
+                }
               } else if (selectedVertical === "Medicaid") {
                 filteredTemplates = allTemplates.filter(
                   (template) => template.value === "medicaid",
                 );
+              } else if (selectedVertical === "ACA") {
+                filteredTemplates = allTemplates.filter(
+                  (template) => template.value === "aca-58",
+                );
               } else if (selectedVertical === "Casino") {
-                if (campaignName === "Casino Portugal") {
+                if (campaignName === "Casino") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) =>
+                      template.value === "cas-ie" ||
+                      template.value === "cas-uk",
+                  );
+                } else if (campaignName === "Casino Portugal") {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "casino" ||
