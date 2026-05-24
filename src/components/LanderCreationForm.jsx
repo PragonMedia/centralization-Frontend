@@ -76,7 +76,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
-    ACA: [{ value: "aca-58", label: "ACA 58" }],
+    ACA: [{ value: "aca-58", label: "ACA 5800" }],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "debt" },
       { value: "homepage-debt", label: "debt-homepage" },
@@ -412,7 +412,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         // For other verticals, show local media buyers
         if (selectedVertical) {
           if (selectedVertical === "Casino") {
-            setMediaBuyers([{ name: "Nick" }, { name: "You" }, { name: "Sean Luc" }]);
+            setMediaBuyers([
+              { name: "Nick" },
+              { name: "You" },
+              { name: "Sean Luc" },
+            ]);
           } else {
             setMediaBuyers([
               { name: "Jake Hunter" },
@@ -464,7 +468,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     // For other non-Ringba verticals, show local media buyers
     if (selectedVertical) {
       if (selectedVertical === "Casino") {
-        setMediaBuyers([{ name: "Nick" }, { name: "You" }, { name: "Sean Luc" }]);
+        setMediaBuyers([
+          { name: "Nick" },
+          { name: "You" },
+          { name: "Sean Luc" },
+        ]);
       } else {
         setMediaBuyers([
           { name: "Jake Hunter" },
@@ -975,9 +983,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           ? "medicaid"
           : vertical === "ACA"
             ? "aca-58"
-          : vertical === "Casino"
-            ? "casino"
-            : "", // Reset template
+            : vertical === "Casino"
+              ? "casino"
+              : "", // Reset template
     }));
 
     // Fetch campaigns for the selected vertical
@@ -1061,10 +1069,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return fetchCampaignDetails(fallbackCampaignId);
       }
       setCampaignDetails(null);
-      if (
-        selectedVertical === "Final Expense" ||
-        selectedVertical === "ACA"
-      ) {
+      if (selectedVertical === "Final Expense" || selectedVertical === "ACA") {
         setMediaBuyers([{ name: "Nick" }]);
       } else {
         setMediaBuyers([]);

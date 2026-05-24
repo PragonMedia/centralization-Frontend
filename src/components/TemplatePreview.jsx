@@ -101,12 +101,12 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     {
       id: "cb-fe",
       name: "Final Expense $0",
-      previewUrl: `https://approved-template.com/cb-fe/`,
+      previewUrl: `https://approved-template.com/fe/`,
     },
     {
       id: "fe-40",
       name: "Final Expense ($40k)",
-      previewUrl: "https://approved-template.com/fe-40/",
+      previewUrl: "https://approved-template.com/fe40/",
     },
     {
       id: "cb-fe-25",
