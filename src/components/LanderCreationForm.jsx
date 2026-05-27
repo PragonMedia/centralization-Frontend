@@ -78,8 +78,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 5800" }],
     "Debt PPC": [
-      { value: "gg-debt-v1", label: "debt" },
-      { value: "homepage-debt", label: "debt-homepage" },
+      { value: "gg-debt-v1", label: "Quiz Debt" },
+      { value: "cb-debt", label: "Chatbot Debt" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
@@ -1961,7 +1961,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "gg-debt-v1" ||
-                      template.value === "homepage-debt",
+                      template.value === "cb-debt",
                   );
                 } else {
                   filteredTemplates = allTemplates;

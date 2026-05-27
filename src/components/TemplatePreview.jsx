@@ -89,13 +89,13 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     // Paragon Media - Debt PPC
     {
       id: "gg-debt-v1",
-      name: "debt",
+      name: "Quiz Debt",
       previewUrl: "https://approved-template.com/debt",
     },
     {
-      id: "homepage-debt",
-      name: "debt-homepage",
-      previewUrl: "https://approved-template.com/homepage-debt/",
+      id: "cb-debt",
+      name: "Chatbot Debt",
+      previewUrl: "https://approved-template.com/cb-debt/",
     },
     // Paragon Media - Final Expense
     {

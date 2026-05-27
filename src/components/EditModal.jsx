@@ -13,8 +13,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
     ],
     "Debt PPC": [
-      { value: "gg-debt-v1", label: "debt" },
-      { value: "homepage-debt", label: "debt-homepage" },
+      { value: "gg-debt-v1", label: "Quiz Debt" },
+      { value: "cb-debt", label: "Chatbot Debt" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
@@ -52,6 +52,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     // Debt PPC templates
     if (
       templateValue === "gg-debt-v1" ||
+      templateValue === "cb-debt" ||
       templateValue === "homepage-debt" ||
       templateValue.startsWith("debt-")
     ) {
