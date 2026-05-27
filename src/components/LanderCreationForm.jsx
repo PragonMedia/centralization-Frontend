@@ -79,6 +79,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ACA: [{ value: "aca-58", label: "ACA 5800" }],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
+      { value: "quiz-debt", label: "Quiz Debt V2" },
       { value: "cb-debt", label: "Chatbot Debt" },
     ],
     "Final Expense": [
@@ -1961,6 +1962,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "gg-debt-v1" ||
+                      template.value === "quiz-debt" ||
                       template.value === "cb-debt",
                   );
                 } else {

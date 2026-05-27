@@ -14,6 +14,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
+      { value: "quiz-debt", label: "Quiz Debt V2" },
       { value: "cb-debt", label: "Chatbot Debt" },
     ],
     "Final Expense": [
@@ -52,6 +53,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     // Debt PPC templates
     if (
       templateValue === "gg-debt-v1" ||
+      templateValue === "quiz-debt" ||
       templateValue === "cb-debt" ||
       templateValue === "homepage-debt" ||
       templateValue.startsWith("debt-")
