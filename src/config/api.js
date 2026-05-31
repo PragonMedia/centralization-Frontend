@@ -52,6 +52,10 @@ export const API_ENDPOINTS = {
   ROKU_LOGS: {
     LIST: `${API_CONFIG.BASE_URL}/roku-logs`,
   },
+  STATE_PERFORMANCE: {
+    CACHED: `${API_CONFIG.BASE_URL}/state-performance/cached`,
+    REFRESH: `${API_CONFIG.BASE_URL}/state-performance/refresh`,
+  },
 };
 
 // HTTP Headers

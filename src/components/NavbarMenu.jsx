@@ -8,6 +8,7 @@ function NavbarMenu() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const role = user?.role?.toLowerCase() || "";
   const canAccessAccounting = ["tech", "ceo", "admin"].includes(role);
+  const canAccessStatePerformance = ["mediabuyer", "tech", "ceo"].includes(role);
   const canAccessRokuLogs = ["tech", "ceo"].includes(role);
 
   // // Call debug function to see full state
@@ -26,15 +27,18 @@ function NavbarMenu() {
     setShowLogoutModal(false);
   };
 
+  const navButtonClass =
+    "whitespace-nowrap rounded bg-blue-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800 sm:px-4";
+
   return (
     <>
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center justify-center space-x-4">
-          <span className="text-gray-700 font-medium">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="whitespace-nowrap text-sm font-medium text-gray-700 sm:text-base">
             Welcome, {user?.firstName}!
           </span>
           <Link to="/">
-            <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+            <button type="button" className={navButtonClass}>
               Home
             </button>
           </Link>
@@ -43,42 +47,49 @@ function NavbarMenu() {
         {isAuthenticated ? (
           <>
             <Link to="/create">
-              <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+              <button type="button" className={navButtonClass}>
                 Lander Creation
               </button>
             </Link>
             <Link to="/domains">
-              <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+              <button type="button" className={navButtonClass}>
                 Domains
               </button>
             </Link>
             {canAccessAccounting && (
               <Link to="/accounting">
-                <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+                <button type="button" className={navButtonClass}>
                   Accounting
+                </button>
+              </Link>
+            )}
+            {canAccessStatePerformance && (
+              <Link to="/state-performance">
+                <button type="button" className={navButtonClass}>
+                  State Performance
                 </button>
               </Link>
             )}
             {canAccessRokuLogs && (
               <Link to="/roku-logs">
-                <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition-colors">
+                <button type="button" className={navButtonClass}>
                   Roku Logs
                 </button>
               </Link>
             )}
 
-            {/* User info and logout */}
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={handleLogoutClick}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleLogoutClick}
+              className="whitespace-nowrap rounded bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 sm:px-4"
+            >
+              Logout
+            </button>
           </>
         ) : (
-          <div className="text-gray-600">Please log in to access features</div>
+          <div className="text-sm text-gray-600 sm:text-base">
+            Please log in to access features
+          </div>
         )}
       </div>
 

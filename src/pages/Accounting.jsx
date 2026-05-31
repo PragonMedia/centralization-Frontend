@@ -70,6 +70,13 @@ const NET_OPTIONS = [
   { value: "monthly", label: "Monthly" },
 ];
 
+const PLATFORM_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "ringba", label: "Ringba" },
+  { value: "retreaver", label: "Retreaver" },
+  { value: "callgrid", label: "CallGrid" },
+];
+
 /** Normalize stored net to a filter key; empty / unknown → weekly (default). */
 function canonicalizeNet(net) {
   if (net == null || String(net).trim() === "") return "weekly";
@@ -79,6 +86,30 @@ function canonicalizeNet(net) {
   if (s === "biweekly") return "bi-weekly";
   if (s === "monthly") return "monthly";
   return "weekly";
+}
+
+function canonicalizePlatform(platform) {
+  if (platform == null || String(platform).trim() === "") return "";
+  const s = String(platform).trim().toLowerCase();
+  if (s === "ringba") return "ringba";
+  if (s === "retriever" || s === "retreaver") return "retreaver";
+  if (s === "callgrid") return "callgrid";
+  return "";
+}
+
+function uniqueSortedPlatforms(platforms) {
+  const set = new Set();
+  (platforms || []).forEach((p) => {
+    const key = canonicalizePlatform(p);
+    if (key) set.add(key);
+  });
+  return Array.from(set).sort();
+}
+
+function rowPlatforms(row) {
+  if (!row || typeof row !== "object") return [];
+  if (Array.isArray(row.platforms)) return uniqueSortedPlatforms(row.platforms);
+  return uniqueSortedPlatforms([row.platform]);
 }
 
 function netSelectClassName() {
@@ -151,15 +182,21 @@ function normalizeBuyerKeyCompact(name) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function mergeCompanyLookupEntry(map, key, accountID, net) {
+function mergeCompanyLookupEntry(map, key, accountID, net, platform) {
   if (!key) return;
   const netStr = net != null ? String(net) : "";
+  const platformStr = canonicalizePlatform(platform);
   const prev = map.get(key);
   if (!prev) {
-    map.set(key, { accountID: accountID || "", net: netStr });
+    map.set(key, {
+      accountID: accountID || "",
+      net: netStr,
+      platform: platformStr,
+    });
   } else {
     if (!prev.accountID && accountID) prev.accountID = accountID;
     if (prev.net === "" && netStr !== "") prev.net = netStr;
+    if (!prev.platform && platformStr) prev.platform = platformStr;
   }
 }
 
@@ -169,6 +206,12 @@ function companyNetFromDoc(c) {
   const raw = c.net ?? c.Net;
   if (raw == null || String(raw).trim() === "") return "";
   return String(raw).trim();
+}
+
+function companyPlatformFromDoc(c) {
+  if (!c || typeof c !== "object") return "";
+  const raw = c.platform ?? c.Platform;
+  return canonicalizePlatform(raw);
 }
 
 /** Map Ringba accountID → full company object (for net that only exists on DB company row). */
@@ -236,12 +279,20 @@ function buildCompanyLookup(allCompanies) {
     const accountID =
       aid != null && String(aid).trim() !== "" ? String(aid).trim() : "";
     const netStr = companyNetFromDoc(c);
-    mergeCompanyLookupEntry(byNorm, normalizeBuyerKey(str), accountID, netStr);
+    const platformStr = companyPlatformFromDoc(c);
+    mergeCompanyLookupEntry(
+      byNorm,
+      normalizeBuyerKey(str),
+      accountID,
+      netStr,
+      platformStr,
+    );
     mergeCompanyLookupEntry(
       byNorm,
       normalizeBuyerKeyCompact(str),
       accountID,
       netStr,
+      platformStr,
     );
   }
   return byNorm;
@@ -296,11 +347,27 @@ function buildBuyerTable(revenue, allCompanies = []) {
         buyerMap[buyer] = Object.fromEntries(
           DAY_NAMES.map((d) => [d, emptyDayCell()]),
         );
-      if (!buyerMeta[buyer]) buyerMeta[buyer] = { accountID: "", net: "" };
+      if (!buyerMeta[buyer]) {
+        buyerMeta[buyer] = {
+          accountID: "",
+          net: "",
+          platform: "",
+          accountIDs: new Set(),
+          platformSet: new Set(),
+        };
+      }
       const aid = recordAccountId(record);
-      if (aid != null && String(aid).trim() !== "")
-        buyerMeta[buyer].accountID = String(aid).trim();
+      if (aid != null && String(aid).trim() !== "") {
+        const aidStr = String(aid).trim();
+        buyerMeta[buyer].accountID = aidStr;
+        buyerMeta[buyer].accountIDs.add(aidStr);
+      }
       if (record.net != null) buyerMeta[buyer].net = String(record.net);
+      const recordPlatform = canonicalizePlatform(record.platform);
+      if (recordPlatform) {
+        buyerMeta[buyer].platform = recordPlatform;
+        buyerMeta[buyer].platformSet.add(recordPlatform);
+      }
       const cell = buyerMap[buyer][weekday];
 
       // Sum values across multiple weeks in the selected range.
@@ -364,6 +431,10 @@ function buildBuyerTable(revenue, allCompanies = []) {
       if (fromLookup.net != null && String(fromLookup.net).trim() !== "") {
         buyerMeta[b].net = String(fromLookup.net).trim();
       }
+      if (fromLookup.platform) {
+        buyerMeta[b].platform = fromLookup.platform;
+        buyerMeta[b].platformSet.add(fromLookup.platform);
+      }
     }
   });
 
@@ -375,12 +446,20 @@ function buildBuyerTable(revenue, allCompanies = []) {
     if (!co) return;
     const n = companyNetFromDoc(co);
     if (n) buyerMeta[b].net = n;
+    const p = companyPlatformFromDoc(co);
+    if (p) {
+      buyerMeta[b].platform = p;
+      buyerMeta[b].platformSet.add(p);
+    }
   });
 
   return buyers.map((buyer) => ({
     buyer,
     accountID: buyerMeta[buyer]?.accountID ?? "",
+    accountIDs: Array.from(buyerMeta[buyer]?.accountIDs || []),
     net: buyerMeta[buyer]?.net ?? "",
+    platform: buyerMeta[buyer]?.platform ?? "",
+    platforms: Array.from(buyerMeta[buyer]?.platformSet || []),
     ...Object.fromEntries(DAY_NAMES.map((d) => [d, buyerMap[buyer][d]])),
   }));
 }
@@ -503,6 +582,7 @@ function Accounting() {
   const [showAddBuyerModal, setShowAddBuyerModal] = useState(false);
   const [buyerSearch, setBuyerSearch] = useState("");
   const [netFilter, setNetFilter] = useState("all");
+  const [platformFilter, setPlatformFilter] = useState("all");
   const [addBuyerForm, setAddBuyerForm] = useState({
     buyer: "",
     accountID: "",
@@ -752,6 +832,9 @@ function Accounting() {
     if (netFilter !== "all") {
       r = r.filter((row) => canonicalizeNet(row.net) === netFilter);
     }
+    if (platformFilter !== "all") {
+      r = r.filter((row) => rowPlatforms(row).includes(platformFilter));
+    }
     if (buyerSearchLower) {
       r = r.filter((row) => row.buyer.toLowerCase().includes(buyerSearchLower));
     }
@@ -764,12 +847,36 @@ function Accounting() {
       if (!buyer) return;
       const key = normalizeBuyerKey(buyer);
       if (key === "pgnm") return;
-      if (!key || byBuyer.has(key)) return;
-      byBuyer.set(key, {
-        buyer,
-        net: companyNetFromDoc(company),
-        accountID: String(company.accountID ?? company.accountId ?? "").trim(),
-      });
+      if (!key) return;
+      const accountID = String(company.accountID ?? company.accountId ?? "").trim();
+      const platform = companyPlatformFromDoc(company);
+      const net = companyNetFromDoc(company);
+
+      if (!byBuyer.has(key)) {
+        byBuyer.set(key, {
+          buyer,
+          net: net || "",
+          platform: platform || "",
+          platforms: platform ? [platform] : [],
+          accountIDs: accountID ? [accountID] : [],
+          accountID: accountID || "",
+        });
+        return;
+      }
+
+      const prev = byBuyer.get(key);
+      if (!prev.net && net) prev.net = net;
+      if (!prev.accountID && accountID) prev.accountID = accountID;
+      if (accountID && !prev.accountIDs.includes(accountID)) {
+        prev.accountIDs.push(accountID);
+      }
+      if (platform && !prev.platforms.includes(platform)) {
+        prev.platforms.push(platform);
+      }
+      prev.platforms = uniqueSortedPlatforms(prev.platforms);
+      if (!prev.platform && prev.platforms.length > 0) {
+        prev.platform = prev.platforms[0];
+      }
     });
     return Array.from(byBuyer.values()).sort((a, b) =>
       a.buyer.localeCompare(b.buyer),
@@ -1201,6 +1308,26 @@ function Accounting() {
                           ))}
                         </select>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor="accounting-platform-filter"
+                          className="text-sm font-medium text-gray-700 whitespace-nowrap"
+                        >
+                          Platform
+                        </label>
+                        <select
+                          id="accounting-platform-filter"
+                          value={platformFilter}
+                          onChange={(e) => setPlatformFilter(e.target.value)}
+                          className={`${netSelectClassName()} w-[11rem]`}
+                        >
+                          {PLATFORM_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <label className="text-sm font-medium text-gray-700 sr-only">
                         Search buyers
                       </label>
@@ -1477,6 +1604,26 @@ function Accounting() {
                       ))}
                     </select>
                   </div>
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="buyers-platform-filter"
+                        className="text-sm font-medium text-gray-700 whitespace-nowrap"
+                      >
+                        Platform
+                      </label>
+                      <select
+                        id="buyers-platform-filter"
+                        value={platformFilter}
+                        onChange={(e) => setPlatformFilter(e.target.value)}
+                        className={`${netSelectClassName()} w-[11rem]`}
+                      >
+                        {PLATFORM_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   <label className="text-sm font-medium text-gray-700 sr-only">
                     Search buyers
                   </label>
@@ -1508,6 +1655,9 @@ function Accounting() {
                         Cycle
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Platform
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Account ID
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1528,6 +1678,14 @@ function Accounting() {
                           {NET_OPTIONS.find(
                             (o) => o.value === canonicalizeNet(row.net),
                           )?.label || "Weekly"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                          {rowPlatforms(row)
+                            .map(
+                              (p) =>
+                                PLATFORM_OPTIONS.find((o) => o.value === p)?.label || p,
+                            )
+                            .join(", ") || "—"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                           {row.accountID || "—"}
