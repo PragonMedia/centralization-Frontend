@@ -379,8 +379,7 @@ function StatePerformance() {
                           onClick={() => handleSort("earningsPerCallGross")}
                           className="hover:text-gray-700 ml-auto block w-full text-right"
                         >
-                          Earnings Per Call
-                          {sortIndicator("earningsPerCallGross")}
+                          RPC{sortIndicator("earningsPerCallGross")}
                         </button>
                       </th>
                     </tr>
