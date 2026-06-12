@@ -56,6 +56,9 @@ export const API_ENDPOINTS = {
     CACHED: `${API_CONFIG.BASE_URL}/state-performance/cached`,
     REFRESH: `${API_CONFIG.BASE_URL}/state-performance/refresh`,
   },
+  ROKU_AD_SPEND: {
+    CACHED: `${API_CONFIG.BASE_URL}/roku-ad-spend/cached`,
+  },
 };
 
 // HTTP Headers

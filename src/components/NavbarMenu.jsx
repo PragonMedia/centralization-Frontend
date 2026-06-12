@@ -9,7 +9,7 @@ function NavbarMenu() {
   const role = user?.role?.toLowerCase() || "";
   const canAccessAccounting = ["tech", "ceo", "admin"].includes(role);
   const canAccessStatePerformance = ["mediabuyer", "tech", "ceo"].includes(role);
-  const canAccessRokuLogs = ["tech", "ceo"].includes(role);
+  const canAccessTvAdSpend = ["tech", "ceo", "admin"].includes(role);
 
   // // Call debug function to see full state
   // debug();
@@ -70,10 +70,10 @@ function NavbarMenu() {
                 </button>
               </Link>
             )}
-            {canAccessRokuLogs && (
-              <Link to="/roku-logs">
+            {canAccessTvAdSpend && (
+              <Link to="/tv-adspend">
                 <button type="button" className={navButtonClass}>
-                  Roku Logs
+                  TV AdSpend
                 </button>
               </Link>
             )}
