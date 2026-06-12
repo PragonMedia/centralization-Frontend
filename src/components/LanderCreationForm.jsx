@@ -81,6 +81,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
       { value: "cb-debt", label: "Chatbot Debt" },
+      { value: "homepage-debt", label: "Debt Homepage" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
@@ -1963,7 +1964,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "gg-debt-v1" ||
                       template.value === "quiz-debt" ||
-                      template.value === "cb-debt",
+                      template.value === "cb-debt" ||
+                      template.value === "homepage-debt",
                   );
                 } else {
                   filteredTemplates = allTemplates;

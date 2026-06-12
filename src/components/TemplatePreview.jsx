@@ -102,6 +102,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Chatbot Debt",
       previewUrl: "https://approved-template.com/cb-debt/",
     },
+    {
+      id: "homepage-debt",
+      name: "Debt Homepage",
+      previewUrl: "https://approved-template.com/home/",
+    },
     // Paragon Media - Final Expense
     {
       id: "cb-fe",

@@ -16,6 +16,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
       { value: "cb-debt", label: "Chatbot Debt" },
+      { value: "homepage-debt", label: "Debt Homepage" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
