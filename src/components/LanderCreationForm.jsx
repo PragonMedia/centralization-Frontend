@@ -101,6 +101,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "casino", label: "Casino" },
       { value: "casino-v2", label: "Casino v2" },
       { value: "casino-german", label: "Casino-German" },
+      { value: "casino-bb", label: "Casino BingBong" },
       { value: "cas-ie", label: "cas-ie" },
       { value: "cas-uk", label: "cas-uk" },
     ],
@@ -1993,7 +1994,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   );
                 } else if (campaignName === "Casino German") {
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "casino-german",
+                    (template) =>
+                      template.value === "casino-german" ||
+                      template.value === "casino-bb",
                   );
                 } else {
                   filteredTemplates = allTemplates;

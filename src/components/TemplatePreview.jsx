@@ -178,6 +178,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       previewUrl: "https://approved-template.com/cas-ger/",
     },
     {
+      id: "casino-bb",
+      name: "Casino BingBong",
+      previewUrl: "https://approved-template.com/bb/",
+    },
+    {
       id: "cas-ie",
       name: "cas-ie",
       previewUrl: "https://approved-template.com/cas-ie/",
