@@ -10,6 +10,7 @@ import ErrorMessage from "./ErrorMessage";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { cachedFetch, CACHE_CONFIG } from "../utils/cache.js";
 import { filterDomains, getFilterOptions } from "../utils/domainFilters.js";
+import { getCertificationTagColor } from "../constants/certificationTags.js";
 
 function DomainsName() {
   const [domainData, setDomainData] = useState(null); // Start with null to show loading state
@@ -178,17 +179,7 @@ function DomainsName() {
     }
   };
 
-  // Get certification color
-  const getCertificationColor = (certification) => {
-    switch (certification) {
-      case "G2":
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Political":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
+  const getCertificationColor = getCertificationTagColor;
 
   // Check if current user should see Media Buyer column
   const shouldShowMediaBuyerColumn = () => {

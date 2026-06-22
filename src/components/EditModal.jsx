@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import LoadingSpinner from "./LoadingSpinner";
+import { PLATFORMS } from "../constants/platforms.js";
+import {
+  CERTIFICATION_TAGS,
+} from "../constants/certificationTags.js";
 
 const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = false }) => {
   const [formData, setFormData] = useState({});
@@ -276,12 +280,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     required
                   >
                     <option value="">Select a platform</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="Google">Google</option>
-                    <option value="Bigo">Bigo</option>
-                    <option value="Roku">Roku</option>
-                    <option value="Media Go">Media Go</option>
-                    <option value="Comcast">Comcast</option>
+                    {PLATFORMS.map((platform) => (
+                      <option key={platform} value={platform}>
+                        {platform}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -305,35 +308,22 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     Certification Tags
                   </label>
                   <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="certificationTags"
-                        value="G2"
-                        checked={
-                          formData.certificationTags?.includes("G2") || false
-                        }
-                        onChange={handleCertificationChange}
-                        disabled={isLoading}
-                        className="mr-2 w-4 h-4 text-blue-600 bg-white border-2 border-black rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      <span className="text-gray-700">G2</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="certificationTags"
-                        value="Political"
-                        checked={
-                          formData.certificationTags?.includes("Political") ||
-                          false
-                        }
-                        onChange={handleCertificationChange}
-                        disabled={isLoading}
-                        className="mr-2 w-4 h-4 text-blue-600 bg-white border-2 border-black rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      <span className="text-gray-700">Political</span>
-                    </label>
+                    {CERTIFICATION_TAGS.map(({ value, label }) => (
+                      <label key={value} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="certificationTags"
+                          value={value}
+                          checked={
+                            formData.certificationTags?.includes(value) || false
+                          }
+                          onChange={handleCertificationChange}
+                          disabled={isLoading}
+                          className="mr-2 w-4 h-4 text-blue-600 bg-white border-2 border-black rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <span className="text-gray-700">{label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 

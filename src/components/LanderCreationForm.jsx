@@ -130,16 +130,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     ],
   };
 
-  const platformOptions = [
-    "Facebook",
-    "Google",
-    "DV 360",
-    "Bigo",
-    "Roku",
-    "Media Go",
-    "StackAdapt",
-  ];
-
   const [url, setURL] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showRtkIDEditModal, setShowRtkIDEditModal] = useState(false);

@@ -4,6 +4,7 @@ import DetailsModal from "./DetailsModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import LoadingSpinner from "./LoadingSpinner";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
+import { getCertificationTagColor } from "../constants/certificationTags.js";
 
 const DomainPopupModal = ({
   isOpen,
@@ -237,7 +238,7 @@ const DomainPopupModal = ({
                     domain.certificationTags.map((tag, index) => (
                       <span
                         key={index}
-                        className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getCertificationTagColor(tag)}`}
                       >
                         {tag}
                       </span>

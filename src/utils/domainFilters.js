@@ -1,3 +1,5 @@
+import { isPlatformExcludedFromFilters } from "../constants/platforms.js";
+
 // Simplified domain filtering logic
 export const filterDomains = (domains, filters) => {
   if (!Array.isArray(domains)) return [];
@@ -103,10 +105,7 @@ export const getFilterOptions = (domains) => {
       domains
         .map((d) => d.platform)
         .filter(Boolean)
-        .filter((platform) => {
-          const normalized = String(platform).toLowerCase().replace(/\s+/g, "");
-          return normalized !== "dv360" && normalized !== "stackadapt";
-        })
+        .filter((platform) => !isPlatformExcludedFromFilters(platform))
     ),
   ];
   const mediaBuyers = [

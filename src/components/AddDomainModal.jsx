@@ -2,6 +2,7 @@ import { useState } from "react";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
 import { invalidateCache } from "../utils/cache.js";
+import { PLATFORMS } from "../constants/platforms.js";
 
 const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -277,14 +278,13 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                 required
                 disabled={isSubmitting}
               >
-                    <option value="">Select a platform</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="Google">Google</option>
-                    <option value="Bigo">Bigo</option>
-                    <option value="Roku">Roku</option>
-                    <option value="Media Go">Media Go</option>
-                    <option value="Comcast">Comcast</option>
-                  </select>
+                <option value="">Select a platform</option>
+                {PLATFORMS.map((platform) => (
+                  <option key={platform} value={platform}>
+                    {platform}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

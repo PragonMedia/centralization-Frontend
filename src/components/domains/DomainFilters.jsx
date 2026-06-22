@@ -1,4 +1,5 @@
 import React from "react";
+import { getPlatformFilterColor } from "../../constants/platforms.js";
 
 const DomainFilters = ({
   searchTerm,
@@ -143,26 +144,7 @@ const DomainFilters = ({
               >
                 All Platforms
               </button>
-              {availablePlatforms.map((platform) => {
-                // Get color based on platform name
-                const getPlatformColor = (platformName) => {
-                  const name = platformName?.toLowerCase() || "";
-                  if (name === "google") {
-                    return "bg-red-100 text-red-700 border border-red-200";
-                  } else if (name === "liftoff") {
-                    return "bg-green-100 text-green-700 border border-green-200";
-                  } else if (name === "bigo") {
-                    return "bg-purple-100 text-purple-700 border border-purple-200";
-                  } else if (name === "facebook") {
-                    return "bg-blue-100 text-blue-700 border border-blue-200";
-                  } else if (name === "dv 360" || name === "dv360") {
-                    return "bg-indigo-100 text-indigo-700 border border-indigo-200";
-                  }
-                  // Default color
-                  return "bg-gray-100 text-gray-700 border border-gray-200";
-                };
-
-                return (
+              {availablePlatforms.map((platform) => (
                   <button
                     key={platform}
                     onClick={() =>
@@ -172,14 +154,13 @@ const DomainFilters = ({
                     }
                     className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
                       selectedPlatform === platform
-                        ? getPlatformColor(platform)
+                        ? getPlatformFilterColor(platform)
                         : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
                     }`}
                   >
                     {platform}
                   </button>
-                );
-              })}
+              ))}
             </div>
           </div>
         )}
