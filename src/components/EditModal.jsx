@@ -12,6 +12,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
   const templatesByVertical = {
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
+      { value: "cb-groc-nolgo", label: "Chatbot Grocery no-logo" },
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "el-cb-groc", label: "Chatbot Grocery" }, // Elite version
       { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
@@ -52,7 +53,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (!templateValue) return null;
     
     // Medicare PPC templates
-    if (templateValue === "cb-groc" || templateValue === "cb-ss" || 
+    if (templateValue === "cb-groc" || templateValue === "cb-groc-nolgo" || templateValue === "cb-ss" || 
         templateValue === "el-cb-groc" || templateValue === "el-cb-ss") {
       return "Medicare PPC";
     }

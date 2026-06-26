@@ -55,6 +55,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   const templatesByVertical = {
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
+      { value: "cb-groc-nolgo", label: "Chatbot Grocery no-logo" },
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "cb-groc-short", label: "Chatbot Grocery Short" },
       { value: "cb-ss-short", label: "Chatbot Social Security Short" },
@@ -1893,6 +1894,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "cb-groc" ||
+                      template.value === "cb-groc-nolgo" ||
                       template.value === "cb-ss" ||
                       template.value === "cb-groc-short" ||
                       template.value === "cb-ss-short" ||

@@ -15,6 +15,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       elitePreviewUrl: "https://approved-template.com/el-groc",
     },
     {
+      id: "cb-groc-nolgo",
+      name: "Chatbot Grocery no-logo",
+      previewUrl: "https://approved-template.com/nologo/",
+    },
+    {
       id: "cb-ss",
       name: "Chatbot Social Security",
       previewUrl: "https://approved-template.com/ss",
