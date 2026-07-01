@@ -1890,7 +1890,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
               if (selectedVertical === "Medicare PPC") {
                 if (campaignName === "Paragon - Medicare") {
-                  // For "Paragon - Medicare", show cb-groc, cb-ss, cb-groc-short, cb-ss-short, cb-groc-geoedge, quiz-grocery
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "cb-groc" ||
@@ -1899,7 +1898,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "cb-groc-short" ||
                       template.value === "cb-ss-short" ||
                       template.value === "cb-groc-geoedge" ||
-                      template.value === "quiz-grocery",
+                      template.value === "quiz-grocery" ||
+                      template.value === "el-cb-groc-3000" ||
+                      template.value === "el-cb-groc-short-3000" ||
+                      template.value === "el-ss-groc-174" ||
+                      template.value === "el-cb-ss-short-174",
                   );
                 } else if (campaignName === "Paragon - Spanish Medicare") {
                   // For "Paragon - Spanish Medicare", show only es-cb-groc and es-cb-ss
