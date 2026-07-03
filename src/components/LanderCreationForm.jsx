@@ -36,6 +36,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Medicaid",
     "ACA",
     "Debt PPC",
+    "Debt Form",
     "Final Expense",
     "Sweeps",
     "Nutra",
@@ -84,6 +85,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
+    "Debt Form": [{ value: "debt-form", label: "Debt Form" }],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
@@ -375,12 +377,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           phoneNumber: EliteDetails.phoneNumber,
         }));
 
-        // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch campaign details to get media buyers
+        // For Medicare PPC, Medicaid, ACA, Debt PPC, Debt Form, and Final Expense, fetch campaign details to get media buyers
         if (
           selectedVertical === "Medicare PPC" ||
           selectedVertical === "Medicaid" ||
           selectedVertical === "ACA" ||
           selectedVertical === "Debt PPC" ||
+          selectedVertical === "Debt Form" ||
           selectedVertical === "Final Expense"
         ) {
           // Find the selected campaign to check its name
@@ -431,12 +434,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       }
     }
 
-    // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch campaign details to get media buyers from Ringba
+    // For Medicare PPC, Medicaid, ACA, Debt PPC, Debt Form, and Final Expense, fetch campaign details to get media buyers from Ringba
     if (
       selectedVertical === "Medicare PPC" ||
       selectedVertical === "Medicaid" ||
       selectedVertical === "ACA" ||
       selectedVertical === "Debt PPC" ||
+      selectedVertical === "Debt Form" ||
       selectedVertical === "Final Expense"
     ) {
       // Find the selected campaign to check its name
@@ -840,12 +844,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     try {
       setIsLoadingCampaigns(true);
 
-      // For Medicare PPC, Medicaid, ACA, Debt PPC, and Final Expense, fetch from Ringba API
+      // For Medicare PPC, Medicaid, ACA, Debt PPC, Debt Form, and Final Expense, fetch from Ringba API
       if (
         vertical === "Medicare PPC" ||
         vertical === "Medicaid" ||
         vertical === "ACA" ||
         vertical === "Debt PPC" ||
+        vertical === "Debt Form" ||
         vertical === "Final Expense"
       ) {
         const response = await cachedFetch(
@@ -912,7 +917,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             });
             console.log("Filtered Paragon campaigns:", filteredCampaigns);
           }
-        } else if (vertical === "Debt PPC") {
+        } else if (vertical === "Debt PPC" || vertical === "Debt Form") {
           // Filter to only show "Paragon - Debt" campaign
           filteredCampaigns = campaignsData.filter(
             (campaign) => campaign.name === "Paragon - Debt",
@@ -966,6 +971,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       setSelectedTemplate("aca-58");
     } else if (vertical === "Casino") {
       setSelectedTemplate("casino");
+    } else if (vertical === "Debt Form") {
+      setSelectedTemplate("debt-form");
     } else {
       setSelectedTemplate("");
     }
@@ -979,7 +986,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             ? "aca-58"
             : vertical === "Casino"
               ? "casino"
-              : "", // Reset template
+              : vertical === "Debt Form"
+                ? "debt-form"
+                : "", // Reset template
     }));
 
     // Fetch campaigns for the selected vertical
@@ -1618,6 +1627,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             (selectedVertical &&
               selectedVertical !== "Medicare PPC" &&
               selectedVertical !== "Debt PPC" &&
+              selectedVertical !== "Debt Form" &&
               selectedVertical !== "Final Expense" &&
               selectedVertical !== "Medicaid" &&
               selectedVertical !== "ACA" &&
@@ -1640,6 +1650,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 selectedVertical === "Medicaid" ||
                 selectedVertical === "ACA" ||
                 selectedVertical === "Debt PPC" ||
+                selectedVertical === "Debt Form" ||
                 selectedVertical === "Final Expense"
                   ? mediaBuyers.map((buyer, index) => (
                       <option key={index} value={buyer.name}>
@@ -1950,6 +1961,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "cb-fe" ||
                       template.value === "fe-40" ||
                       template.value === "cb-fe-25",
+                  );
+                } else {
+                  filteredTemplates = allTemplates;
+                }
+              } else if (selectedVertical === "Debt Form") {
+                if (campaignName === "Paragon - Debt") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "debt-form",
                   );
                 } else {
                   filteredTemplates = allTemplates;

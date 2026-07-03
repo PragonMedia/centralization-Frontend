@@ -112,6 +112,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Debt Homepage",
       previewUrl: "https://approved-template.com/home/",
     },
+    {
+      id: "debt-form",
+      name: "Debt Form",
+      previewUrl: "https://approved-template.com/df/",
+    },
     // Paragon Media - Final Expense
     {
       id: "cb-fe",

@@ -23,6 +23,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
+    "Debt Form": [{ value: "debt-form", label: "Debt Form" }],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
       { value: "fe-40", label: "Final Expense ($40k)" },
@@ -56,6 +57,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (templateValue === "cb-groc" || templateValue === "cb-groc-nolgo" || templateValue === "cb-ss" || 
         templateValue === "el-cb-groc" || templateValue === "el-cb-ss") {
       return "Medicare PPC";
+    }
+    // Debt Form templates
+    if (templateValue === "debt-form") {
+      return "Debt Form";
     }
     // Debt PPC templates
     if (
