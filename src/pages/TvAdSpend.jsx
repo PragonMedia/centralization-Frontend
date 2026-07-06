@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api";
 
 const DATE_ARROW_STEP_DAYS = 7;
@@ -277,7 +277,9 @@ function TvAdSpend() {
   const [timezone, setTimezone] = useState("");
   const [start, setStart] = useState(defaultRange.start);
   const [end, setEnd] = useState(defaultRange.end);
-  const [selectedAccount, setSelectedAccount] = useState("all");
+  const [selectedAccountKeys, setSelectedAccountKeys] = useState([]);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [emptyState, setEmptyState] = useState(false);
@@ -349,6 +351,22 @@ function TvAdSpend() {
   useEffect(() => {
     fetchCached();
   }, [fetchCached]);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountMenuOpen]);
 
   const todayStr = toInputDateString(new Date());
   const dateRangeLabel = formatDateRange(start, end);
@@ -432,19 +450,35 @@ function TvAdSpend() {
     [platformAccounts],
   );
 
+  const accountFilterLabel = useMemo(() => {
+    if (selectedAccountKeys.length === 0) return "All accounts";
+    if (selectedAccountKeys.length === 1) {
+      const key = selectedAccountKeys[0];
+      const match = accountOptions.find((acc) => (acc.uid || acc.name) === key);
+      return match?.name || key;
+    }
+    return `${selectedAccountKeys.length} accounts selected`;
+  }, [selectedAccountKeys, accountOptions]);
+
+  const toggleAccountKey = (key) => {
+    setSelectedAccountKeys((prev) =>
+      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+    );
+  };
+
   const visibleRows = useMemo(
     () =>
       accountRows.filter((row) => {
         if (
-          selectedAccount !== "all" &&
-          row.accountKey !== selectedAccount
+          selectedAccountKeys.length > 0 &&
+          !selectedAccountKeys.includes(row.accountKey)
         ) {
           return false;
         }
         const total = rowTotalForDisplayedRange(row, columnDateParts);
         return total !== "" && total != null && Number(total) !== 0;
       }),
-    [accountRows, columnDateParts, selectedAccount],
+    [accountRows, columnDateParts, selectedAccountKeys],
   );
 
   const rangeTotalSpend = useMemo(
@@ -597,26 +631,74 @@ function TvAdSpend() {
                   </span>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label
-                    htmlFor="tv-adspend-account"
-                    className="text-sm font-medium text-gray-700"
-                  >
+                <div className="relative flex flex-col gap-1" ref={accountMenuRef}>
+                  <span className="text-sm font-medium text-gray-700">
                     Account
-                  </label>
-                  <select
+                  </span>
+                  <button
+                    type="button"
                     id="tv-adspend-account"
-                    value={selectedAccount}
-                    onChange={(e) => setSelectedAccount(e.target.value)}
-                    className={`${selectClassName} min-w-[14rem]`}
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    className={`${selectClassName} min-w-[14rem] text-left flex items-center justify-between gap-2`}
+                    aria-haspopup="listbox"
+                    aria-expanded={accountMenuOpen}
                   >
-                    <option value="all">All accounts</option>
-                    {accountOptions.map((acc) => (
-                      <option key={acc.uid || acc.name} value={acc.uid || acc.name}>
-                        {acc.name}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="truncate">{accountFilterLabel}</span>
+                    <svg
+                      className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${
+                        accountMenuOpen ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {accountMenuOpen && (
+                    <div
+                      className="absolute right-0 top-full z-20 mt-1 max-h-72 min-w-[14rem] overflow-y-auto rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
+                      role="listbox"
+                      aria-label="Filter accounts"
+                    >
+                      <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={selectedAccountKeys.length === 0}
+                          onChange={() => setSelectedAccountKeys([])}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>All accounts</span>
+                      </label>
+
+                      <div className="my-1 border-t border-gray-100" />
+
+                      {accountOptions.map((acc) => {
+                        const key = acc.uid || acc.name;
+                        return (
+                          <label
+                            key={key}
+                            className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedAccountKeys.includes(key)}
+                              onChange={() => toggleAccountKey(key)}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="truncate">{acc.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
