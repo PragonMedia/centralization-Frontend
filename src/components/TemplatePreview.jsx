@@ -20,6 +20,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       previewUrl: "https://approved-template.com/nologo/",
     },
     {
+      id: "groc-dynamic",
+      name: "Grocery Dynamic",
+      previewUrl: "https://approved-template.com/dynamic/?amount=1200",
+    },
+    {
       id: "cb-ss",
       name: "Chatbot Social Security",
       previewUrl: "https://approved-template.com/ss",
@@ -90,6 +95,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "el-cb-ss-short-174",
       name: "Chatbot Social Security Short ($174)",
       previewUrl: "https://approved-template.com/ss-short-174/",
+    },
+    {
+      id: "el-groc-dynamic",
+      name: "Grocery Dynamic",
+      previewUrl: "https://approved-template.com/dynamic/?amount=1200",
     },
     // Paragon Media - Debt PPC
     {

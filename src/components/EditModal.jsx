@@ -13,9 +13,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-groc-nolgo", label: "Chatbot Grocery no-logo" },
+      { value: "groc-dynamic", label: "Grocery Dynamic" },
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "el-cb-groc", label: "Chatbot Grocery" }, // Elite version
       { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
+      { value: "el-groc-dynamic", label: "Grocery Dynamic" }, // Elite version
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
@@ -55,7 +57,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     
     // Medicare PPC templates
     if (templateValue === "cb-groc" || templateValue === "cb-groc-nolgo" || templateValue === "cb-ss" || 
-        templateValue === "el-cb-groc" || templateValue === "el-cb-ss") {
+        templateValue === "groc-dynamic" ||
+        templateValue === "el-cb-groc" || templateValue === "el-cb-ss" || templateValue === "el-groc-dynamic") {
       return "Medicare PPC";
     }
     // Debt Form templates

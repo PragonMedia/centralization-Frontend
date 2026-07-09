@@ -117,7 +117,18 @@ export const cachedFetch = async (
 export const invalidateCache = {
   domains: () => {
     for (const [key] of apiCache.cache.entries()) {
-      if (key.includes("api/v1") && !key.includes("campaigns")) {
+      if (
+        (key.includes("api/v1") && !key.includes("campaigns")) ||
+        key.includes("/trash")
+      ) {
+        apiCache.delete(key);
+      }
+    }
+  },
+
+  trash: () => {
+    for (const [key] of apiCache.cache.entries()) {
+      if (key.includes("/trash")) {
         apiCache.delete(key);
       }
     }

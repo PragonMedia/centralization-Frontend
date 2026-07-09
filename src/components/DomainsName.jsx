@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import AddDomainModal from "./AddDomainModal";
 import DomainPopupModal from "./DomainPopupModal";
+import TrashModal from "./TrashModal";
 import DomainHeader from "./domains/DomainHeader";
 import DomainFilters from "./domains/DomainFilters";
 import DomainTable from "./domains/DomainTable";
@@ -21,6 +22,7 @@ function DomainsName() {
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [selectedMediaBuyer, setSelectedMediaBuyer] = useState("");
   const [showAddDomainModal, setShowAddDomainModal] = useState(false);
+  const [showTrashModal, setShowTrashModal] = useState(false);
   const [showDomainPopup, setShowDomainPopup] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
 
@@ -272,6 +274,7 @@ function DomainsName() {
               availablePlatforms={filterOptions.platforms}
               currentUserRole={getCurrentUser()?.role}
               onClearFilters={clearAllFilters}
+              onOpenTrash={() => setShowTrashModal(true)}
             />
 
             {/* Domain Table or Empty State */}
@@ -382,6 +385,13 @@ function DomainsName() {
           await fetchDomains();
         }}
         canEditDomain={canEditDomain}
+      />
+
+      {/* Trash Modal */}
+      <TrashModal
+        isOpen={showTrashModal}
+        onClose={() => setShowTrashModal(false)}
+        onRestored={fetchDomains}
       />
     </div>
   );

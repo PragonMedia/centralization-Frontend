@@ -57,6 +57,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Medicare PPC": [
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-groc-nolgo", label: "Chatbot Grocery no-logo" },
+      { value: "groc-dynamic", label: "Grocery Dynamic" },
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "cb-groc-short", label: "Chatbot Grocery Short" },
       { value: "cb-ss-short", label: "Chatbot Social Security Short" },
@@ -76,6 +77,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         value: "el-cb-ss-short-174",
         label: "Chatbot Social Security Short ($174)",
       },
+      { value: "el-groc-dynamic", label: "Grocery Dynamic" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 5800" }],
@@ -1905,6 +1907,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "cb-groc" ||
                       template.value === "cb-groc-nolgo" ||
+                      template.value === "groc-dynamic" ||
                       template.value === "cb-ss" ||
                       template.value === "cb-groc-short" ||
                       template.value === "cb-ss-short" ||
@@ -1933,7 +1936,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "el-cb-groc-3000" ||
                       template.value === "el-cb-groc-short-3000" ||
                       template.value === "el-ss-groc-174" ||
-                      template.value === "el-cb-ss-short-174",
+                      template.value === "el-cb-ss-short-174" ||
+                      template.value === "el-groc-dynamic",
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)

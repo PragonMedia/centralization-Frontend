@@ -440,6 +440,7 @@ function DomainRoutes({ title, answer, refreshData, organization, domainRtkID })
         itemType="domain"
         itemName={title}
         domainName={title}
+        movesToTrash
       />
 
       <DeleteConfirmationModal

@@ -15,6 +15,7 @@ const DomainFilters = ({
   availablePlatforms = [],
   currentUserRole,
   onClearFilters,
+  onOpenTrash,
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -206,13 +207,36 @@ const DomainFilters = ({
         )}
 
         {/* Clear Filters Button */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between gap-3">
           <button
             onClick={onClearFilters}
             className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-gray-300 hover:border-gray-400"
           >
             Clear All Filters
           </button>
+
+          {onOpenTrash && (
+            <button
+              onClick={onOpenTrash}
+              title="View trash"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Trash
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -23,7 +23,22 @@ export const API_ENDPOINTS = {
     LIST: API_CONFIG.BASE_URL,
     CREATE: `${API_CONFIG.BASE_URL}/domain`,
     UPDATE: `${API_CONFIG.BASE_URL}/updateDomain`,
-    DELETE: (domain) => `${API_CONFIG.BASE_URL}/domain/${domain}`,
+    DELETE: (domain) =>
+      `${API_CONFIG.BASE_URL}/domain/${encodeURIComponent(domain)}`,
+    RESTORE: (domain) =>
+      `${API_CONFIG.BASE_URL}/domain/${encodeURIComponent(domain)}/restore`,
+  },
+  TRASH: {
+    LIST: (params = {}) => {
+      const query = new URLSearchParams();
+      if (params.page != null) query.set("page", String(params.page));
+      if (params.limit != null) query.set("limit", String(params.limit));
+      if (params.search) query.set("search", params.search);
+      if (params.sortBy) query.set("sortBy", params.sortBy);
+      if (params.sortOrder) query.set("sortOrder", params.sortOrder);
+      const qs = query.toString();
+      return `${API_CONFIG.BASE_URL}/trash${qs ? `?${qs}` : ""}`;
+    },
   },
   ROUTES: {
     GET_DATA: `${API_CONFIG.BASE_URL}/data`,

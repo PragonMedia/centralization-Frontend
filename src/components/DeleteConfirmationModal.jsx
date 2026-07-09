@@ -7,6 +7,7 @@ const DeleteConfirmationModal = ({
   itemType,
   itemName,
   domainName,
+  movesToTrash = false,
 }) => {
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -28,13 +29,15 @@ const DeleteConfirmationModal = ({
   };
 
   const isConfirmed = confirmationText === domainName;
+  const isDomainArchive = movesToTrash && itemType === "domain";
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-      {/* Modal */}
       <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-auto relative">
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-red-400">Confirm Deletion</h2>
+          <h2 className="text-2xl font-bold text-red-400">
+            {isDomainArchive ? "Move Domain to Trash" : "Confirm Deletion"}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200"
@@ -59,15 +62,26 @@ const DeleteConfirmationModal = ({
         <div className="p-6">
           <div className="space-y-4">
             <div className="text-gray-300">
-              <p className="mb-2">You are about to delete this {itemType}:</p>
+              <p className="mb-2">
+                {isDomainArchive
+                  ? "You are about to move this domain to trash:"
+                  : `You are about to delete this ${itemType}:`}
+              </p>
               <p className="font-semibold text-white bg-gray-800 p-3 rounded-lg">
                 {itemName}
               </p>
             </div>
 
+            {isDomainArchive && (
+              <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 px-3 py-3 text-sm text-amber-100">
+                This domain will be moved to trash for 30 days. You can restore
+                it from Trash before it is permanently deleted.
+              </div>
+            )}
+
             <div className="border-t border-gray-700 pt-4">
               <p className="text-sm text-gray-300 mb-3">
-                To confirm deletion, please type the domain name:
+                To confirm, please type the domain name:
               </p>
               <p className="font-mono text-sm bg-red-900 text-red-200 p-2 rounded-lg mb-3">
                 {domainName}
@@ -82,9 +96,11 @@ const DeleteConfirmationModal = ({
               />
             </div>
 
-            <div className="text-sm text-red-400">
-              <p>⚠️ This action cannot be undone.</p>
-            </div>
+            {!isDomainArchive && (
+              <div className="text-sm text-red-400">
+                <p>⚠️ This action cannot be undone.</p>
+              </div>
+            )}
           </div>
 
           <div className="mt-8 flex gap-3 justify-end">
@@ -103,8 +119,10 @@ const DeleteConfirmationModal = ({
               {isDeleting ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Deleting...
+                  {isDomainArchive ? "Moving..." : "Deleting..."}
                 </div>
+              ) : isDomainArchive ? (
+                "Move to Trash"
               ) : (
                 "Delete"
               )}

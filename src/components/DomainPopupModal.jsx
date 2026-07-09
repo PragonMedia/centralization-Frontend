@@ -5,6 +5,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import LoadingSpinner from "./LoadingSpinner";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { getCertificationTagColor } from "../constants/certificationTags.js";
+import { invalidateCache } from "../utils/cache.js";
 
 const DomainPopupModal = ({
   isOpen,
@@ -597,7 +598,6 @@ const DomainPopupModal = ({
           onConfirm={async () => {
             try {
               if (deletingItem?.type === "domain") {
-                // Handle domain deletion
                 const response = await fetch(
                   API_ENDPOINTS.DOMAINS.DELETE(domain.domain),
                   {
@@ -606,26 +606,30 @@ const DomainPopupModal = ({
                   }
                 );
 
+                let result = {};
+                try {
+                  result = await response.json();
+                } catch {
+                  result = {};
+                }
+
                 if (!response.ok) {
-                  let errorMessage = `Failed to delete domain: ${response.statusText}`;
-                  try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error || errorData.message || errorMessage;
-                  } catch (parseError) {
-                    try {
-                      const errorText = await response.text();
-                      errorMessage = errorText || errorMessage;
-                    } catch (textError) {
-                      console.error("Could not parse error response:", textError);
-                    }
-                  }
+                  let errorMessage = `Failed to move domain to trash: ${response.statusText}`;
+                  errorMessage =
+                    result.error || result.message || errorMessage;
                   throw new Error(errorMessage);
                 }
 
-                console.log("Domain deleted successfully");
-                
-                // Show success modal
-                setSuccessMessage("Domain deleted successfully");
+                invalidateCache.domains();
+                invalidateCache.trash();
+
+                const daysUntilPurge =
+                  result.trash?.daysUntilPurge ??
+                  result.daysUntilPurge ??
+                  30;
+                setSuccessMessage(
+                  `Domain moved to trash. You have ${daysUntilPurge} days to restore it.`,
+                );
                 setShowSuccessModal(true);
               } else if (deletingItem?.type === "route") {
                 // Handle route deletion
@@ -677,6 +681,7 @@ const DomainPopupModal = ({
               : `${domain.domain}/${deletingItem?.data?.route}`
           }
           domainName={domain.domain}
+          movesToTrash={deletingItem?.type === "domain"}
         />
       )}
 

@@ -140,6 +140,13 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
           console.error("API Error Response:", errorData);
           errorMessage =
             errorData.error || errorData.message || JSON.stringify(errorData);
+          if (
+            response.status === 400 &&
+            String(errorMessage).toLowerCase().includes("archived")
+          ) {
+            errorMessage =
+              "This domain name exists in Trash. Restore it from Trash instead.";
+          }
         } catch (parseError) {
           console.error("Could not parse error response as JSON:", parseError);
           try {
