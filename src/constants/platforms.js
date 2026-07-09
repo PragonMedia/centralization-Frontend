@@ -10,6 +10,7 @@ export const PLATFORMS = [
   "StackAdapt",
   "Carty",
   "News Break",
+  "Junkie",
 ];
 
 /** Normalized platform keys hidden from the domains page filter chips. */
@@ -38,6 +39,7 @@ const PLATFORM_FILTER_COLORS = {
   stackadapt: "bg-pink-100 text-pink-700 border border-pink-200",
   carty: "bg-amber-100 text-amber-700 border border-amber-200",
   newsbreak: "bg-rose-100 text-rose-700 border border-rose-200",
+  junkie: "bg-violet-100 text-violet-700 border border-violet-200",
 };
 
 const DEFAULT_PLATFORM_FILTER_COLOR =
