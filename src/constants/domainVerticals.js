@@ -35,3 +35,19 @@ export function resolveDomainVerticalForUpdate(value) {
   if (value == null || value === "") return null;
   return value;
 }
+
+const VERTICAL_FILTER_COLORS = {
+  Medicare: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  "Final Expense": "bg-violet-100 text-violet-700 border border-violet-200",
+  Debt: "bg-amber-100 text-amber-700 border border-amber-200",
+  ACA: "bg-cyan-100 text-cyan-700 border border-cyan-200",
+  Medicaid: "bg-teal-100 text-teal-700 border border-teal-200",
+};
+
+/** Tailwind classes for an active vertical filter chip. */
+export function getVerticalFilterColor(vertical) {
+  return (
+    VERTICAL_FILTER_COLORS[vertical] ??
+    "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+  );
+}

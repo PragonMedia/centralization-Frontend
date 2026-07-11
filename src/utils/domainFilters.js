@@ -1,4 +1,5 @@
 import { isPlatformExcludedFromFilters } from "../constants/platforms.js";
+import { DOMAIN_VERTICALS } from "../constants/domainVerticals.js";
 
 // Simplified domain filtering logic
 export const filterDomains = (domains, filters) => {
@@ -10,6 +11,7 @@ export const filterDomains = (domains, filters) => {
     const selectedOrganization = filters.selectedOrganization;
     const selectedPlatform = filters.selectedPlatform;
     const selectedMediaBuyer = filters.selectedMediaBuyer;
+    const selectedVertical = filters.selectedVertical;
 
     // User-based filtering logic
     if (!shouldUserSeeDomain(domain, currentUser)) {
@@ -28,6 +30,11 @@ export const filterDomains = (domains, filters) => {
 
     // Apply media buyer filter if selected (only for Tech/CEO users)
     if (selectedMediaBuyer && domain.assignedTo !== selectedMediaBuyer) {
+      return false;
+    }
+
+    // Apply vertical filter if selected
+    if (selectedVertical && domain.vertical !== selectedVertical) {
       return false;
     }
 
@@ -95,7 +102,12 @@ const matchesSearchTerm = (domain, searchTerm) => {
 // Get available filter options from domains
 export const getFilterOptions = (domains) => {
   if (!Array.isArray(domains))
-    return { organizations: [], platforms: [], mediaBuyers: [] };
+    return {
+      organizations: [],
+      platforms: [],
+      mediaBuyers: [],
+      verticals: [],
+    };
 
   const organizations = [
     ...new Set(domains.map((d) => d.organization).filter(Boolean)),
@@ -111,8 +123,16 @@ export const getFilterOptions = (domains) => {
   const mediaBuyers = [
     ...new Set(domains.map((d) => d.assignedTo).filter(Boolean)),
   ];
+  const verticals = DOMAIN_VERTICALS.filter((vertical) =>
+    domains.some((d) => d.vertical === vertical),
+  );
 
-  return { organizations, platforms, mediaBuyers };
+  return {
+    organizations,
+    platforms,
+    mediaBuyers,
+    verticals,
+  };
 };
 
 

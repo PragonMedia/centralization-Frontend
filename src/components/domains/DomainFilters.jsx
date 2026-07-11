@@ -1,5 +1,6 @@
 import React from "react";
 import { getPlatformFilterColor } from "../../constants/platforms.js";
+import { getVerticalFilterColor } from "../../constants/domainVerticals.js";
 
 const DomainFilters = ({
   searchTerm,
@@ -10,9 +11,12 @@ const DomainFilters = ({
   setSelectedPlatform,
   selectedMediaBuyer,
   setSelectedMediaBuyer,
+  selectedVertical,
+  setSelectedVertical,
   getMediaBuyerName,
   availableMediaBuyers = [],
   availablePlatforms = [],
+  availableVerticals = [],
   currentUserRole,
   onClearFilters,
   onOpenTrash,
@@ -26,7 +30,8 @@ const DomainFilters = ({
             {(searchTerm ||
               selectedOrganization ||
               selectedPlatform ||
-              selectedMediaBuyer) && (
+              selectedMediaBuyer ||
+              selectedVertical) && (
               <span className="ml-2 text-sm font-normal text-blue-600">
                 (Filters Active)
               </span>
@@ -200,6 +205,46 @@ const DomainFilters = ({
                   }`}
                 >
                   {getMediaBuyerName ? getMediaBuyerName(email) : email}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Vertical Filter */}
+        {availableVerticals.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Vertical:
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedVertical("")}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                  !selectedVertical
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                }`}
+              >
+                All Verticals
+              </button>
+              {availableVerticals.map((vertical) => (
+                <button
+                  key={vertical}
+                  onClick={() =>
+                    setSelectedVertical(
+                      selectedVertical === vertical ? "" : vertical,
+                    )
+                  }
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                    selectedVertical === vertical
+                      ? getVerticalFilterColor(vertical)
+                      : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                  }`}
+                >
+                  {vertical}
                 </button>
               ))}
             </div>

@@ -21,6 +21,7 @@ function DomainsName() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [selectedMediaBuyer, setSelectedMediaBuyer] = useState("");
+  const [selectedVertical, setSelectedVertical] = useState("");
   const [showAddDomainModal, setShowAddDomainModal] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
   const [showDomainPopup, setShowDomainPopup] = useState(false);
@@ -124,17 +125,21 @@ function DomainsName() {
         selectedOrganization,
         selectedPlatform,
         selectedMediaBuyer,
+        selectedVertical,
       })
     : [];
 
   // Get available filter options (including media buyers)
-  const filterOptions = domainData ? getFilterOptions(domainData) : { mediaBuyers: [] };
+  const filterOptions = domainData
+    ? getFilterOptions(domainData)
+    : { mediaBuyers: [], platforms: [], verticals: [] };
 
   // Debug logging
   console.log("Filtering Debug:", {
     selectedOrganization,
     selectedPlatform,
     selectedMediaBuyer,
+    selectedVertical,
     totalDomains: domainData?.length || 0,
     filteredDomains: filteredDomains.length,
     domainOrganizations: domainData?.map((d) => d.organization) || [],
@@ -165,6 +170,7 @@ function DomainsName() {
     setSelectedOrganization("");
     setSelectedPlatform("");
     setSelectedMediaBuyer("");
+    setSelectedVertical("");
   };
 
   // Get organization color
@@ -269,9 +275,12 @@ function DomainsName() {
               setSelectedPlatform={setSelectedPlatform}
               selectedMediaBuyer={selectedMediaBuyer}
               setSelectedMediaBuyer={setSelectedMediaBuyer}
+              selectedVertical={selectedVertical}
+              setSelectedVertical={setSelectedVertical}
               getMediaBuyerName={getMediaBuyerName}
               availableMediaBuyers={filterOptions.mediaBuyers}
               availablePlatforms={filterOptions.platforms}
+              availableVerticals={filterOptions.verticals}
               currentUserRole={getCurrentUser()?.role}
               onClearFilters={clearAllFilters}
               onOpenTrash={() => setShowTrashModal(true)}
@@ -313,6 +322,8 @@ function DomainsName() {
                     ? `No domains found for ${getMediaBuyerName(
                         selectedMediaBuyer
                       )} yet`
+                    : selectedVertical
+                    ? `No domains found for ${selectedVertical} vertical yet`
                     : selectedOrganization && selectedPlatform
                     ? `No domains found for ${selectedOrganization} organization on ${selectedPlatform} platform yet`
                     : selectedOrganization
@@ -324,7 +335,8 @@ function DomainsName() {
                 {(searchTerm ||
                   selectedOrganization ||
                   selectedPlatform ||
-                  selectedMediaBuyer) && (
+                  selectedMediaBuyer ||
+                  selectedVertical) && (
                   <div className="flex gap-3 justify-center flex-wrap">
                     {searchTerm && (
                       <button
@@ -356,6 +368,14 @@ function DomainsName() {
                         className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
                       >
                         Show All Media Buyers
+                      </button>
+                    )}
+                    {selectedVertical && (
+                      <button
+                        onClick={() => setSelectedVertical("")}
+                        className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
+                      >
+                        Show All Verticals
                       </button>
                     )}
                   </div>
