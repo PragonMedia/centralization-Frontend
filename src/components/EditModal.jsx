@@ -4,6 +4,10 @@ import { PLATFORMS } from "../constants/platforms.js";
 import {
   CERTIFICATION_TAGS,
 } from "../constants/certificationTags.js";
+import {
+  DOMAIN_VERTICALS,
+  resolveDomainVerticalForUpdate,
+} from "../constants/domainVerticals.js";
 
 const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = false }) => {
   const [formData, setFormData] = useState({});
@@ -130,6 +134,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       setFormData({
         ...initialData,
         certificationTags: initialData.certificationTags || [],
+        vertical: initialData.vertical || "",
       });
     }
   }, [initialData, type]);
@@ -142,7 +147,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isLoading) return; // Prevent submission while loading
-    onSave(formData);
+    const payload = { ...formData };
+    if (type === "domain" && !initialData?.isRtkIDOnly) {
+      payload.vertical = resolveDomainVerticalForUpdate(formData.vertical);
+    }
+    onSave(payload);
     // Don't close modal here - let parent handle it after async operation
   };
 
@@ -292,6 +301,28 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     {PLATFORMS.map((platform) => (
                       <option key={platform} value={platform}>
                         {platform}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vertical
+                  </label>
+                  <select
+                    name="vertical"
+                    value={
+                      formData.vertical == null ? "" : String(formData.vertical)
+                    }
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Not set</option>
+                    {DOMAIN_VERTICALS.map((vertical) => (
+                      <option key={vertical} value={vertical}>
+                        {vertical}
                       </option>
                     ))}
                   </select>

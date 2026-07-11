@@ -3,6 +3,7 @@ import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
 import { invalidateCache } from "../utils/cache.js";
 import { PLATFORMS } from "../constants/platforms.js";
+import { DOMAIN_VERTICALS, isDomainVertical } from "../constants/domainVerticals.js";
 
 const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
     organization: "Paragon", // Default to match API default
     id: "",
     platform: "",
+    vertical: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -93,9 +95,15 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
       !validateInput.required(formData.assignedTo) ||
       !validateInput.required(formData.organization) ||
       !validateInput.required(formData.id) ||
-      !validateInput.required(formData.platform)
+      !validateInput.required(formData.platform) ||
+      !validateInput.required(formData.vertical)
     ) {
       setError("All required fields must be filled");
+      return;
+    }
+
+    if (!isDomainVertical(formData.vertical)) {
+      setError("Please select a valid vertical");
       return;
     }
 
@@ -146,6 +154,12 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
           ) {
             errorMessage =
               "This domain name exists in Trash. Restore it from Trash instead.";
+          } else if (
+            response.status === 400 &&
+            String(errorMessage).toLowerCase().includes("vertical")
+          ) {
+            errorMessage =
+              "Please select a valid vertical before creating this domain.";
           }
         } catch (parseError) {
           console.error("Could not parse error response as JSON:", parseError);
@@ -173,6 +187,7 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
         organization: "Paragon",
         id: "",
         platform: "",
+        vertical: "",
       });
 
       // Show success modal
@@ -289,6 +304,27 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                 {PLATFORMS.map((platform) => (
                   <option key={platform} value={platform}>
                     {platform}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vertical <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="vertical"
+                value={formData.vertical}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                disabled={isSubmitting}
+              >
+                <option value="">Select a vertical</option>
+                {DOMAIN_VERTICALS.map((vertical) => (
+                  <option key={vertical} value={vertical}>
+                    {vertical}
                   </option>
                 ))}
               </select>

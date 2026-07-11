@@ -1,4 +1,5 @@
 import React from "react";
+import { formatDomainVertical } from "../../constants/domainVerticals.js";
 
 const DomainTable = ({
   filteredDomains,
@@ -26,6 +27,9 @@ const DomainTable = ({
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Organization
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Vertical
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 ID
@@ -104,6 +108,9 @@ const DomainTable = ({
                   >
                     {domain.organization || "N/A"}
                   </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatDomainVertical(domain.vertical)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {domain.id || "N/A"}

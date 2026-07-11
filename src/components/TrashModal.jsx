@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import LoadingSpinner from "./LoadingSpinner";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { invalidateCache } from "../utils/cache.js";
+import { formatDomainVertical } from "../constants/domainVerticals.js";
 
 const PAGE_SIZE = 20;
 
@@ -284,6 +285,9 @@ const TrashModal = ({ isOpen, onClose, onRestored }) => {
                         Organization
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Vertical
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Routes
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -313,6 +317,9 @@ const TrashModal = ({ isOpen, onClose, onRestored }) => {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                             {domain.organization || "—"}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                            {formatDomainVertical(domain.vertical)}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 tabular-nums">
                             {getRouteCount(domain)}

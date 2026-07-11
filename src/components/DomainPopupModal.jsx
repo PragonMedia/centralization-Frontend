@@ -6,6 +6,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { getCertificationTagColor } from "../constants/certificationTags.js";
 import { invalidateCache } from "../utils/cache.js";
+import { formatDomainVertical } from "../constants/domainVerticals.js";
 
 const DomainPopupModal = ({
   isOpen,
@@ -125,6 +126,7 @@ const DomainPopupModal = ({
       organization: domain.organization,
       id: domain.id,
       platform: domain.platform,
+      vertical: domain.vertical || "",
       rtkID: domain.rtkID || "",
       certificationTags: domain.certificationTags || [],
       assignedTo: domain.assignedTo || domain.createdBy,
@@ -195,13 +197,21 @@ const DomainPopupModal = ({
           <div className="p-6">
             {/* Domain Info */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Organization
                   </label>
                   <p className="text-lg font-semibold text-gray-900">
                     {domain.organization || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Vertical
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatDomainVertical(domain.vertical)}
                   </p>
                 </div>
                 <div>
@@ -463,6 +473,10 @@ const DomainPopupModal = ({
                     newId: data.id,
                     oldPlatform: domain.platform,
                     newPlatform: data.platform,
+                    newVertical:
+                      data.vertical === undefined
+                        ? domain.vertical ?? null
+                        : data.vertical,
                     oldRtkID: domain.rtkID || "",
                     newRtkID: data.rtkID || "",
                     oldCertificationTags: domain.certificationTags || [],
