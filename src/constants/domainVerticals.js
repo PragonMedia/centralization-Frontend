@@ -10,6 +10,46 @@ export const DOMAIN_VERTICALS = [
 ];
 
 /**
+ * Maps lander-creation vertical labels → domain-level vertical values.
+ * Lander UI uses names like "Medicare PPC" / "Debt PPC"; domains store "Medicare" / "Debt".
+ */
+export const LANDER_VERTICAL_TO_DOMAIN_VERTICAL = {
+  "Medicare PPC": "Medicare",
+  "Debt PPC": "Debt",
+  "Debt Form": "Debt",
+  "Final Expense": "Final Expense",
+  Medicaid: "Medicaid",
+  ACA: "ACA",
+};
+
+/**
+ * Resolve which domain.vertical value(s) match a selected lander-creation vertical.
+ * @param {string | null | undefined} landerVertical
+ * @returns {DomainVertical | null} null when there is no domain-vertical mapping
+ */
+export function getDomainVerticalForLanderVertical(landerVertical) {
+  if (!landerVertical) return null;
+  return LANDER_VERTICAL_TO_DOMAIN_VERTICAL[landerVertical] ?? null;
+}
+
+/**
+ * Whether a domain should appear for a selected lander-creation vertical.
+ * Domains without a vertical remain visible (legacy / unset).
+ * @param {DomainVertical | string | null | undefined} domainVertical
+ * @param {string | null | undefined} landerVertical
+ */
+export function domainMatchesLanderVertical(domainVertical, landerVertical) {
+  if (!landerVertical) return true;
+  if (!domainVertical) return true; // legacy domains without vertical
+
+  const expected = getDomainVerticalForLanderVertical(landerVertical);
+  // No domain enum for this lander vertical (e.g. Sweeps/Nutra/Casino) —
+  // only legacy domains without a vertical stay visible.
+  if (!expected) return false;
+  return domainVertical === expected;
+}
+
+/**
  * @param {DomainVertical | string | null | undefined} vertical
  * @returns {vertical is DomainVertical}
  */

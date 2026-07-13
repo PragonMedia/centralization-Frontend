@@ -10,6 +10,7 @@ import { cachedFetch, CACHE_CONFIG, invalidateCache } from "../utils/cache.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
 import LoadingSpinner from "./LoadingSpinner";
 import ErrorMessage from "./ErrorMessage";
+import { domainMatchesLanderVertical } from "../constants/domainVerticals.js";
 
 // Move constants outside component to avoid dependency issues
 const JakeDetails = {
@@ -805,13 +806,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             parsedUserData.role,
           );
 
-          // Filter by vertical if selected and domain has vertical property
+          // Filter by domain vertical vs lander-creation vertical
+          // Domain stores "Debt" / "Medicare"; lander UI uses "Debt PPC" / "Medicare PPC"
           if (selectedVertical && filtered.length > 0) {
-            filtered = filtered.filter((domain) => {
-              // If domain has a vertical property, filter by it
-              // Otherwise, include all domains (for backward compatibility)
-              return domain.vertical === selectedVertical || !domain.vertical;
-            });
+            filtered = filtered.filter((domain) =>
+              domainMatchesLanderVertical(domain.vertical, selectedVertical),
+            );
             console.log(
               "Filtered by vertical:",
               selectedVertical,
