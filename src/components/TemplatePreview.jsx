@@ -113,6 +113,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       previewUrl: "https://approved-template.com/quiz-debt-v2/",
     },
     {
+      id: "groc-quiz-multi",
+      name: "Quiz Multi",
+      previewUrl: "https://approved-template.com/multi",
+    },
+    {
       id: "cb-debt",
       name: "Chatbot Debt",
       previewUrl: "https://approved-template.com/cb-debt/",

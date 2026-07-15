@@ -85,6 +85,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
+      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
@@ -530,7 +531,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         (selectedVertical === "Casino" &&
           (mediaBuyerName === "Nick" || mediaBuyerName === "You")) ||
         (selectedVertical === "Final Expense" && mediaBuyerName === "Nick") ||
-        (selectedVertical === "ACA" && mediaBuyerName === "Nick")
+        (selectedVertical === "ACA" && mediaBuyerName === "Nick") ||
+        (selectedVertical === "Debt PPC" && mediaBuyerName === "Nick")
       ) {
         // Local preview/test options should not override existing values.
         ringbaID = formData.ringbaID;
@@ -806,9 +808,18 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
             parsedUserData.role,
           );
 
+          // Nick gets every domain on step 3 — skip vertical filter too
+          const nickGetsAllDomains =
+            isNickMediaBuyerSelection(selectedMediaBuyerFromCampaign) ||
+            isNickMediaBuyerEmail(parsedUserData.email);
+
           // Filter by domain vertical vs lander-creation vertical
           // Domain stores "Debt" / "Medicare"; lander UI uses "Debt PPC" / "Medicare PPC"
-          if (selectedVertical && filtered.length > 0) {
+          if (
+            !nickGetsAllDomains &&
+            selectedVertical &&
+            filtered.length > 0
+          ) {
             filtered = filtered.filter((domain) =>
               domainMatchesLanderVertical(domain.vertical, selectedVertical),
             );
@@ -837,6 +848,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     selectedMediaBuyerFromCampaign,
     selectedVertical,
     filterDomainsByUser,
+    isNickMediaBuyerSelection,
+    isNickMediaBuyerEmail,
   ]);
 
   // Function to fetch campaigns based on selected vertical
@@ -1038,9 +1051,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
         if (
           selectedVertical === "Final Expense" ||
-          selectedVertical === "ACA"
+          selectedVertical === "ACA" ||
+          selectedVertical === "Debt PPC"
         ) {
-          mediaBuyersArray.push({ name: "Nick" });
+          if (!mediaBuyersArray.some((buyer) => buyer.name === "Nick")) {
+            mediaBuyersArray.push({ name: "Nick" });
+          }
         }
 
         console.log("Extracted media buyers:", mediaBuyersArray);
@@ -1056,7 +1072,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         }
         if (
           selectedVertical === "Final Expense" ||
-          selectedVertical === "ACA"
+          selectedVertical === "ACA" ||
+          selectedVertical === "Debt PPC"
         ) {
           setMediaBuyers([{ name: "Nick" }]);
         } else {
@@ -1074,7 +1091,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         return fetchCampaignDetails(fallbackCampaignId);
       }
       setCampaignDetails(null);
-      if (selectedVertical === "Final Expense" || selectedVertical === "ACA") {
+      if (
+        selectedVertical === "Final Expense" ||
+        selectedVertical === "ACA" ||
+        selectedVertical === "Debt PPC"
+      ) {
         setMediaBuyers([{ name: "Nick" }]);
       } else {
         setMediaBuyers([]);
@@ -1834,7 +1855,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           currentUserRole === "admin" ? (
             selectedMediaBuyerFromCampaign ? (
               <p className="mt-2 text-sm text-gray-500">
-                Showing domains assigned to {selectedMediaBuyerFromCampaign}
+                {isNickMediaBuyerSelection(selectedMediaBuyerFromCampaign)
+                  ? "Showing all available domains for Nick"
+                  : `Showing domains assigned to ${selectedMediaBuyerFromCampaign}`}
               </p>
             ) : (
               <p className="mt-2 text-sm text-gray-500">
@@ -1983,6 +2006,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "gg-debt-v1" ||
                       template.value === "quiz-debt" ||
+                      template.value === "groc-quiz-multi" ||
                       template.value === "cb-debt" ||
                       template.value === "homepage-debt",
                   );

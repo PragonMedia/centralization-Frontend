@@ -26,6 +26,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
+      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
@@ -73,6 +74,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (
       templateValue === "gg-debt-v1" ||
       templateValue === "quiz-debt" ||
+      templateValue === "groc-quiz-multi" ||
       templateValue === "cb-debt" ||
       templateValue === "homepage-debt" ||
       templateValue.startsWith("debt-")
