@@ -18,6 +18,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cb-groc", label: "Chatbot Grocery" },
       { value: "cb-groc-nolgo", label: "Chatbot Grocery no-logo" },
       { value: "groc-dynamic", label: "Grocery Dynamic" },
+      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-ss", label: "Chatbot Social Security" },
       { value: "el-cb-groc", label: "Chatbot Grocery" }, // Elite version
       { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
@@ -26,7 +27,6 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
-      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
@@ -62,7 +62,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     
     // Medicare PPC templates
     if (templateValue === "cb-groc" || templateValue === "cb-groc-nolgo" || templateValue === "cb-ss" || 
-        templateValue === "groc-dynamic" ||
+        templateValue === "groc-dynamic" || templateValue === "groc-quiz-multi" ||
         templateValue === "el-cb-groc" || templateValue === "el-cb-ss" || templateValue === "el-groc-dynamic") {
       return "Medicare PPC";
     }
@@ -74,7 +74,6 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (
       templateValue === "gg-debt-v1" ||
       templateValue === "quiz-debt" ||
-      templateValue === "groc-quiz-multi" ||
       templateValue === "cb-debt" ||
       templateValue === "homepage-debt" ||
       templateValue.startsWith("debt-")

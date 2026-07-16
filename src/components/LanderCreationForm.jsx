@@ -64,6 +64,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-ss-short", label: "Chatbot Social Security Short" },
       { value: "cb-groc-geoedge", label: "Chatbot Grocery GeoEdge" },
       { value: "quiz-grocery", label: "Grocery Quiz" },
+      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "es-cb-groc", label: "Chatbot Grocery Spanish" },
       { value: "es-cb-ss", label: "Chatbot Social Security Spanish" },
       { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
@@ -85,7 +86,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
       { value: "quiz-debt", label: "Quiz Debt V2" },
-      { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
@@ -1936,6 +1936,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "cb-ss-short" ||
                       template.value === "cb-groc-geoedge" ||
                       template.value === "quiz-grocery" ||
+                      template.value === "groc-quiz-multi" ||
                       template.value === "el-cb-groc-3000" ||
                       template.value === "el-cb-groc-short-3000" ||
                       template.value === "el-ss-groc-174" ||
@@ -2006,7 +2007,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "gg-debt-v1" ||
                       template.value === "quiz-debt" ||
-                      template.value === "groc-quiz-multi" ||
                       template.value === "cb-debt" ||
                       template.value === "homepage-debt",
                   );

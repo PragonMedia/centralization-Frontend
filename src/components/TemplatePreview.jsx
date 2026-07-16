@@ -25,6 +25,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       previewUrl: "https://approved-template.com/dynamic/?amount=1200",
     },
     {
+      id: "groc-quiz-multi",
+      name: "Quiz Multi",
+      previewUrl: "https://approved-template.com/multi",
+    },
+    {
       id: "cb-ss",
       name: "Chatbot Social Security",
       previewUrl: "https://approved-template.com/ss",
@@ -111,11 +116,6 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "quiz-debt",
       name: "Quiz Debt V2",
       previewUrl: "https://approved-template.com/quiz-debt-v2/",
-    },
-    {
-      id: "groc-quiz-multi",
-      name: "Quiz Multi",
-      previewUrl: "https://approved-template.com/multi",
     },
     {
       id: "cb-debt",
