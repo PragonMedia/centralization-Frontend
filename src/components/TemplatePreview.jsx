@@ -217,6 +217,12 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "cas-uk",
       previewUrl: "https://approved-template.com/cas-uk/",
     },
+    // Paragon Media - VSL
+    {
+      id: "vsl-1",
+      name: "vsl",
+      previewUrl: "https://approved-template.com/vsl/",
+    },
   ];
 
   const matched =

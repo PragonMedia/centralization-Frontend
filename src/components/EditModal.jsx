@@ -54,6 +54,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cas-ie", label: "cas-ie" },
       { value: "cas-uk", label: "cas-uk" },
     ],
+    VSL: [{ value: "vsl-1", label: "vsl" }],
   };
 
   // Function to determine vertical from template value
@@ -110,6 +111,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       templateValue.startsWith("cas-")
     ) {
       return "Casino";
+    }
+    // VSL templates
+    if (templateValue === "vsl-1" || templateValue.startsWith("vsl-")) {
+      return "VSL";
     }
     
     return null;

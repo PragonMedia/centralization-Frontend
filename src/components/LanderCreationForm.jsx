@@ -42,6 +42,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Sweeps",
     "Nutra",
     "Casino",
+    "VSL",
   ];
 
   // Filter verticals based on organization
@@ -112,6 +113,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cas-ie", label: "cas-ie" },
       { value: "cas-uk", label: "cas-uk" },
     ],
+    VSL: [{ value: "vsl-1", label: "vsl" }],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -135,6 +137,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
       { id: "nutra-campaign-3", name: "Vitamin Supplement Campaign" },
     ],
+    VSL: [{ id: "yu-sleep", name: "YU Sleep" }],
   };
 
   const [url, setURL] = useState("");
@@ -418,6 +421,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               { name: "You" },
               { name: "Sean Luc" },
             ]);
+          } else if (selectedVertical === "VSL") {
+            setMediaBuyers([{ name: "Nick" }]);
+            setSelectedMediaBuyerFromCampaign("Nick");
           } else {
             setMediaBuyers([
               { name: "Jake Hunter" },
@@ -475,6 +481,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           { name: "You" },
           { name: "Sean Luc" },
         ]);
+      } else if (selectedVertical === "VSL") {
+        setMediaBuyers([{ name: "Nick" }]);
+        setSelectedMediaBuyerFromCampaign("Nick");
       } else {
         setMediaBuyers([
           { name: "Jake Hunter" },
@@ -532,7 +541,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           (mediaBuyerName === "Nick" || mediaBuyerName === "You")) ||
         (selectedVertical === "Final Expense" && mediaBuyerName === "Nick") ||
         (selectedVertical === "ACA" && mediaBuyerName === "Nick") ||
-        (selectedVertical === "Debt PPC" && mediaBuyerName === "Nick")
+        (selectedVertical === "Debt PPC" && mediaBuyerName === "Nick") ||
+        (selectedVertical === "VSL" && mediaBuyerName === "Nick")
       ) {
         // Local preview/test options should not override existing values.
         ringbaID = formData.ringbaID;
@@ -988,6 +998,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       setSelectedTemplate("casino");
     } else if (vertical === "Debt Form") {
       setSelectedTemplate("debt-form");
+    } else if (vertical === "VSL") {
+      setSelectedTemplate("vsl-1");
     } else {
       setSelectedTemplate("");
     }
@@ -1003,7 +1015,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               ? "casino"
               : vertical === "Debt Form"
                 ? "debt-form"
-                : "", // Reset template
+                : vertical === "VSL"
+                  ? "vsl-1"
+                  : "", // Reset template
     }));
 
     // Fetch campaigns for the selected vertical
@@ -2039,6 +2053,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "casino-german" ||
                       template.value === "casino-bb",
+                  );
+                } else {
+                  filteredTemplates = allTemplates;
+                }
+              } else if (selectedVertical === "VSL") {
+                if (campaignName === "YU Sleep") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "vsl-1",
                   );
                 } else {
                   filteredTemplates = allTemplates;
