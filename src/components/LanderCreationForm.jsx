@@ -113,7 +113,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cas-ie", label: "cas-ie" },
       { value: "cas-uk", label: "cas-uk" },
     ],
-    VSL: [{ value: "vsl-1", label: "vsl" }],
+    VSL: [
+      { value: "vsl-1", label: "vsl" },
+      { value: "femiCore", label: "femiCore" },
+    ],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -137,7 +140,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
       { id: "nutra-campaign-3", name: "Vitamin Supplement Campaign" },
     ],
-    VSL: [{ id: "yu-sleep", name: "YU Sleep" }],
+    VSL: [
+      { id: "yu-sleep", name: "YU Sleep" },
+      { id: "femicore", name: "FemiCore" },
+    ],
   };
 
   const [url, setURL] = useState("");
@@ -366,6 +372,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   const handleCampaignChange = (campaignId) => {
     setSelectedCampaign(campaignId);
     setSelectedMediaBuyerFromCampaign(""); // Reset media buyer selection
+
+    if (selectedVertical === "VSL") {
+      const campaignTemplate =
+        campaignId === "femicore" ? "femiCore" : "vsl-1";
+      setSelectedTemplate(campaignTemplate);
+      setFormData((prev) => ({
+        ...prev,
+        template: campaignTemplate,
+      }));
+    }
 
     // If Elite organization is selected
     if (formData.organization === "elite") {
@@ -2061,6 +2077,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 if (campaignName === "YU Sleep") {
                   filteredTemplates = allTemplates.filter(
                     (template) => template.value === "vsl-1",
+                  );
+                } else if (campaignName === "FemiCore") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "femiCore",
                   );
                 } else {
                   filteredTemplates = allTemplates;

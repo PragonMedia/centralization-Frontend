@@ -54,7 +54,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cas-ie", label: "cas-ie" },
       { value: "cas-uk", label: "cas-uk" },
     ],
-    VSL: [{ value: "vsl-1", label: "vsl" }],
+    VSL: [
+      { value: "vsl-1", label: "vsl" },
+      { value: "femiCore", label: "femiCore" },
+    ],
   };
 
   // Function to determine vertical from template value
@@ -113,7 +116,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "Casino";
     }
     // VSL templates
-    if (templateValue === "vsl-1" || templateValue.startsWith("vsl-")) {
+    if (
+      templateValue === "vsl-1" ||
+      templateValue === "femiCore" ||
+      templateValue.startsWith("vsl-")
+    ) {
       return "VSL";
     }
     

@@ -223,6 +223,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "vsl",
       previewUrl: "https://approved-template.com/vsl/",
     },
+    {
+      id: "femiCore",
+      name: "femiCore",
+      previewUrl: "https://approved-template.com/femicore/",
+    },
   ];
 
   const matched =
@@ -267,6 +272,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
             loading="lazy"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
           />
+
         </div>
       </div>
     </div>
