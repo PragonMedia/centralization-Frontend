@@ -43,7 +43,7 @@ export function domainMatchesLanderVertical(domainVertical, landerVertical) {
   if (!domainVertical) return true; // legacy domains without vertical
 
   const expected = getDomainVerticalForLanderVertical(landerVertical);
-  // No domain enum for this lander vertical (e.g. Sweeps/Nutra/Casino) —
+  // No domain enum for this lander vertical (e.g. VSL / Concealed Carry) —
   // only legacy domains without a vertical stay visible.
   if (!expected) return false;
   return domainVertical === expected;

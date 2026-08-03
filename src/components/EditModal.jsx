@@ -39,26 +39,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
-    Sweeps: [
-      { value: "sweep", label: "Sweep" },
-    ],
-    Nutra: [
-      { value: "nutra-lp1", label: "Nutra Landing Page 1" },
-      { value: "nutra-lp2", label: "Nutra Landing Page 2" },
-      { value: "nutra-supplement", label: "Supplement Sales" },
-    ],
-    Casino: [
-      { value: "casino", label: "Casino" },
-      { value: "casino-v2", label: "Casino v2" },
-      { value: "casino-german", label: "Casino-German" },
-      { value: "casino-bb", label: "Casino BingBong" },
-      { value: "cas-ie", label: "cas-ie" },
-      { value: "cas-uk", label: "cas-uk" },
-    ],
     VSL: [
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
     ],
+    "Concealed Carry": [{ value: "ccw", label: "CCW" }],
   };
 
   // Function to determine vertical from template value
@@ -99,24 +84,6 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (templateValue === "aca-58" || templateValue.startsWith("aca-")) {
       return "ACA";
     }
-    // Sweeps templates
-    if (templateValue === "sweep") {
-      return "Sweeps";
-    }
-    // Nutra templates
-    if (templateValue.startsWith("nutra-")) {
-      return "Nutra";
-    }
-    // Casino templates
-    if (
-      templateValue === "casino" ||
-      templateValue === "cas-ie" ||
-      templateValue === "cas-uk" ||
-      templateValue.startsWith("casino-") ||
-      templateValue.startsWith("cas-")
-    ) {
-      return "Casino";
-    }
     // VSL templates
     if (
       templateValue === "vsl-1" ||
@@ -125,7 +92,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     ) {
       return "VSL";
     }
-    
+    // Concealed Carry templates
+    if (templateValue === "ccw") {
+      return "Concealed Carry";
+    }
+
     return null;
   };
 

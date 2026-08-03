@@ -39,10 +39,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     "Debt PPC",
     "Debt Form",
     "Final Expense",
-    "Sweeps",
-    "Nutra",
-    "Casino",
     "VSL",
+    "Concealed Carry",
   ];
 
   // Filter verticals based on organization
@@ -97,27 +95,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "fe-40", label: "Final Expense ($0)" },
       { value: "cb-fe-25", label: "Final Expense ($25)" },
     ],
-    Sweeps: [
-      { value: "sweep", label: "Sweep" },
-      { value: "stimulus", label: "Stimulus" },
-    ],
-    Nutra: [
-      { value: "nutra-lp1", label: "Nutra Landing Page 1" },
-      { value: "nutra-lp2", label: "Nutra Landing Page 2" },
-      { value: "nutra-supplement", label: "Supplement Sales" },
-    ],
-    Casino: [
-      { value: "casino", label: "Casino" },
-      { value: "casino-v2", label: "Casino v2" },
-      { value: "casino-german", label: "Casino-German" },
-      { value: "casino-bb", label: "Casino BingBong" },
-      { value: "cas-ie", label: "cas-ie" },
-      { value: "cas-uk", label: "cas-uk" },
-    ],
     VSL: [
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
     ],
+    "Concealed Carry": [{ value: "ccw", label: "CCW" }],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -127,24 +109,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { id: "debt-campaign-2", name: "Debt Consolidation Campaign" },
       { id: "debt-campaign-3", name: "Credit Repair Campaign" },
     ],
-    Sweeps: [
-      { id: "sweep", name: "$750 Walmart Gift Card" },
-      { id: "stimulus", name: "Stimulus" },
-    ],
-    Casino: [
-      { id: "casino", name: "Casino" },
-      { id: "casino-portugal", name: "Casino Portugal" },
-      { id: "casino-german", name: "Casino German" },
-    ],
-    Nutra: [
-      { id: "nutra-campaign-1", name: "Weight Loss Supplement Campaign" },
-      { id: "nutra-campaign-2", name: "Muscle Building Campaign" },
-      { id: "nutra-campaign-3", name: "Vitamin Supplement Campaign" },
-    ],
     VSL: [
       { id: "yu-sleep", name: "YU Sleep" },
       { id: "femicore", name: "FemiCore" },
     ],
+    "Concealed Carry": [{ id: "rush-permit", name: "Rush Permit" }],
   };
 
   const [url, setURL] = useState("");
@@ -382,6 +351,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         ...prev,
         template: campaignTemplate,
       }));
+    } else if (selectedVertical === "Concealed Carry") {
+      setSelectedTemplate("ccw");
+      setFormData((prev) => ({
+        ...prev,
+        template: "ccw",
+      }));
     }
 
     // If Elite organization is selected
@@ -432,15 +407,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
         // For other verticals, show local media buyers
         if (selectedVertical) {
-          if (selectedVertical === "Casino") {
-            setMediaBuyers([
-              { name: "Nick" },
-              { name: "You" },
-              { name: "Sean Luc" },
-            ]);
-          } else if (selectedVertical === "VSL") {
+          if (selectedVertical === "VSL") {
             setMediaBuyers([{ name: "Nick" }]);
             setSelectedMediaBuyerFromCampaign("Nick");
+          } else if (selectedVertical === "Concealed Carry") {
+            setMediaBuyers([
+              { name: "Nick" },
+              { name: "Jake Hunter" },
+              { name: "Addy Jaloudi" },
+              { name: "Sean Luc" },
+            ]);
           } else {
             setMediaBuyers([
               { name: "Jake Hunter" },
@@ -492,15 +468,16 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
 
     // For other non-Ringba verticals, show local media buyers
     if (selectedVertical) {
-      if (selectedVertical === "Casino") {
-        setMediaBuyers([
-          { name: "Nick" },
-          { name: "You" },
-          { name: "Sean Luc" },
-        ]);
-      } else if (selectedVertical === "VSL") {
+      if (selectedVertical === "VSL") {
         setMediaBuyers([{ name: "Nick" }]);
         setSelectedMediaBuyerFromCampaign("Nick");
+      } else if (selectedVertical === "Concealed Carry") {
+        setMediaBuyers([
+          { name: "Nick" },
+          { name: "Jake Hunter" },
+          { name: "Addy Jaloudi" },
+          { name: "Sean Luc" },
+        ]);
       } else {
         setMediaBuyers([
           { name: "Jake Hunter" },
@@ -554,12 +531,11 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       let phoneNumber = "";
 
       if (
-        (selectedVertical === "Casino" &&
-          (mediaBuyerName === "Nick" || mediaBuyerName === "You")) ||
         (selectedVertical === "Final Expense" && mediaBuyerName === "Nick") ||
         (selectedVertical === "ACA" && mediaBuyerName === "Nick") ||
         (selectedVertical === "Debt PPC" && mediaBuyerName === "Nick") ||
-        (selectedVertical === "VSL" && mediaBuyerName === "Nick")
+        (selectedVertical === "VSL" && mediaBuyerName === "Nick") ||
+        (selectedVertical === "Concealed Carry" && mediaBuyerName === "Nick")
       ) {
         // Local preview/test options should not override existing values.
         ringbaID = formData.ringbaID;
@@ -1011,12 +987,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       setSelectedTemplate("medicaid");
     } else if (vertical === "ACA") {
       setSelectedTemplate("aca-58");
-    } else if (vertical === "Casino") {
-      setSelectedTemplate("casino");
     } else if (vertical === "Debt Form") {
       setSelectedTemplate("debt-form");
     } else if (vertical === "VSL") {
       setSelectedTemplate("vsl-1");
+    } else if (vertical === "Concealed Carry") {
+      setSelectedTemplate("ccw");
     } else {
       setSelectedTemplate("");
     }
@@ -1028,12 +1004,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           ? "medicaid"
           : vertical === "ACA"
             ? "aca-58"
-            : vertical === "Casino"
-              ? "casino"
-              : vertical === "Debt Form"
-                ? "debt-form"
-                : vertical === "VSL"
-                  ? "vsl-1"
+            : vertical === "Debt Form"
+              ? "debt-form"
+              : vertical === "VSL"
+                ? "vsl-1"
+                : vertical === "Concealed Carry"
+                  ? "ccw"
                   : "", // Reset template
     }));
 
@@ -1684,8 +1660,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               selectedVertical !== "Debt Form" &&
               selectedVertical !== "Final Expense" &&
               selectedVertical !== "Medicaid" &&
-              selectedVertical !== "ACA" &&
-              selectedVertical !== "Casino")) && (
+              selectedVertical !== "ACA")) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Media Buyer <span className="text-red-500">*</span>
@@ -1999,21 +1974,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
                   filteredTemplates = allTemplates;
                 }
-              } else if (selectedVertical === "Sweeps") {
-                if (campaignName === "Stimulus") {
-                  // For "Stimulus" campaign, show only Stimulus template
-                  filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "stimulus",
-                  );
-                } else if (campaignName === "$750 Walmart Gift Card") {
-                  // For "$750 Walmart Gift Card" campaign, show only Sweep template
-                  filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "sweep",
-                  );
-                } else {
-                  // Fallback: show all templates (for other campaigns or if campaign not selected)
-                  filteredTemplates = allTemplates;
-                }
               } else if (selectedVertical === "Final Expense") {
                 if (campaignName === "Paragon - Final Expense") {
                   filteredTemplates = allTemplates.filter(
@@ -2053,28 +2013,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 filteredTemplates = allTemplates.filter(
                   (template) => template.value === "aca-58",
                 );
-              } else if (selectedVertical === "Casino") {
-                if (campaignName === "Casino") {
-                  filteredTemplates = allTemplates.filter(
-                    (template) =>
-                      template.value === "cas-ie" ||
-                      template.value === "cas-uk",
-                  );
-                } else if (campaignName === "Casino Portugal") {
-                  filteredTemplates = allTemplates.filter(
-                    (template) =>
-                      template.value === "casino" ||
-                      template.value === "casino-v2",
-                  );
-                } else if (campaignName === "Casino German") {
-                  filteredTemplates = allTemplates.filter(
-                    (template) =>
-                      template.value === "casino-german" ||
-                      template.value === "casino-bb",
-                  );
-                } else {
-                  filteredTemplates = allTemplates;
-                }
               } else if (selectedVertical === "VSL") {
                 if (campaignName === "YU Sleep") {
                   filteredTemplates = allTemplates.filter(
@@ -2083,6 +2021,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                 } else if (campaignName === "FemiCore") {
                   filteredTemplates = allTemplates.filter(
                     (template) => template.value === "femiCore",
+                  );
+                } else {
+                  filteredTemplates = allTemplates;
+                }
+              } else if (selectedVertical === "Concealed Carry") {
+                if (campaignName === "Rush Permit") {
+                  filteredTemplates = allTemplates.filter(
+                    (template) => template.value === "ccw",
                   );
                 } else {
                   filteredTemplates = allTemplates;

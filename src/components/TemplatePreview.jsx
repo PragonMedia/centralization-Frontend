@@ -165,63 +165,6 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "ACA 58",
       previewUrl: "https://approved-template.com/aca58/",
     },
-    // Paragon Media - Sweeps
-    {
-      id: "sweep",
-      name: "Sweep",
-      previewUrl: "https://pgnmapprovedlander.com/sweeps",
-    },
-    {
-      id: "stimulus",
-      name: "Stimulus",
-      previewUrl: "https://pgnmapprovedlander.com/stim",
-    },
-    // Nutra, Casino (URLs TBD)
-    {
-      id: "nutra-lp1",
-      name: "Nutra Landing Page 1",
-      previewUrl: `${base}/nutra-lp1/`,
-    },
-    {
-      id: "nutra-lp2",
-      name: "Nutra Landing Page 2",
-      previewUrl: `${base}/nutra-lp2/`,
-    },
-    {
-      id: "nutra-supplement",
-      name: "Supplement Sales",
-      previewUrl: `${base}/nutra-supplement/`,
-    },
-    {
-      id: "casino",
-      name: "Casino",
-      previewUrl: "https://approved-template.com/casino/",
-    },
-    {
-      id: "casino-v2",
-      name: "Casino v2",
-      previewUrl: "https://approved-template.com/casv2/",
-    },
-    {
-      id: "casino-german",
-      name: "Casino-German",
-      previewUrl: "https://approved-template.com/cas-ger/",
-    },
-    {
-      id: "casino-bb",
-      name: "Casino BingBong",
-      previewUrl: "https://approved-template.com/bb/",
-    },
-    {
-      id: "cas-ie",
-      name: "cas-ie",
-      previewUrl: "https://approved-template.com/cas-ie/",
-    },
-    {
-      id: "cas-uk",
-      name: "cas-uk",
-      previewUrl: "https://approved-template.com/cas-uk/",
-    },
     // Paragon Media - VSL
     {
       id: "vsl-1",
@@ -232,6 +175,12 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "femiCore",
       name: "femiCore",
       previewUrl: "https://approved-template.com/femicore/",
+    },
+    // Paragon Media - Concealed Carry
+    {
+      id: "ccw",
+      name: "CCW",
+      previewUrl: "https://approved-template.com/ccw/",
     },
   ];
 
