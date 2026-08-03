@@ -3,7 +3,11 @@ import { API_ENDPOINTS, getAuthHeaders } from "../config/api.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
 import { invalidateCache } from "../utils/cache.js";
 import { PLATFORMS } from "../constants/platforms.js";
-import { DOMAIN_VERTICALS, isDomainVertical } from "../constants/domainVerticals.js";
+import {
+  getDomainVerticalsForOrganization,
+  getDomainVerticalSelectOptions,
+  isDomainVertical,
+} from "../constants/domainVerticals.js";
 
 const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -39,10 +43,22 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
       processedValue = sanitizeInput.email(value);
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: processedValue,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: processedValue,
+      };
+
+      // Clear vertical when org changes if it is not valid for the new org
+      if (name === "organization") {
+        const allowed = getDomainVerticalsForOrganization(processedValue);
+        if (prev.vertical && !allowed.includes(prev.vertical)) {
+          next.vertical = "";
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleDomainBlur = (e) => {
@@ -322,7 +338,10 @@ const AddDomainModal = ({ isOpen, onClose, onSuccess }) => {
                 disabled={isSubmitting}
               >
                 <option value="">Select a vertical</option>
-                {DOMAIN_VERTICALS.map((vertical) => (
+                {getDomainVerticalSelectOptions(
+                  formData.organization,
+                  formData.vertical,
+                ).map((vertical) => (
                   <option key={vertical} value={vertical}>
                     {vertical}
                   </option>

@@ -5,7 +5,7 @@ import {
   CERTIFICATION_TAGS,
 } from "../constants/certificationTags.js";
 import {
-  DOMAIN_VERTICALS,
+  getDomainVerticalSelectOptions,
   resolveDomainVerticalForUpdate,
 } from "../constants/domainVerticals.js";
 
@@ -143,10 +143,21 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (type === "domain" && name === "organization") {
+        const options = getDomainVerticalSelectOptions(value, prev.vertical);
+        if (prev.vertical && !options.includes(prev.vertical)) {
+          next.vertical = "";
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleCertificationChange = (e) => {
@@ -306,7 +317,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Not set</option>
-                    {DOMAIN_VERTICALS.map((vertical) => (
+                    {getDomainVerticalSelectOptions(
+                      formData.organization,
+                      formData.vertical,
+                    ).map((vertical) => (
                       <option key={vertical} value={vertical}>
                         {vertical}
                       </option>

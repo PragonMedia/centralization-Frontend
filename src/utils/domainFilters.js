@@ -1,5 +1,5 @@
 import { isPlatformExcludedFromFilters } from "../constants/platforms.js";
-import { DOMAIN_VERTICALS } from "../constants/domainVerticals.js";
+import { ALL_DOMAIN_VERTICALS } from "../constants/domainVerticals.js";
 
 // Simplified domain filtering logic
 export const filterDomains = (domains, filters) => {
@@ -123,9 +123,17 @@ export const getFilterOptions = (domains) => {
   const mediaBuyers = [
     ...new Set(domains.map((d) => d.assignedTo).filter(Boolean)),
   ];
-  const verticals = DOMAIN_VERTICALS.filter((vertical) =>
-    domains.some((d) => d.vertical === vertical),
+  // Prefer known lander-aligned / legacy labels, then any other values present in data
+  const liveVerticals = [
+    ...new Set(domains.map((d) => d.vertical).filter(Boolean)),
+  ];
+  const knownPresent = ALL_DOMAIN_VERTICALS.filter((vertical) =>
+    liveVerticals.includes(vertical),
   );
+  const unknownPresent = liveVerticals.filter(
+    (vertical) => !ALL_DOMAIN_VERTICALS.includes(vertical),
+  );
+  const verticals = [...knownPresent, ...unknownPresent];
 
   return {
     organizations,
