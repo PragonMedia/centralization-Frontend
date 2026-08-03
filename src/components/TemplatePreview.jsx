@@ -106,6 +106,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Grocery Dynamic",
       previewUrl: "https://approved-template.com/dynamic/?amount=1200",
     },
+    {
+      id: "el-groc-multi",
+      name: "Quiz Multi",
+      previewUrl: "https://approved-template.com/el-multi/html1.html",
+    },
     // Paragon Media - Debt PPC
     {
       id: "gg-debt-v1",

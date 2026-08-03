@@ -81,6 +81,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         label: "Chatbot Social Security Short ($174)",
       },
       { value: "el-groc-dynamic", label: "Grocery Dynamic" },
+      { value: "el-groc-multi", label: "Quiz Multi" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 5800" }],
@@ -1991,7 +1992,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                       template.value === "el-cb-groc-short-3000" ||
                       template.value === "el-ss-groc-174" ||
                       template.value === "el-cb-ss-short-174" ||
-                      template.value === "el-groc-dynamic",
+                      template.value === "el-groc-dynamic" ||
+                      template.value === "el-groc-multi",
                   );
                 } else {
                   // Fallback: show all templates (for other campaigns or if campaign not selected)
