@@ -383,7 +383,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
                     <option value="">Select Media Buyer</option>
                     <option value="addy@paragonmedia.io">Addy</option>
                     <option value="jake@paragonmedia.io">Jake</option>
-                    <option value="sean@paragonmedia.io">Sean Luc</option>
+                    <option value="nick@paragonmedia.io">Nick</option>
+                    <option value="sean@paragonmedia.io">Sean</option>
                   </select>
                 </div>
               </>
