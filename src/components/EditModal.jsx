@@ -42,6 +42,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     VSL: [
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
+      { value: "femicore-vsl", label: "femiCore v2" },
     ],
     "Concealed Carry": [{ value: "ccw", label: "CCW" }],
   };
@@ -88,6 +89,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (
       templateValue === "vsl-1" ||
       templateValue === "femiCore" ||
+      templateValue === "femicore-vsl" ||
       templateValue.startsWith("vsl-")
     ) {
       return "VSL";

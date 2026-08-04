@@ -98,6 +98,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
     VSL: [
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
+      { value: "femicore-vsl", label: "femiCore v2" },
     ],
     "Concealed Carry": [{ value: "ccw", label: "CCW" }],
   };
@@ -2020,7 +2021,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   );
                 } else if (campaignName === "FemiCore") {
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "femiCore",
+                    (template) =>
+                      template.value === "femiCore" ||
+                      template.value === "femicore-vsl",
                   );
                 } else {
                   filteredTemplates = allTemplates;

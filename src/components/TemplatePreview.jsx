@@ -176,6 +176,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "femiCore",
       previewUrl: "https://approved-template.com/femicore/",
     },
+    {
+      id: "femicore-vsl",
+      name: "femiCore v2",
+      previewUrl: "https://approved-template.com/femiv2/",
+    },
     // Paragon Media - Concealed Carry
     {
       id: "ccw",
