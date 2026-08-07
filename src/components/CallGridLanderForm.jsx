@@ -1,0 +1,841 @@
+import { useState, useEffect, useCallback } from "react";
+import TemplatePreview from "./TemplatePreview";
+import {
+  API_ENDPOINTS,
+  getAuthHeaders,
+} from "../config/api.js";
+import { cachedFetch, CACHE_CONFIG, invalidateCache } from "../utils/cache.js";
+import { sanitizeInput, validateInput } from "../utils/sanitization.js";
+import { domainMatchesLanderVertical } from "../constants/domainVerticals.js";
+import { PLATFORMS } from "../constants/platforms.js";
+
+/** Lander vertical for domain filtering (domains store Medicare / Medicare PPC). */
+const MEDICARE_VERTICAL = "Medicare PPC";
+
+/** Only templates with CallGrid SDK wiring. */
+const CALLGRID_TEMPLATES = [
+  { value: "cg-grocery", label: "Chatbot Grocery" },
+];
+
+const MEDIA_BUYER_EMAIL_MAP = {
+  "Jake Hunter": "jake@paragonmedia.io",
+  Jake: "jake@paragonmedia.io",
+  "Addy Jaloudi": "addy@paragonmedia.io",
+  Addy: "addy@paragonmedia.io",
+  "Sean Luc": "sean@paragonmedia.io",
+  Sean: "sean@paragonmedia.io",
+  Nick: "nick@paragonmedia.io",
+  You: null,
+};
+
+function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [url, setURL] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const [formData, setFormData] = useState({
+    organization: "paragon media",
+    domain: "",
+    route: "",
+    template: "cg-grocery",
+    rtkID: "",
+    phoneNumber: "",
+    platform: "",
+    createdBy: "",
+  });
+
+  const [selectedVertical, setSelectedVertical] = useState("");
+  const [campaigns, setCampaigns] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState("");
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
+  const [callgridOrganizationId, setCallgridOrganizationId] = useState(
+    "cmqzp5upm023q06jr1r2nas6f",
+  );
+
+  const [mediaBuyers, setMediaBuyers] = useState([]);
+  const [selectedMediaBuyerId, setSelectedMediaBuyerId] = useState("");
+  const [isLoadingMediaBuyers, setIsLoadingMediaBuyers] = useState(false);
+
+  const [availableDomains, setAvailableDomains] = useState([]);
+  const [filteredDomains, setFilteredDomains] = useState([]);
+  const [isLoadingDomains, setIsLoadingDomains] = useState(true);
+  const [showDomainDropdown, setShowDomainDropdown] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+
+  const selectedMediaBuyer = mediaBuyers.find(
+    (b) => b.id === selectedMediaBuyerId || b.sourceId === selectedMediaBuyerId,
+  );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (!raw) return;
+      const user = JSON.parse(raw);
+      setCurrentUserRole(user.role || "");
+      setCurrentUserEmail(user.email || "");
+      setFormData((prev) => ({
+        ...prev,
+        createdBy: user.email || "",
+      }));
+    } catch (err) {
+      console.error("Error parsing userData:", err);
+    }
+    fetchAvailableDomains();
+  }, []);
+
+  const fetchAvailableDomains = async () => {
+    try {
+      setIsLoadingDomains(true);
+      const response = await cachedFetch(
+        API_ENDPOINTS.DOMAINS.LIST,
+        { headers: getAuthHeaders() },
+        CACHE_CONFIG.DOMAINS,
+      );
+      if (!response.ok) {
+        setAvailableDomains([]);
+        return;
+      }
+      const data = await response.json();
+      let domains = [];
+      if (Array.isArray(data)) domains = data;
+      else if (Array.isArray(data.domains)) domains = data.domains;
+      else if (Array.isArray(data.data)) domains = data.data;
+      setAvailableDomains(domains);
+    } catch (err) {
+      console.error("Error fetching domains:", err);
+      setAvailableDomains([]);
+    } finally {
+      setIsLoadingDomains(false);
+    }
+  };
+
+  const fetchCampaigns = async () => {
+    try {
+      setIsLoadingCampaigns(true);
+      setError("");
+      const response = await fetch(API_ENDPOINTS.CALLGRID.CAMPAIGNS, {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || `Failed to load campaigns (${response.status})`);
+      }
+      if (data.organizationId) {
+        setCallgridOrganizationId(data.organizationId);
+      }
+      setCampaigns(Array.isArray(data.campaigns) ? data.campaigns : []);
+    } catch (err) {
+      console.error(err);
+      setCampaigns([]);
+      setError(err.message || "Failed to load CallGrid campaigns");
+    } finally {
+      setIsLoadingCampaigns(false);
+    }
+  };
+
+  const fetchMediaBuyers = async (campaignId) => {
+    if (!campaignId) {
+      setMediaBuyers([]);
+      return;
+    }
+    try {
+      setIsLoadingMediaBuyers(true);
+      setError("");
+      const response = await fetch(
+        API_ENDPOINTS.CALLGRID.MEDIA_BUYERS(campaignId),
+        { headers: getAuthHeaders() },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.error || `Failed to load media buyers (${response.status})`,
+        );
+      }
+      if (data.organizationId) {
+        setCallgridOrganizationId(data.organizationId);
+      }
+      setMediaBuyers(Array.isArray(data.mediaBuyers) ? data.mediaBuyers : []);
+    } catch (err) {
+      console.error(err);
+      setMediaBuyers([]);
+      setError(err.message || "Failed to load CallGrid media buyers");
+    } finally {
+      setIsLoadingMediaBuyers(false);
+    }
+  };
+
+  const filterDomainsByUser = useCallback(
+    (domains, userEmail, userRole, mediaBuyerName) => {
+      if (String(mediaBuyerName || "").trim().toLowerCase() === "nick") {
+        return domains;
+      }
+      if (userRole === "mediaBuyer") {
+        if (String(userEmail || "").toLowerCase() === "nick@paragonmedia.io") {
+          return domains;
+        }
+        return domains.filter((d) => d.assignedTo === userEmail);
+      }
+      if (["tech", "ceo", "admin"].includes(userRole) && mediaBuyerName) {
+        const email = MEDIA_BUYER_EMAIL_MAP[mediaBuyerName];
+        if (!email) return domains;
+        return domains.filter((d) => d.assignedTo === email);
+      }
+      return domains;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!availableDomains.length) {
+      setFilteredDomains([]);
+      return;
+    }
+    let filtered = filterDomainsByUser(
+      availableDomains,
+      currentUserEmail,
+      currentUserRole,
+      selectedMediaBuyer?.name,
+    );
+    if (selectedVertical) {
+      filtered = filtered.filter((domain) =>
+        domainMatchesLanderVertical(domain.vertical, selectedVertical),
+      );
+    }
+    setFilteredDomains(filtered);
+  }, [
+    availableDomains,
+    currentUserEmail,
+    currentUserRole,
+    selectedMediaBuyer?.name,
+    selectedVertical,
+    filterDomainsByUser,
+  ]);
+
+  const handleOrganizationChange = (value) => {
+    if (value === "elite") return; // not available yet
+    setFormData((prev) => ({ ...prev, organization: value }));
+  };
+
+  const handleVerticalChange = (vertical) => {
+    setSelectedVertical(vertical);
+    setSelectedCampaign("");
+    setSelectedMediaBuyerId("");
+    setMediaBuyers([]);
+    setFormData((prev) => ({
+      ...prev,
+      domain: "",
+      phoneNumber: "",
+      template: vertical === MEDICARE_VERTICAL ? "cg-grocery" : "",
+    }));
+    if (vertical === MEDICARE_VERTICAL) {
+      setSelectedTemplate("cg-grocery");
+      fetchCampaigns();
+    } else {
+      setCampaigns([]);
+    }
+  };
+
+  const handleCampaignChange = (campaignId) => {
+    setSelectedCampaign(campaignId);
+    setSelectedMediaBuyerId("");
+    setFormData((prev) => ({ ...prev, phoneNumber: "" }));
+    fetchMediaBuyers(campaignId);
+  };
+
+  const handleMediaBuyerChange = (buyerId) => {
+    setSelectedMediaBuyerId(buyerId);
+    const buyer = mediaBuyers.find(
+      (b) => b.id === buyerId || b.sourceId === buyerId,
+    );
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumber: buyer?.phoneNumber || "",
+      domain: "",
+    }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const steps = [
+    {
+      id: 1,
+      title: "Organization",
+      completed: Boolean(formData.organization),
+    },
+    {
+      id: 2,
+      title: "Vertical & Campaign",
+      completed: Boolean(
+        selectedVertical && selectedCampaign && selectedMediaBuyerId,
+      ),
+    },
+    { id: 3, title: "Domain", completed: Boolean(formData.domain) },
+    {
+      id: 4,
+      title: "Lander Details",
+      completed: Boolean(
+        formData.route &&
+          formData.template &&
+          formData.platform &&
+          formData.rtkID,
+      ),
+    },
+  ];
+
+  const canGoNext = () => {
+    if (currentStep === 1) return formData.organization === "paragon media";
+    if (currentStep === 2) {
+      return Boolean(
+        selectedVertical && selectedCampaign && selectedMediaBuyerId,
+      );
+    }
+    if (currentStep === 3) return Boolean(formData.domain);
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!selectedMediaBuyer) {
+      setError("Please select a media buyer");
+      return;
+    }
+    if (!validateInput.required(formData.domain)) {
+      setError("Please select a domain");
+      return;
+    }
+    if (!validateInput.required(formData.route)) {
+      setError("Please enter a path/route");
+      return;
+    }
+    if (!validateInput.required(formData.template || selectedTemplate)) {
+      setError("Please select a template");
+      return;
+    }
+    if (!validateInput.required(formData.platform)) {
+      setError("Please select a platform");
+      return;
+    }
+
+    const domainRtkID =
+      availableDomains.find((d) => d.domain === formData.domain)?.rtkID || "";
+    const finalRtkID =
+      domainRtkID && domainRtkID.trim() !== ""
+        ? domainRtkID
+        : formData.rtkID || "";
+    if (!finalRtkID.trim()) {
+      setError("Please enter an RTK ID");
+      return;
+    }
+
+    const payload = {
+      organization: formData.organization,
+      domain: sanitizeInput.domain(formData.domain),
+      route: sanitizeInput.route(formData.route),
+      template: sanitizeInput.text(formData.template || selectedTemplate),
+      platform: sanitizeInput.text(formData.platform),
+      rtkID: sanitizeInput.id(finalRtkID),
+      phoneNumber: sanitizeInput.phone(
+        formData.phoneNumber || selectedMediaBuyer.phoneNumber || "",
+      ),
+      ringbaID: "",
+      createdBy: sanitizeInput.email(currentUserEmail || formData.createdBy),
+      trackingPlatform: "callgrid",
+      callgridOrganizationId: callgridOrganizationId,
+      callgridCampaignId: selectedCampaign,
+      callgridCampaignSourceId:
+        selectedMediaBuyer.campaignSourceId ||
+        selectedMediaBuyer.sourceId ||
+        selectedMediaBuyer.id,
+      callgridMediaBuyerName: selectedMediaBuyer.name,
+    };
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(API_ENDPOINTS.ROUTES.CREATE, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          result.error || result.message || `HTTP ${response.status}`,
+        );
+      }
+
+      invalidateCache.domains?.();
+      const landerUrl = `${payload.domain}/${payload.route}`;
+      setURL(landerUrl);
+      setShowSuccessModal(true);
+      setCurrentStep(1);
+      setSelectedVertical("");
+      setSelectedCampaign("");
+      setSelectedMediaBuyerId("");
+      setMediaBuyers([]);
+      setCampaigns([]);
+      setFormData({
+        organization: "paragon media",
+        domain: "",
+        route: "",
+        template: "cg-grocery",
+        rtkID: "",
+        phoneNumber: "",
+        platform: "",
+        createdBy: currentUserEmail,
+      });
+      setSelectedTemplate("cg-grocery");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to create lander");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderProgress = () => (
+    <div className="mb-8">
+      <div className="flex items-center justify-center">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                currentStep === step.id
+                  ? "bg-blue-600 text-white"
+                  : step.completed
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-300 text-gray-600"
+              }`}
+            >
+              {step.completed && currentStep !== step.id ? "✓" : step.id}
+            </div>
+            <span
+              className={`ml-2 text-sm font-medium ${
+                currentStep === step.id
+                  ? "text-blue-600"
+                  : step.completed
+                    ? "text-green-600"
+                    : "text-gray-500"
+              }`}
+            >
+              {step.title}
+            </span>
+            {index < steps.length - 1 && (
+              <div
+                className={`mx-4 h-1 w-12 ${
+                  step.completed ? "bg-green-500" : "bg-gray-300"
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">Select Organization</h2>
+      <label className="flex cursor-pointer items-center rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300">
+        <input
+          type="radio"
+          name="organization"
+          value="paragon media"
+          checked={formData.organization === "paragon media"}
+          onChange={(e) => handleOrganizationChange(e.target.value)}
+          className="mr-4"
+        />
+        <div>
+          <div className="font-medium text-gray-900">Paragon Media</div>
+          <div className="text-sm text-gray-500">
+            CallGrid org: {callgridOrganizationId}
+          </div>
+        </div>
+      </label>
+      <label className="flex cursor-not-allowed items-center rounded-lg border-2 border-gray-100 bg-gray-50 p-4 opacity-60">
+        <input type="radio" name="organization" value="elite" disabled className="mr-4" />
+        <div>
+          <div className="font-medium text-gray-900">Elite</div>
+          <div className="text-sm text-gray-500">Coming soon</div>
+        </div>
+      </label>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">
+        Vertical, Campaign & Media Buyer
+      </h2>
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Vertical <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={selectedVertical}
+          onChange={(e) => handleVerticalChange(e.target.value)}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select Vertical</option>
+          <option value={MEDICARE_VERTICAL}>Medicare</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Campaign <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={selectedCampaign}
+          onChange={(e) => handleCampaignChange(e.target.value)}
+          disabled={!selectedVertical || isLoadingCampaigns}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+        >
+          <option value="">
+            {isLoadingCampaigns
+              ? "Loading CallGrid campaigns..."
+              : "Select Campaign"}
+          </option>
+          {campaigns.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        {selectedCampaign && (
+          <p className="mt-1 text-xs text-gray-500">
+            Campaign ID: {selectedCampaign}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Media Buyer <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={selectedMediaBuyerId}
+          onChange={(e) => handleMediaBuyerChange(e.target.value)}
+          disabled={!selectedCampaign || isLoadingMediaBuyers}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+        >
+          <option value="">
+            {isLoadingMediaBuyers
+              ? "Loading media buyers..."
+              : "Select Media Buyer"}
+          </option>
+          {mediaBuyers.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+              {b.phoneNumber ? ` (${b.phoneNumber})` : ""}
+            </option>
+          ))}
+        </select>
+        {selectedMediaBuyer && (
+          <div className="mt-2 space-y-1 rounded-md bg-blue-50 p-3 text-xs text-blue-800">
+            <div>
+              <strong>Source ID / campaignSourceId:</strong>{" "}
+              {selectedMediaBuyer.campaignSourceId || selectedMediaBuyer.id}
+            </div>
+            <div>
+              <strong>Phone:</strong> {selectedMediaBuyer.phoneNumber || "—"}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => {
+    const filteredByInput = filteredDomains.filter((domain) =>
+      domain.domain.toLowerCase().includes(formData.domain.toLowerCase()),
+    );
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">Select Domain</h2>
+        <div className="relative">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Domain <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={formData.domain}
+            onChange={(e) => {
+              const domainValue = e.target.value;
+              const matched = availableDomains.find(
+                (d) => d.domain === domainValue,
+              );
+              setFormData((prev) => ({
+                ...prev,
+                domain: domainValue,
+                rtkID:
+                  matched?.rtkID && matched.rtkID.trim() !== ""
+                    ? matched.rtkID
+                    : prev.rtkID,
+                platform: matched?.platform || prev.platform,
+              }));
+              setShowDomainDropdown(true);
+            }}
+            onFocus={() => setShowDomainDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDomainDropdown(false), 150)}
+            placeholder={
+              isLoadingDomains ? "Loading domains..." : "Type to search domains"
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="off"
+          />
+          {showDomainDropdown && filteredByInput.length > 0 && (
+            <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+              {filteredByInput.map((domain) => (
+                <li key={domain.domain}>
+                  <button
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setFormData((prev) => ({
+                        ...prev,
+                        domain: domain.domain,
+                        rtkID:
+                          domain.rtkID && domain.rtkID.trim() !== ""
+                            ? domain.rtkID
+                            : prev.rtkID,
+                        platform: domain.platform || prev.platform,
+                      }));
+                      setShowDomainDropdown(false);
+                    }}
+                  >
+                    <div className="font-medium">{domain.domain}</div>
+                    <div className="text-xs text-gray-500">
+                      {domain.assignedTo || "—"} · {domain.vertical || "No vertical"}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2 text-sm text-gray-500">
+            Same domain list/rules as Ringba lander creation (filtered by
+            media buyer + Medicare vertical).
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderStep4 = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">Lander Creation</h2>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Path <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="route"
+              value={formData.route}
+              onChange={handleChange}
+              placeholder="e.g. groc"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Template <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedTemplate}
+              onChange={(e) => {
+                setSelectedTemplate(e.target.value);
+                setFormData((prev) => ({ ...prev, template: e.target.value }));
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Template</option>
+              {CALLGRID_TEMPLATES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Platform <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="platform"
+              value={formData.platform}
+              onChange={handleChange}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Platform</option>
+              {PLATFORMS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              RTK ID <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="rtkID"
+              value={formData.rtkID}
+              onChange={handleChange}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <input
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <div className="mb-2 font-semibold">POST /api/v1/route payload</div>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all text-xs">
+{JSON.stringify(
+  {
+    organization: formData.organization,
+    domain: formData.domain || "<domain>",
+    route: formData.route || "<path>",
+    template: selectedTemplate || formData.template,
+    platform: formData.platform || "<platform>",
+    rtkID: formData.rtkID || "<rtkID>",
+    phoneNumber: formData.phoneNumber || selectedMediaBuyer?.phoneNumber,
+    ringbaID: "",
+    trackingPlatform: "callgrid",
+    callgridOrganizationId,
+    callgridCampaignId: selectedCampaign,
+    callgridCampaignSourceId:
+      selectedMediaBuyer?.campaignSourceId ||
+      selectedMediaBuyer?.sourceId ||
+      selectedMediaBuyer?.id,
+    callgridMediaBuyerName: selectedMediaBuyer?.name,
+  },
+  null,
+  2,
+)}
+            </pre>
+          </div>
+        </div>
+
+        <div>
+          <TemplatePreview
+            selectedTemplate={selectedTemplate}
+            organization={formData.organization}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mx-auto max-w-5xl rounded-2xl bg-white p-6 shadow-lg sm:p-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">CallGrid Lander</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Live CallGrid campaigns & media buyers (not Ringba). Existing Ringba
+          lander page is unchanged.
+        </p>
+      </div>
+
+      {renderProgress()}
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        {currentStep === 1 && renderStep1()}
+        {currentStep === 2 && renderStep2()}
+        {currentStep === 3 && renderStep3()}
+        {currentStep === 4 && renderStep4()}
+
+        <div className="mt-8 flex justify-between border-t border-gray-200 pt-6">
+          <button
+            type="button"
+            onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
+            disabled={currentStep === 1 || isSubmitting}
+            className="rounded-lg bg-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+          >
+            Back
+          </button>
+
+          {currentStep < 4 ? (
+            <button
+              type="button"
+              onClick={() => setCurrentStep((s) => s + 1)}
+              disabled={!canGoNext() || isSubmitting}
+              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={isSubmitting || !canGoNext()}
+              className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            >
+              {isSubmitting ? "Creating..." : "Create CallGrid Lander"}
+            </button>
+          )}
+        </div>
+      </form>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <h3 className="mb-2 text-lg font-medium text-gray-900">
+              CallGrid Lander Created
+            </h3>
+            <a
+              href={`http://${url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-4 block break-all text-blue-600 hover:text-blue-800"
+            >
+              {url}
+            </a>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default CallGridLanderForm;

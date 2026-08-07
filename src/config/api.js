@@ -52,6 +52,11 @@ export const API_ENDPOINTS = {
     CAMPAIGN_DETAILS: (id) =>
       `https://api.ringba.com/v2/${API_CONFIG.RINGBA_ACCOUNT_ID}/campaigns/${id}`,
   },
+  CALLGRID: {
+    CAMPAIGNS: `${API_CONFIG.BASE_URL}/callgrid/campaigns`,
+    MEDIA_BUYERS: (campaignId) =>
+      `${API_CONFIG.BASE_URL}/callgrid/campaigns/${encodeURIComponent(campaignId)}/media-buyers`,
+  },
   ACCOUNTING: {
     REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue/cached`,
     COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,

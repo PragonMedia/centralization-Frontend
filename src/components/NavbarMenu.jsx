@@ -51,6 +51,11 @@ function NavbarMenu() {
                 Lander Creation
               </button>
             </Link>
+            <Link to="/create-callgrid">
+              <button type="button" className={navButtonClass}>
+                CallGrid Lander
+              </button>
+            </Link>
             <Link to="/domains">
               <button type="button" className={navButtonClass}>
                 Domains

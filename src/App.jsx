@@ -4,6 +4,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Domains from "./pages/Domains";
 import LanderCreation from "./pages/LanderCreation";
+import CallGridLander from "./pages/CallGridLander";
 import Footer from "./components/Footer.jsx";
 import EditRoute from "./pages/EditRoute.jsx";
 import Accounting from "./pages/Accounting.jsx";
@@ -38,6 +39,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LanderCreation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-callgrid"
+          element={
+            <ProtectedRoute>
+              <CallGridLander />
             </ProtectedRoute>
           }
         />

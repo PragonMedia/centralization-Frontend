@@ -15,6 +15,12 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       elitePreviewUrl: "https://approved-template.com/el-groc",
     },
     {
+      id: "cg-grocery",
+      name: "Chatbot Grocery (CallGrid)",
+      previewUrl: "https://approved-template.com/groc",
+      elitePreviewUrl: "https://approved-template.com/el-groc",
+    },
+    {
       id: "cb-groc-nolgo",
       name: "Chatbot Grocery no-logo",
       previewUrl: "https://approved-template.com/nologo/",
