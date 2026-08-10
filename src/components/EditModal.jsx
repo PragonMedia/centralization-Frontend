@@ -36,6 +36,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cb-fe", label: "Final Expense $0" },
       { value: "fe-40", label: "Final Expense ($40k)" },
       { value: "cb-fe-25", label: "Final Expense ($25)" },
+      { value: "cb-fe-25k", label: "Final Expense ($25k) New" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
@@ -75,7 +76,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     if (
       templateValue === "cb-fe" ||
       templateValue === "fe-40" ||
-      templateValue === "cb-fe-25"
+      templateValue === "cb-fe-25" ||
+      templateValue === "cb-fe-25k"
     ) {
       return "Final Expense";
     }

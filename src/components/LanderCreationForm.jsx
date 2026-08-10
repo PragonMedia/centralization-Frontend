@@ -94,6 +94,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
       { value: "cb-fe-25", label: "Final Expense ($25)" },
+      { value: "cb-fe-25k", label: "Final Expense ($25k) New" },
     ],
     VSL: [
       { value: "vsl-1", label: "vsl" },
@@ -1981,7 +1982,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                     (template) =>
                       template.value === "cb-fe" ||
                       template.value === "fe-40" ||
-                      template.value === "cb-fe-25",
+                      template.value === "cb-fe-25" ||
+                      template.value === "cb-fe-25k",
                   );
                 } else {
                   filteredTemplates = allTemplates;

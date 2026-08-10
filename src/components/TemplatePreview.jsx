@@ -159,6 +159,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Final Expense ($25)",
       previewUrl: "https://approved-template.com/fe-25/",
     },
+    {
+      id: "cb-fe-25k",
+      name: "Final Expense ($25k) New",
+      previewUrl: "https://approved-template.com/25k/",
+    },
     // Paragon Media - Medicaid
     {
       id: "medicaid",
