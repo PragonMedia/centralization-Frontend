@@ -9,6 +9,7 @@ export const PLATFORMS = [
   "Carty",
   "News Break",
   "Junkie",
+  "Pushnami",
 ];
 
 /** Normalized platform keys hidden from the domains page filter chips. */
@@ -36,6 +37,7 @@ const PLATFORM_FILTER_COLORS = {
   carty: "bg-amber-100 text-amber-700 border border-amber-200",
   newsbreak: "bg-rose-100 text-rose-700 border border-rose-200",
   junkie: "bg-violet-100 text-violet-700 border border-violet-200",
+  pushnami: "bg-teal-100 text-teal-700 border border-teal-200",
 };
 
 const DEFAULT_PLATFORM_FILTER_COLOR =
