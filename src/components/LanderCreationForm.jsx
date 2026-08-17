@@ -89,7 +89,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
-    "Debt Form": [{ value: "debt-form", label: "Debt Form" }],
+    "Debt Form": [
+      { value: "debt-form", label: "Debt Form" },
+      { value: "debt-form-25", label: "Debt Form (25)" },
+    ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense ($40k)" },
       { value: "fe-40", label: "Final Expense ($0)" },
@@ -536,6 +539,7 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         (selectedVertical === "Final Expense" && mediaBuyerName === "Nick") ||
         (selectedVertical === "ACA" && mediaBuyerName === "Nick") ||
         (selectedVertical === "Debt PPC" && mediaBuyerName === "Nick") ||
+        (selectedVertical === "Debt Form" && mediaBuyerName === "Nick") ||
         (selectedVertical === "VSL" && mediaBuyerName === "Nick") ||
         (selectedVertical === "Concealed Carry" && mediaBuyerName === "Nick")
       ) {
@@ -1061,7 +1065,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         if (
           selectedVertical === "Final Expense" ||
           selectedVertical === "ACA" ||
-          selectedVertical === "Debt PPC"
+          selectedVertical === "Debt PPC" ||
+          selectedVertical === "Debt Form"
         ) {
           if (!mediaBuyersArray.some((buyer) => buyer.name === "Nick")) {
             mediaBuyersArray.push({ name: "Nick" });
@@ -1082,7 +1087,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         if (
           selectedVertical === "Final Expense" ||
           selectedVertical === "ACA" ||
-          selectedVertical === "Debt PPC"
+          selectedVertical === "Debt PPC" ||
+          selectedVertical === "Debt Form"
         ) {
           setMediaBuyers([{ name: "Nick" }]);
         } else {
@@ -1103,7 +1109,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       if (
         selectedVertical === "Final Expense" ||
         selectedVertical === "ACA" ||
-        selectedVertical === "Debt PPC"
+        selectedVertical === "Debt PPC" ||
+        selectedVertical === "Debt Form"
       ) {
         setMediaBuyers([{ name: "Nick" }]);
       } else {
@@ -1991,7 +1998,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               } else if (selectedVertical === "Debt Form") {
                 if (campaignName === "Paragon - Debt") {
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "debt-form",
+                    (template) =>
+                      template.value === "debt-form" ||
+                      template.value === "debt-form-25",
                   );
                 } else {
                   filteredTemplates = allTemplates;

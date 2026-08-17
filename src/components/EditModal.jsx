@@ -31,7 +31,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "cb-debt", label: "Chatbot Debt" },
       { value: "homepage-debt", label: "Debt Homepage" },
     ],
-    "Debt Form": [{ value: "debt-form", label: "Debt Form" }],
+    "Debt Form": [
+      { value: "debt-form", label: "Debt Form" },
+      { value: "debt-form-25", label: "Debt Form (25)" },
+    ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
       { value: "fe-40", label: "Final Expense ($40k)" },
@@ -59,8 +62,8 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
         templateValue === "el-groc-multi") {
       return "Medicare PPC";
     }
-    // Debt Form templates
-    if (templateValue === "debt-form") {
+    // Debt Form templates (check before Debt PPC — debt-form-25 also starts with debt-)
+    if (templateValue === "debt-form" || templateValue === "debt-form-25") {
       return "Debt Form";
     }
     // Debt PPC templates
