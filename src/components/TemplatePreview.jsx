@@ -203,6 +203,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "CCW",
       previewUrl: "https://approved-template.com/ccw/",
     },
+    {
+      id: "gg-ccw-v2",
+      name: "CCW v2",
+      previewUrl: "https://approved-template.com/ccw-v2/",
+    },
   ];
 
   const matched =

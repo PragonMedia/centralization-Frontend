@@ -104,7 +104,10 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "femiCore", label: "femiCore" },
       { value: "femicore-vsl", label: "femiCore v2" },
     ],
-    "Concealed Carry": [{ value: "ccw", label: "CCW" }],
+    "Concealed Carry": [
+      { value: "ccw", label: "CCW" },
+      { value: "gg-ccw-v2", label: "CCW v2" },
+    ],
   };
 
   // Dummy campaigns by vertical (for non-Medicare PPC verticals)
@@ -2042,7 +2045,9 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
               } else if (selectedVertical === "Concealed Carry") {
                 if (campaignName === "Rush Permit") {
                   filteredTemplates = allTemplates.filter(
-                    (template) => template.value === "ccw",
+                    (template) =>
+                      template.value === "ccw" ||
+                      template.value === "gg-ccw-v2",
                   );
                 } else {
                   filteredTemplates = allTemplates;

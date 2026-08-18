@@ -48,7 +48,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "femiCore", label: "femiCore" },
       { value: "femicore-vsl", label: "femiCore v2" },
     ],
-    "Concealed Carry": [{ value: "ccw", label: "CCW" }],
+    "Concealed Carry": [
+      { value: "ccw", label: "CCW" },
+      { value: "gg-ccw-v2", label: "CCW v2" },
+    ],
   };
 
   // Function to determine vertical from template value
@@ -100,7 +103,7 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       return "VSL";
     }
     // Concealed Carry templates
-    if (templateValue === "ccw") {
+    if (templateValue === "ccw" || templateValue === "gg-ccw-v2") {
       return "Concealed Carry";
     }
 
