@@ -197,6 +197,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "femiCore v2",
       previewUrl: "https://approved-template.com/femiv2/",
     },
+    {
+      id: "femiCore-plain",
+      name: "femiCore Plain",
+      previewUrl: "https://approved-template.com/femicore-plain/",
+    },
     // Paragon Media - Concealed Carry
     {
       id: "ccw",
@@ -207,6 +212,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       id: "gg-ccw-v2",
       name: "CCW v2",
       previewUrl: "https://approved-template.com/ccw-v2/",
+    },
+    {
+      id: "gg-ccw-plain",
+      name: "CCW Plain",
+      previewUrl: "https://approved-template.com/ccw-plain/",
     },
   ];
 

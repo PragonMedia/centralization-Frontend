@@ -47,10 +47,12 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
       { value: "femicore-vsl", label: "femiCore v2" },
+      { value: "femiCore-plain", label: "femiCore Plain" },
     ],
     "Concealed Carry": [
       { value: "ccw", label: "CCW" },
       { value: "gg-ccw-v2", label: "CCW v2" },
+      { value: "gg-ccw-plain", label: "CCW Plain" },
     ],
   };
 
@@ -98,12 +100,17 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       templateValue === "vsl-1" ||
       templateValue === "femiCore" ||
       templateValue === "femicore-vsl" ||
+      templateValue === "femiCore-plain" ||
       templateValue.startsWith("vsl-")
     ) {
       return "VSL";
     }
     // Concealed Carry templates
-    if (templateValue === "ccw" || templateValue === "gg-ccw-v2") {
+    if (
+      templateValue === "ccw" ||
+      templateValue === "gg-ccw-v2" ||
+      templateValue === "gg-ccw-plain"
+    ) {
       return "Concealed Carry";
     }
 

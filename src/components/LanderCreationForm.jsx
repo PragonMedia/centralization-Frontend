@@ -103,10 +103,12 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       { value: "vsl-1", label: "vsl" },
       { value: "femiCore", label: "femiCore" },
       { value: "femicore-vsl", label: "femiCore v2" },
+      { value: "femiCore-plain", label: "femiCore Plain" },
     ],
     "Concealed Carry": [
       { value: "ccw", label: "CCW" },
       { value: "gg-ccw-v2", label: "CCW v2" },
+      { value: "gg-ccw-plain", label: "CCW Plain" },
     ],
   };
 
@@ -2037,7 +2039,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "femiCore" ||
-                      template.value === "femicore-vsl",
+                      template.value === "femicore-vsl" ||
+                      template.value === "femiCore-plain",
                   );
                 } else {
                   filteredTemplates = allTemplates;
@@ -2047,7 +2050,8 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
                   filteredTemplates = allTemplates.filter(
                     (template) =>
                       template.value === "ccw" ||
-                      template.value === "gg-ccw-v2",
+                      template.value === "gg-ccw-v2" ||
+                      template.value === "gg-ccw-plain",
                   );
                 } else {
                   filteredTemplates = allTemplates;
