@@ -28,21 +28,22 @@ const EditModal = ({
       { value: "groc-dynamic", label: "Grocery Dynamic" },
       { value: "groc-quiz-multi", label: "Quiz Multi" },
       { value: "cb-ss", label: "Chatbot Social Security" },
-      { value: "el-cb-groc", label: "Chatbot Grocery" }, // Elite version
-      { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
-      { value: "el-groc-dynamic", label: "Grocery Dynamic" }, // Elite version
-      { value: "el-groc-multi", label: "Quiz Multi" }, // Elite version
-      // CallGrid Medicare
-      { value: "cg-grocery", label: "Chatbot Grocery (CallGrid)" },
-      { value: "cg-ss", label: "Chatbot Social Security (CallGrid)" },
-      { value: "cg-groc-short", label: "Chatbot Grocery Short (CallGrid)" },
-      { value: "cg-ss-short", label: "Chatbot Social Security Short (CallGrid)" },
-      { value: "cg-groc-dynamic", label: "Chatbot Grocery Dynamic (CallGrid)" },
-      { value: "cg-groc-quiz-multi", label: "Chatbot Quiz Multi (CallGrid)" },
-      { value: "cg-groc-3000", label: "Chatbot Grocery (3300) (CallGrid)" },
-      { value: "cg-groc-short-3000", label: "Chatbot Grocery Short (3300) (CallGrid)" },
-      { value: "cg-ss-174", label: "Chatbot Social Security (174) (CallGrid)" },
-      { value: "cg-ss-short-174", label: "Chatbot Social Security Short (174) (CallGrid)" },
+      { value: "el-cb-groc", label: "Chatbot Grocery" },
+      { value: "el-cb-ss", label: "Chatbot Social Security" },
+      { value: "el-groc-dynamic", label: "Grocery Dynamic" },
+      { value: "el-groc-multi", label: "Quiz Multi" },
+    ],
+    "Medicare PPC CallGrid": [
+      { value: "cg-grocery", label: "Chatbot Grocery" },
+      { value: "cg-ss", label: "Chatbot Social Security" },
+      { value: "cg-groc-short", label: "Chatbot Grocery Short" },
+      { value: "cg-ss-short", label: "Chatbot Social Security Short" },
+      { value: "cg-groc-dynamic", label: "Chatbot Grocery Dynamic" },
+      { value: "cg-groc-quiz-multi", label: "Chatbot Quiz Multi" },
+      { value: "cg-groc-3000", label: "Chatbot Grocery (3300)" },
+      { value: "cg-groc-short-3000", label: "Chatbot Grocery Short (3300)" },
+      { value: "cg-ss-174", label: "Chatbot Social Security (174)" },
+      { value: "cg-ss-short-174", label: "Chatbot Social Security Short (174)" },
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
@@ -59,10 +60,12 @@ const EditModal = ({
       { value: "fe-40", label: "Final Expense ($40k)" },
       { value: "cb-fe-25", label: "Final Expense ($25)" },
       { value: "cb-fe-25k", label: "Final Expense ($25k) New" },
-      { value: "cg-fe", label: "Final Expense ($0) (CallGrid)" },
-      { value: "cg-fe-40", label: "Final Expense ($40k) (CallGrid)" },
-      { value: "cg-fe-20", label: "Final Expense ($25k) (CallGrid)" },
-      { value: "cg-fe-25k", label: "Final Expense ($25k) New (CallGrid)" },
+    ],
+    "Final Expense CallGrid": [
+      { value: "cg-fe", label: "Final Expense ($0)" },
+      { value: "cg-fe-40", label: "Final Expense ($40k)" },
+      { value: "cg-fe-20", label: "Final Expense ($25k)" },
+      { value: "cg-fe-25k", label: "Final Expense ($25k) New" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
@@ -174,16 +177,34 @@ const EditModal = ({
   };
 
   /** Map domain.vertical (incl. legacy) → template list key(s). */
-  const getTemplateVerticalKeysFromDomainVertical = (domainVertical) => {
+  const getTemplateVerticalKeysFromDomainVertical = (
+    domainVertical,
+    useCallgridTemplates,
+  ) => {
     if (!domainVertical) return null;
     const v = String(domainVertical).trim();
-    if (v === "Medicare" || v === "Medicare PPC") return ["Medicare PPC"];
+    if (v === "Medicare" || v === "Medicare PPC") {
+      return [useCallgridTemplates ? "Medicare PPC CallGrid" : "Medicare PPC"];
+    }
+    if (v === "Final Expense") {
+      return [
+        useCallgridTemplates ? "Final Expense CallGrid" : "Final Expense",
+      ];
+    }
     if (v === "Debt") return ["Debt PPC", "Debt Form"];
     if (templatesByVertical[v]) return [v];
     return null;
   };
 
-  // Prefer domain.vertical; fall back to inferring from current template
+  const isCallgridRouteContext = (routeData, currentTemplate) => {
+    if (String(routeData?.trackingPlatform || "").toLowerCase() === "callgrid") {
+      return true;
+    }
+    const template = currentTemplate || routeData?.template || "";
+    return String(template).startsWith("cg-");
+  };
+
+  // Prefer domain.vertical; CallGrid Medicare/FE routes only get cg-* templates
   const getTemplates = () => {
     if (type !== "route") return [];
 
@@ -192,16 +213,47 @@ const EditModal = ({
       domainVerticalProp ||
       null;
     const currentTemplate = formData.template || initialData?.template || "";
+    const useCallgridTemplates = isCallgridRouteContext(
+      initialData,
+      currentTemplate,
+    );
 
-    let keys = getTemplateVerticalKeysFromDomainVertical(domainVertical);
+    let keys = getTemplateVerticalKeysFromDomainVertical(
+      domainVertical,
+      useCallgridTemplates,
+    );
     if (!keys) {
       const inferred = getVerticalFromTemplate(currentTemplate);
-      keys = inferred ? [inferred] : null;
+      if (inferred === "Medicare PPC") {
+        keys = [
+          useCallgridTemplates ? "Medicare PPC CallGrid" : "Medicare PPC",
+        ];
+      } else if (inferred === "Final Expense") {
+        keys = [
+          useCallgridTemplates ? "Final Expense CallGrid" : "Final Expense",
+        ];
+      } else {
+        keys = inferred ? [inferred] : null;
+      }
     }
 
     let list = keys
       ? keys.flatMap((key) => templatesByVertical[key] || [])
       : Object.values(templatesByVertical).flat();
+
+    // Safety: never mix Ringba + CallGrid Medicare/FE templates
+    const isMedOrFeList = (keys || []).some(
+      (k) =>
+        k === "Medicare PPC" ||
+        k === "Medicare PPC CallGrid" ||
+        k === "Final Expense" ||
+        k === "Final Expense CallGrid",
+    );
+    if (isMedOrFeList) {
+      list = useCallgridTemplates
+        ? list.filter((t) => String(t.value).startsWith("cg-"))
+        : list.filter((t) => !String(t.value).startsWith("cg-"));
+    }
 
     // Keep current template visible even if missing from the filtered set
     if (
@@ -234,6 +286,7 @@ const EditModal = ({
     formData.template,
     initialData?.template,
     initialData?.domainVertical,
+    initialData?.trackingPlatform,
     domainVerticalProp,
     type,
   ]);

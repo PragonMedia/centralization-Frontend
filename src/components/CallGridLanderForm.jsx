@@ -7,18 +7,59 @@ import {
 import { cachedFetch, CACHE_CONFIG, invalidateCache } from "../utils/cache.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
 import { domainMatchesLanderVertical } from "../constants/domainVerticals.js";
-import { PLATFORMS } from "../constants/platforms.js";
 
 /** Lander vertical for domain filtering (domains store Medicare / Medicare PPC). */
 const MEDICARE_VERTICAL = "Medicare PPC";
 const FINAL_EXPENSE_VERTICAL = "Final Expense";
+const DEBT_FORM_VERTICAL = "Debt Form";
+const VSL_VERTICAL = "VSL";
+const CONCEALED_CARRY_VERTICAL = "Concealed Carry";
+
+const CALLGRID_TRACKED_VERTICALS = new Set([
+  MEDICARE_VERTICAL,
+  FINAL_EXPENSE_VERTICAL,
+]);
 
 const CALLGRID_VERTICALS = [
   { value: MEDICARE_VERTICAL, label: "Medicare" },
   { value: FINAL_EXPENSE_VERTICAL, label: "Final Expense" },
+  { value: DEBT_FORM_VERTICAL, label: "Debt Form" },
+  { value: VSL_VERTICAL, label: "VSL" },
+  { value: CONCEALED_CARRY_VERTICAL, label: "Concealed Carry" },
 ];
 
-/** Only templates with CallGrid SDK wiring (by lander vertical). */
+/** Local campaigns (no CallGrid API) — same as Ringba lander creation. */
+const LOCAL_CAMPAIGNS_BY_VERTICAL = {
+  [DEBT_FORM_VERTICAL]: [
+    { id: "paragon-debt", name: "Paragon - Debt" },
+  ],
+  [VSL_VERTICAL]: [
+    { id: "yu-sleep", name: "YU Sleep" },
+    { id: "femicore", name: "FemiCore" },
+  ],
+  [CONCEALED_CARRY_VERTICAL]: [
+    { id: "rush-permit", name: "Rush Permit" },
+  ],
+};
+
+/** Local media buyers by vertical — same availability as lander creation. */
+const LOCAL_MEDIA_BUYERS_BY_VERTICAL = {
+  [DEBT_FORM_VERTICAL]: [
+    { id: "jake-hunter", name: "Jake Hunter" },
+    { id: "addy-jaloudi", name: "Addy Jaloudi" },
+    { id: "sean-luc", name: "Sean Luc" },
+    { id: "nick", name: "Nick" },
+  ],
+  [VSL_VERTICAL]: [{ id: "nick", name: "Nick" }],
+  [CONCEALED_CARRY_VERTICAL]: [
+    { id: "nick", name: "Nick" },
+    { id: "jake-hunter", name: "Jake Hunter" },
+    { id: "addy-jaloudi", name: "Addy Jaloudi" },
+    { id: "sean-luc", name: "Sean Luc" },
+  ],
+};
+
+/** Templates by vertical (CallGrid-tracked + local RTK-only). */
 const CALLGRID_TEMPLATES_BY_VERTICAL = {
   [MEDICARE_VERTICAL]: [
     { value: "cg-grocery", label: "Chatbot Grocery" },
@@ -32,14 +73,36 @@ const CALLGRID_TEMPLATES_BY_VERTICAL = {
     { value: "cg-ss-174", label: "Chatbot Social Security (174)" },
     { value: "cg-ss-short-174", label: "Chatbot Social Security Short (174)" },
   ],
-  // Final Expense CallGrid templates
   [FINAL_EXPENSE_VERTICAL]: [
     { value: "cg-fe", label: "Final Expense ($0)" },
     { value: "cg-fe-40", label: "Final Expense ($40k)" },
     { value: "cg-fe-20", label: "Final Expense ($25k)" },
     { value: "cg-fe-25k", label: "Final Expense ($25k) New" },
   ],
+  [DEBT_FORM_VERTICAL]: [
+    { value: "debt-form", label: "Debt Form" },
+    { value: "debt-form-25", label: "Debt Form (25)" },
+  ],
+  [VSL_VERTICAL]: [
+    { value: "vsl-1", label: "vsl" },
+    { value: "femiCore", label: "femiCore" },
+    { value: "femicore-vsl", label: "femiCore v2" },
+    { value: "femiCore-plain", label: "femiCore Plain" },
+  ],
+  [CONCEALED_CARRY_VERTICAL]: [
+    { value: "ccw", label: "CCW" },
+    { value: "gg-ccw-v2", label: "CCW v2" },
+    { value: "gg-ccw-plain", label: "CCW Plain" },
+  ],
 };
+
+function isCallgridTrackedVertical(vertical) {
+  return CALLGRID_TRACKED_VERTICALS.has(vertical);
+}
+
+function isLocalVertical(vertical) {
+  return Boolean(LOCAL_CAMPAIGNS_BY_VERTICAL[vertical]);
+}
 
 function filterCampaignsForVertical(campaigns, vertical) {
   const list = Array.isArray(campaigns) ? campaigns : [];
@@ -61,8 +124,32 @@ function filterCampaignsForVertical(campaigns, vertical) {
   return [];
 }
 
-function defaultTemplateForVertical(vertical) {
-  const templates = CALLGRID_TEMPLATES_BY_VERTICAL[vertical] || [];
+function templatesForVerticalAndCampaign(vertical, campaignId, campaigns) {
+  const all = CALLGRID_TEMPLATES_BY_VERTICAL[vertical] || [];
+  if (vertical !== VSL_VERTICAL) return all;
+
+  const campaignName =
+    campaigns.find((c) => c.id === campaignId)?.name || "";
+  if (campaignName === "YU Sleep") {
+    return all.filter((t) => t.value === "vsl-1");
+  }
+  if (campaignName === "FemiCore") {
+    return all.filter(
+      (t) =>
+        t.value === "femiCore" ||
+        t.value === "femicore-vsl" ||
+        t.value === "femiCore-plain",
+    );
+  }
+  return all;
+}
+
+function defaultTemplateForVertical(vertical, campaignId, campaigns = []) {
+  const templates = templatesForVerticalAndCampaign(
+    vertical,
+    campaignId,
+    campaigns,
+  );
   return templates[0]?.value || "";
 }
 
@@ -71,6 +158,42 @@ function excludeCtvMediaBuyers(buyers) {
     const name = String(buyer?.name || "").toLowerCase();
     return !name.includes("ctv");
   });
+}
+
+/** Always expose Nick (same as Lander Tech), even when CallGrid has no Nick source. */
+function withNickMediaBuyer(buyers) {
+  const list = Array.isArray(buyers) ? [...buyers] : [];
+  const hasNick = list.some(
+    (b) => String(b?.name || "").trim().toLowerCase() === "nick",
+  );
+  if (!hasNick) {
+    list.push({
+      id: "nick",
+      name: "Nick",
+      phoneNumber: "",
+      campaignSourceId: null,
+      sourceId: "nick",
+    });
+  }
+  return list;
+}
+
+function isInjectedNickBuyer(buyer) {
+  if (!buyer) return false;
+  const name = String(buyer.name || "").trim().toLowerCase();
+  const id = String(buyer.id || buyer.sourceId || "");
+  return name === "nick" && id === "nick";
+}
+
+function localMediaBuyersForVertical(vertical) {
+  return withNickMediaBuyer(
+    (LOCAL_MEDIA_BUYERS_BY_VERTICAL[vertical] || []).map((b) => ({
+      ...b,
+      phoneNumber: b.phoneNumber || "",
+      campaignSourceId: null,
+      sourceId: b.id,
+    })),
+  );
 }
 
 const MEDIA_BUYER_EMAIL_MAP = {
@@ -170,6 +293,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   const [filteredDomains, setFilteredDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const [showDomainDropdown, setShowDomainDropdown] = useState(false);
+  const [selectedDomainHasRtkID, setSelectedDomainHasRtkID] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState("");
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [currentUserData, setCurrentUserData] = useState(null);
@@ -293,26 +417,40 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
         setCallgridOrganizationId(data.organizationId);
       }
       setMediaBuyers(
-        excludeCtvMediaBuyers(
-          Array.isArray(data.mediaBuyers) ? data.mediaBuyers : [],
+        withNickMediaBuyer(
+          excludeCtvMediaBuyers(
+            Array.isArray(data.mediaBuyers) ? data.mediaBuyers : [],
+          ),
         ),
       );
     } catch (err) {
       console.error(err);
-      setMediaBuyers([]);
+      setMediaBuyers(withNickMediaBuyer([]));
       setError(err.message || "Failed to load CallGrid media buyers");
     } finally {
       setIsLoadingMediaBuyers(false);
     }
   };
 
+  const isNickMediaBuyerSelection = useCallback((mediaBuyerName) => {
+    if (mediaBuyerName == null || String(mediaBuyerName).trim() === "") {
+      return false;
+    }
+    return String(mediaBuyerName).trim().toLowerCase() === "nick";
+  }, []);
+
+  const isNickMediaBuyerEmail = useCallback((email) => {
+    if (email == null || String(email).trim() === "") return false;
+    return String(email).trim().toLowerCase() === "nick@paragonmedia.io";
+  }, []);
+
   const filterDomainsByUser = useCallback(
     (domains, userEmail, userRole, mediaBuyerName) => {
-      if (String(mediaBuyerName || "").trim().toLowerCase() === "nick") {
+      if (isNickMediaBuyerSelection(mediaBuyerName)) {
         return domains;
       }
       if (userRole === "mediaBuyer") {
-        if (String(userEmail || "").toLowerCase() === "nick@paragonmedia.io") {
+        if (isNickMediaBuyerEmail(userEmail)) {
           return domains;
         }
         return domains.filter((d) => d.assignedTo === userEmail);
@@ -324,7 +462,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       }
       return domains;
     },
-    [],
+    [isNickMediaBuyerSelection, isNickMediaBuyerEmail],
   );
 
   useEffect(() => {
@@ -338,7 +476,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       currentUserRole,
       selectedMediaBuyer?.name,
     );
-    if (selectedVertical) {
+
+    const nickGetsAllDomains =
+      isNickMediaBuyerSelection(selectedMediaBuyer?.name) ||
+      isNickMediaBuyerEmail(currentUserEmail);
+
+    // Nick gets every domain on step 3 — skip vertical filter too
+    if (!nickGetsAllDomains && selectedVertical) {
       filtered = filtered.filter((domain) =>
         domainMatchesLanderVertical(domain.vertical, selectedVertical),
       );
@@ -351,6 +495,8 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     selectedMediaBuyer?.name,
     selectedVertical,
     filterDomainsByUser,
+    isNickMediaBuyerSelection,
+    isNickMediaBuyerEmail,
   ]);
 
   const handleOrganizationChange = (value) => {
@@ -363,19 +509,27 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     setSelectedCampaign("");
     setSelectedMediaBuyerId("");
     setMediaBuyers([]);
-    const defaultTemplate = defaultTemplateForVertical(vertical);
+    const localCampaigns = LOCAL_CAMPAIGNS_BY_VERTICAL[vertical] || [];
+    const defaultTemplate = defaultTemplateForVertical(
+      vertical,
+      "",
+      localCampaigns,
+    );
     setFormData((prev) => ({
       ...prev,
       domain: "",
       phoneNumber: "",
       template: defaultTemplate,
+      rtkID: "",
+      platform: "",
     }));
     setSelectedTemplate(defaultTemplate);
-    if (
-      vertical === MEDICARE_VERTICAL ||
-      vertical === FINAL_EXPENSE_VERTICAL
-    ) {
+    setSelectedDomainHasRtkID(false);
+    if (isCallgridTrackedVertical(vertical)) {
       fetchCampaigns(vertical);
+    } else if (isLocalVertical(vertical)) {
+      setCampaigns(localCampaigns);
+      setIsLoadingCampaigns(false);
     } else {
       setCampaigns([]);
     }
@@ -385,6 +539,24 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     setSelectedCampaign(campaignId);
     setSelectedMediaBuyerId("");
     setFormData((prev) => ({ ...prev, phoneNumber: "" }));
+
+    if (isLocalVertical(selectedVertical)) {
+      const buyers = localMediaBuyersForVertical(selectedVertical);
+      setMediaBuyers(buyers);
+      const nextTemplate = defaultTemplateForVertical(
+        selectedVertical,
+        campaignId,
+        LOCAL_CAMPAIGNS_BY_VERTICAL[selectedVertical] || campaigns,
+      );
+      setSelectedTemplate(nextTemplate);
+      setFormData((prev) => ({ ...prev, template: nextTemplate }));
+      // VSL only has Nick — auto-select for everyone
+      if (selectedVertical === VSL_VERTICAL && buyers.length === 1) {
+        setSelectedMediaBuyerId(buyers[0].id);
+      }
+      return;
+    }
+
     fetchMediaBuyers(campaignId);
   };
 
@@ -426,7 +598,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
         formData.route &&
           formData.template &&
           formData.platform &&
-          formData.rtkID,
+          (selectedDomainHasRtkID || formData.rtkID),
       ),
     },
   ];
@@ -478,6 +650,9 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
 
+    const usesCallgrid =
+      isCallgridTrackedVertical(selectedVertical) &&
+      !isInjectedNickBuyer(selectedMediaBuyer);
     const payload = {
       organization: formData.organization,
       domain: sanitizeInput.domain(formData.domain),
@@ -485,20 +660,21 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       template: sanitizeInput.text(formData.template || selectedTemplate),
       platform: sanitizeInput.text(formData.platform),
       rtkID: sanitizeInput.id(finalRtkID),
-      phoneNumber: sanitizeInput.phone(
-        formData.phoneNumber || selectedMediaBuyer.phoneNumber || "",
-      ),
+      phoneNumber: sanitizeInput.phone(selectedMediaBuyer.phoneNumber || ""),
       ringbaID: "",
       createdBy: sanitizeInput.email(currentUserEmail || formData.createdBy),
-      trackingPlatform: "callgrid",
-      callgridOrganizationId: callgridOrganizationId,
-      callgridCampaignId: selectedCampaign,
-      callgridCampaignSourceId:
+    };
+
+    if (usesCallgrid) {
+      payload.trackingPlatform = "callgrid";
+      payload.callgridOrganizationId = callgridOrganizationId;
+      payload.callgridCampaignId = selectedCampaign;
+      payload.callgridCampaignSourceId =
         selectedMediaBuyer.campaignSourceId ||
         selectedMediaBuyer.sourceId ||
-        selectedMediaBuyer.id,
-      callgridMediaBuyerName: selectedMediaBuyer.name,
-    };
+        selectedMediaBuyer.id;
+      payload.callgridMediaBuyerName = selectedMediaBuyer.name;
+    }
 
     setIsSubmitting(true);
     try {
@@ -524,6 +700,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       setSelectedMediaBuyerId("");
       setMediaBuyers([]);
       setCampaigns([]);
+      setSelectedDomainHasRtkID(false);
       setFormData({
         organization: "paragon media",
         domain: "",
@@ -647,7 +824,9 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
         >
           <option value="">
             {isLoadingCampaigns
-              ? "Loading CallGrid campaigns..."
+              ? isCallgridTrackedVertical(selectedVertical)
+                ? "Loading CallGrid campaigns..."
+                : "Loading campaigns..."
               : "Select Campaign"}
           </option>
           {campaigns.map((c) => (
@@ -666,27 +845,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       <div>
         {isMediaBuyerUser ? (
           selectedCampaign && (
-            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-              {isLoadingMediaBuyers ? (
-                "Loading your CallGrid media buyer details…"
-              ) : selectedMediaBuyer ? (
-                <>
-                  <div className="font-medium">
-                    Media buyer auto-filled: {selectedMediaBuyer.name}
-                  </div>
-                  <div className="mt-1 text-xs">
-                    Phone: {selectedMediaBuyer.phoneNumber || "—"}
-                  </div>
-                  <div className="text-xs">
-                    Source ID:{" "}
-                    {selectedMediaBuyer.campaignSourceId ||
-                      selectedMediaBuyer.id}
-                  </div>
-                </>
-              ) : (
-                "No matching CallGrid media buyer found for your account on this campaign."
-              )}
-            </div>
+            <p className="text-sm text-gray-600">
+              {isLoadingMediaBuyers
+                ? "Loading your media buyer details…"
+                : selectedMediaBuyer
+                  ? `Media buyer auto-filled: ${selectedMediaBuyer.name}`
+                  : "No matching media buyer found for your account on this campaign."}
+            </p>
           )
         ) : (
           <>
@@ -711,18 +876,6 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
                 </option>
               ))}
             </select>
-            {selectedMediaBuyer && (
-              <div className="mt-2 space-y-1 rounded-md bg-blue-50 p-3 text-xs text-blue-800">
-                <div>
-                  <strong>Source ID / campaignSourceId:</strong>{" "}
-                  {selectedMediaBuyer.campaignSourceId || selectedMediaBuyer.id}
-                </div>
-                <div>
-                  <strong>Phone:</strong>{" "}
-                  {selectedMediaBuyer.phoneNumber || "—"}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -749,13 +902,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
               const matched = availableDomains.find(
                 (d) => d.domain === domainValue,
               );
+              const hasRtk =
+                Boolean(matched?.rtkID) && matched.rtkID.trim() !== "";
+              setSelectedDomainHasRtkID(hasRtk);
               setFormData((prev) => ({
                 ...prev,
                 domain: domainValue,
-                rtkID:
-                  matched?.rtkID && matched.rtkID.trim() !== ""
-                    ? matched.rtkID
-                    : prev.rtkID,
+                rtkID: hasRtk ? matched.rtkID : "",
                 platform: matched?.platform || prev.platform,
               }));
               setShowDomainDropdown(true);
@@ -765,7 +918,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
             placeholder={
               isLoadingDomains ? "Loading domains..." : "Type to search domains"
             }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             autoComplete="off"
           />
           {showDomainDropdown && filteredByInput.length > 0 && (
@@ -777,13 +930,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
                     className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      const hasRtk =
+                        Boolean(domain.rtkID) && domain.rtkID.trim() !== "";
+                      setSelectedDomainHasRtkID(hasRtk);
                       setFormData((prev) => ({
                         ...prev,
                         domain: domain.domain,
-                        rtkID:
-                          domain.rtkID && domain.rtkID.trim() !== ""
-                            ? domain.rtkID
-                            : prev.rtkID,
+                        rtkID: hasRtk ? domain.rtkID : "",
                         platform: domain.platform || prev.platform,
                       }));
                       setShowDomainDropdown(false);
@@ -800,7 +953,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           )}
           <p className="mt-2 text-sm text-gray-500">
             Same domain list/rules as Ringba lander creation (filtered by
-            media buyer + Medicare vertical).
+            media buyer + selected vertical).
           </p>
         </div>
       </div>
@@ -809,121 +962,92 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
 
   const renderStep4 = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Lander Creation</h2>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Path <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="route"
-              value={formData.route}
-              onChange={handleChange}
-              placeholder="e.g. groc"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+      <h2 className="mb-6 text-2xl font-bold text-gray-900">
+        Landing Page Details
+      </h2>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Template <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedTemplate}
-              onChange={(e) => {
-                setSelectedTemplate(e.target.value);
-                setFormData((prev) => ({ ...prev, template: e.target.value }));
-              }}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Template</option>
-              {(CALLGRID_TEMPLATES_BY_VERTICAL[selectedVertical] || []).map(
-                (t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ),
-              )}
-            </select>
-          </div>
+      <div className="space-y-4">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Path
+          </label>
+          <input
+            type="text"
+            name="route"
+            value={formData.route}
+            onChange={handleChange}
+            placeholder="nn"
+            required
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Platform <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="platform"
-              value={formData.platform}
-              onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Platform</option>
-              {PLATFORMS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Template
+          </label>
+          <select
+            value={selectedTemplate}
+            onChange={(e) => {
+              setSelectedTemplate(e.target.value);
+              setFormData((prev) => ({ ...prev, template: e.target.value }));
+            }}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={!selectedVertical}
+          >
+            <option value="">
+              {!selectedVertical
+                ? "Please select a vertical first"
+                : "Select Template"}
+            </option>
+            {templatesForVerticalAndCampaign(
+              selectedVertical,
+              selectedCampaign,
+              campaigns,
+            ).map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
+        {!selectedDomainHasRtkID && (
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              RTK ID <span className="text-red-500">*</span>
+              RT Campaign ID
             </label>
             <input
               type="text"
               name="rtkID"
               value={formData.rtkID}
               onChange={handleChange}
+              placeholder="677086c62cca41d88a6b6e2d"
+              required
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        )}
+        {selectedDomainHasRtkID && (
+          <div className="space-y-3">
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">RT Campaign ID:</span>{" "}
+                {formData.rtkID ||
+                  availableDomains.find((d) => d.domain === formData.domain)
+                    ?.rtkID ||
+                  "N/A"}
+                <span className="ml-2 text-xs text-blue-600">
+                  (Using domain&apos;s RT Campaign ID)
+                </span>
+              </p>
+            </div>
           </div>
+        )}
+      </div>
 
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <div className="mb-2 font-semibold">POST /api/v1/route payload</div>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-all text-xs">
-{JSON.stringify(
-  {
-    organization: formData.organization,
-    domain: formData.domain || "<domain>",
-    route: formData.route || "<path>",
-    template: selectedTemplate || formData.template,
-    platform: formData.platform || "<platform>",
-    rtkID: formData.rtkID || "<rtkID>",
-    phoneNumber: formData.phoneNumber || selectedMediaBuyer?.phoneNumber,
-    ringbaID: "",
-    trackingPlatform: "callgrid",
-    callgridOrganizationId,
-    callgridCampaignId: selectedCampaign,
-    callgridCampaignSourceId:
-      selectedMediaBuyer?.campaignSourceId ||
-      selectedMediaBuyer?.sourceId ||
-      selectedMediaBuyer?.id,
-    callgridMediaBuyerName: selectedMediaBuyer?.name,
-  },
-  null,
-  2,
-)}
-            </pre>
-          </div>
-        </div>
-
-        <div>
+      <div className="rounded-lg bg-gray-50 p-4">
+        <div className="h-[80vh] overflow-hidden overflow-y-auto rounded-lg border">
           <TemplatePreview
             selectedTemplate={selectedTemplate}
             organization={formData.organization}
@@ -936,10 +1060,12 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   return (
     <div className="mx-auto max-w-5xl rounded-2xl bg-white p-6 shadow-lg sm:p-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">CallGrid Lander</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Lander Creation</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Live CallGrid campaigns & media buyers (not Ringba). Existing Ringba
-          lander page is unchanged.
+          CallGrid-tracked verticals (Medicare / Final Expense) pull live
+          CallGrid campaigns. Debt Form, VSL, and Concealed Carry use the same
+          local campaigns, templates, and media buyers as Lander Tech (RTK
+          only).
         </p>
       </div>
 
@@ -982,7 +1108,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
               disabled={isSubmitting || !canGoNext()}
               className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create CallGrid Lander"}
+              {isSubmitting ? "Creating..." : "Create Lander"}
             </button>
           )}
         </div>
@@ -992,7 +1118,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
             <h3 className="mb-2 text-lg font-medium text-gray-900">
-              CallGrid Lander Created
+              Lander Created
             </h3>
             <a
               href={`http://${url}`}
