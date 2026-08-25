@@ -101,7 +101,10 @@ const DomainPopupModal = ({
   };
 
   const handleRouteEdit = (route) => {
-    setEditingRoute(route);
+    setEditingRoute({
+      ...route,
+      domainVertical: domain.vertical || "",
+    });
     setShowEditModal(true);
   };
 
@@ -585,6 +588,9 @@ const DomainPopupModal = ({
           isLoading={isEditing}
           type={editingRoute?.isDomain ? "domain" : "route"}
           initialData={editingRoute}
+          domainVertical={
+            editingRoute?.isDomain ? undefined : domain.vertical || ""
+          }
         />
       )}
 

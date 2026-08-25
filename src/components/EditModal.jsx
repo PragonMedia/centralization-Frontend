@@ -9,7 +9,15 @@ import {
   resolveDomainVerticalForUpdate,
 } from "../constants/domainVerticals.js";
 
-const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = false }) => {
+const EditModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  type,
+  initialData,
+  isLoading = false,
+  domainVertical: domainVerticalProp,
+}) => {
   const [formData, setFormData] = useState({});
 
   // Template options by vertical - stored values (for DB) and display names
@@ -24,6 +32,17 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "el-cb-ss", label: "Chatbot Social Security" }, // Elite version
       { value: "el-groc-dynamic", label: "Grocery Dynamic" }, // Elite version
       { value: "el-groc-multi", label: "Quiz Multi" }, // Elite version
+      // CallGrid Medicare
+      { value: "cg-grocery", label: "Chatbot Grocery (CallGrid)" },
+      { value: "cg-ss", label: "Chatbot Social Security (CallGrid)" },
+      { value: "cg-groc-short", label: "Chatbot Grocery Short (CallGrid)" },
+      { value: "cg-ss-short", label: "Chatbot Social Security Short (CallGrid)" },
+      { value: "cg-groc-dynamic", label: "Chatbot Grocery Dynamic (CallGrid)" },
+      { value: "cg-groc-quiz-multi", label: "Chatbot Quiz Multi (CallGrid)" },
+      { value: "cg-groc-3000", label: "Chatbot Grocery (3300) (CallGrid)" },
+      { value: "cg-groc-short-3000", label: "Chatbot Grocery Short (3300) (CallGrid)" },
+      { value: "cg-ss-174", label: "Chatbot Social Security (174) (CallGrid)" },
+      { value: "cg-ss-short-174", label: "Chatbot Social Security Short (174) (CallGrid)" },
     ],
     "Debt PPC": [
       { value: "gg-debt-v1", label: "Quiz Debt" },
@@ -40,6 +59,10 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       { value: "fe-40", label: "Final Expense ($40k)" },
       { value: "cb-fe-25", label: "Final Expense ($25)" },
       { value: "cb-fe-25k", label: "Final Expense ($25k) New" },
+      { value: "cg-fe", label: "Final Expense ($0) (CallGrid)" },
+      { value: "cg-fe-40", label: "Final Expense ($40k) (CallGrid)" },
+      { value: "cg-fe-20", label: "Final Expense ($25k) (CallGrid)" },
+      { value: "cg-fe-25k", label: "Final Expense ($25k) New (CallGrid)" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
@@ -60,11 +83,40 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
   const getVerticalFromTemplate = (templateValue) => {
     if (!templateValue) return null;
     
+    // CallGrid Final Expense templates (before generic cg- Medicare check)
+    if (
+      templateValue === "cg-fe" ||
+      templateValue === "cg-fe-40" ||
+      templateValue === "cg-fe-20" ||
+      templateValue === "cg-fe-25k" ||
+      templateValue.startsWith("cg-fe")
+    ) {
+      return "Final Expense";
+    }
+    // CallGrid Medicare templates
+    if (
+      templateValue === "cg-grocery" ||
+      templateValue === "cg-ss" ||
+      templateValue === "cg-groc-short" ||
+      templateValue === "cg-ss-short" ||
+      templateValue === "cg-groc-dynamic" ||
+      templateValue === "cg-groc-quiz-multi" ||
+      templateValue === "cg-groc-3000" ||
+      templateValue === "cg-groc-short-3000" ||
+      templateValue === "cg-ss-174" ||
+      templateValue === "cg-ss-short-174" ||
+      templateValue.startsWith("cg-")
+    ) {
+      return "Medicare PPC";
+    }
     // Medicare PPC templates
     if (templateValue === "cb-groc" || templateValue === "cb-groc-nolgo" || templateValue === "cb-ss" || 
         templateValue === "groc-dynamic" || templateValue === "groc-quiz-multi" ||
+        templateValue === "cb-groc-short" || templateValue === "cb-ss-short" ||
         templateValue === "el-cb-groc" || templateValue === "el-cb-ss" || templateValue === "el-groc-dynamic" ||
-        templateValue === "el-groc-multi") {
+        templateValue === "el-groc-multi" ||
+        templateValue === "el-cb-groc-3000" || templateValue === "el-cb-groc-short-3000" ||
+        templateValue === "el-ss-groc-174" || templateValue === "el-cb-ss-short-174") {
       return "Medicare PPC";
     }
     // Debt Form templates (check before Debt PPC — debt-form-25 also starts with debt-)
@@ -85,7 +137,11 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
       templateValue === "cb-fe" ||
       templateValue === "fe-40" ||
       templateValue === "cb-fe-25" ||
-      templateValue === "cb-fe-25k"
+      templateValue === "cb-fe-25k" ||
+      templateValue === "cg-fe" ||
+      templateValue === "cg-fe-40" ||
+      templateValue === "cg-fe-20" ||
+      templateValue === "cg-fe-25k"
     ) {
       return "Final Expense";
     }
@@ -117,19 +173,48 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     return null;
   };
 
-  // Get templates based on current template value
+  /** Map domain.vertical (incl. legacy) → template list key(s). */
+  const getTemplateVerticalKeysFromDomainVertical = (domainVertical) => {
+    if (!domainVertical) return null;
+    const v = String(domainVertical).trim();
+    if (v === "Medicare" || v === "Medicare PPC") return ["Medicare PPC"];
+    if (v === "Debt") return ["Debt PPC", "Debt Form"];
+    if (templatesByVertical[v]) return [v];
+    return null;
+  };
+
+  // Prefer domain.vertical; fall back to inferring from current template
   const getTemplates = () => {
     if (type !== "route") return [];
-    
-    const currentTemplate = formData.template || initialData?.template;
-    const vertical = getVerticalFromTemplate(currentTemplate);
-    
-    if (vertical && templatesByVertical[vertical]) {
-      return templatesByVertical[vertical];
+
+    const domainVertical =
+      initialData?.domainVertical ||
+      domainVerticalProp ||
+      null;
+    const currentTemplate = formData.template || initialData?.template || "";
+
+    let keys = getTemplateVerticalKeysFromDomainVertical(domainVertical);
+    if (!keys) {
+      const inferred = getVerticalFromTemplate(currentTemplate);
+      keys = inferred ? [inferred] : null;
     }
-    
-    // Fallback: return all templates if we can't determine vertical
-    return Object.values(templatesByVertical).flat();
+
+    let list = keys
+      ? keys.flatMap((key) => templatesByVertical[key] || [])
+      : Object.values(templatesByVertical).flat();
+
+    // Keep current template visible even if missing from the filtered set
+    if (
+      currentTemplate &&
+      !list.some((t) => t.value === currentTemplate)
+    ) {
+      list = [
+        { value: currentTemplate, label: currentTemplate },
+        ...list,
+      ];
+    }
+
+    return list;
   };
 
   useEffect(() => {
@@ -142,10 +227,16 @@ const EditModal = ({ isOpen, onClose, onSave, type, initialData, isLoading = fal
     }
   }, [initialData, type]);
 
-  // Get templates based on current template value - recalculate when formData or initialData changes
+  // Get templates based on domain vertical (preferred) or current template
   const templates = useMemo(() => {
     return getTemplates();
-  }, [formData.template, initialData?.template, type]);
+  }, [
+    formData.template,
+    initialData?.template,
+    initialData?.domainVertical,
+    domainVerticalProp,
+    type,
+  ]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

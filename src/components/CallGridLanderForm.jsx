@@ -11,11 +11,67 @@ import { PLATFORMS } from "../constants/platforms.js";
 
 /** Lander vertical for domain filtering (domains store Medicare / Medicare PPC). */
 const MEDICARE_VERTICAL = "Medicare PPC";
+const FINAL_EXPENSE_VERTICAL = "Final Expense";
 
-/** Only templates with CallGrid SDK wiring. */
-const CALLGRID_TEMPLATES = [
-  { value: "cg-grocery", label: "Chatbot Grocery" },
+const CALLGRID_VERTICALS = [
+  { value: MEDICARE_VERTICAL, label: "Medicare" },
+  { value: FINAL_EXPENSE_VERTICAL, label: "Final Expense" },
 ];
+
+/** Only templates with CallGrid SDK wiring (by lander vertical). */
+const CALLGRID_TEMPLATES_BY_VERTICAL = {
+  [MEDICARE_VERTICAL]: [
+    { value: "cg-grocery", label: "Chatbot Grocery" },
+    { value: "cg-ss", label: "Chatbot Social Security" },
+    { value: "cg-groc-short", label: "Chatbot Grocery Short" },
+    { value: "cg-ss-short", label: "Chatbot Social Security Short" },
+    { value: "cg-groc-dynamic", label: "Chatbot Grocery Dynamic" },
+    { value: "cg-groc-quiz-multi", label: "Chatbot Quiz Multi" },
+    { value: "cg-groc-3000", label: "Chatbot Grocery (3300)" },
+    { value: "cg-groc-short-3000", label: "Chatbot Grocery Short (3300)" },
+    { value: "cg-ss-174", label: "Chatbot Social Security (174)" },
+    { value: "cg-ss-short-174", label: "Chatbot Social Security Short (174)" },
+  ],
+  // Final Expense CallGrid templates
+  [FINAL_EXPENSE_VERTICAL]: [
+    { value: "cg-fe", label: "Final Expense ($0)" },
+    { value: "cg-fe-40", label: "Final Expense ($40k)" },
+    { value: "cg-fe-20", label: "Final Expense ($25k)" },
+    { value: "cg-fe-25k", label: "Final Expense ($25k) New" },
+  ],
+};
+
+function filterCampaignsForVertical(campaigns, vertical) {
+  const list = Array.isArray(campaigns) ? campaigns : [];
+  if (vertical === MEDICARE_VERTICAL) {
+    return list.filter((c) => {
+      const name = String(c.name || "").toLowerCase();
+      return name.includes("medicare") && !name.includes("final expense");
+    });
+  }
+  if (vertical === FINAL_EXPENSE_VERTICAL) {
+    return list.filter((c) => {
+      const name = String(c.name || "").toLowerCase();
+      return (
+        name.includes("final expense") ||
+        name === "paragon - final expense"
+      );
+    });
+  }
+  return [];
+}
+
+function defaultTemplateForVertical(vertical) {
+  const templates = CALLGRID_TEMPLATES_BY_VERTICAL[vertical] || [];
+  return templates[0]?.value || "";
+}
+
+function excludeCtvMediaBuyers(buyers) {
+  return (Array.isArray(buyers) ? buyers : []).filter((buyer) => {
+    const name = String(buyer?.name || "").toLowerCase();
+    return !name.includes("ctv");
+  });
+}
 
 const MEDIA_BUYER_EMAIL_MAP = {
   "Jake Hunter": "jake@paragonmedia.io",
@@ -27,6 +83,58 @@ const MEDIA_BUYER_EMAIL_MAP = {
   Nick: "nick@paragonmedia.io",
   You: null,
 };
+
+const EMAIL_TO_MEDIA_BUYER_HINTS = {
+  "jake@paragonmedia.io": ["jake hunter", "jake"],
+  "addy@paragonmedia.io": ["addy jaloudi", "addy"],
+  "sean@paragonmedia.io": ["sean luc", "sean"],
+  "nick@paragonmedia.io": ["nick"],
+};
+
+function findMediaBuyerForLoggedInUser(buyers, user) {
+  const list = Array.isArray(buyers) ? buyers : [];
+  if (!user || list.length === 0) return null;
+
+  const firstName = String(user.firstName || "").trim();
+  const lastName = String(user.lastName || "").trim();
+  const fullName = `${firstName} ${lastName}`.trim();
+  const email = String(user.email || "").trim().toLowerCase();
+  const hints = EMAIL_TO_MEDIA_BUYER_HINTS[email] || [];
+
+  const byExact = fullName
+    ? list.find((b) => String(b.name || "").trim() === fullName)
+    : null;
+  if (byExact) return byExact;
+
+  const byFirst = firstName
+    ? list.find(
+        (b) =>
+          String(b.name || "").trim().toLowerCase() ===
+          firstName.toLowerCase(),
+      )
+    : null;
+  if (byFirst) return byFirst;
+
+  const byIncludes = firstName
+    ? list.find((b) =>
+        String(b.name || "")
+          .toLowerCase()
+          .includes(firstName.toLowerCase()),
+      )
+    : null;
+  if (byIncludes) return byIncludes;
+
+  for (const hint of hints) {
+    const match = list.find((b) =>
+      String(b.name || "")
+        .toLowerCase()
+        .includes(hint),
+    );
+    if (match) return match;
+  }
+
+  return null;
+}
 
 function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -64,10 +172,12 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   const [showDomainDropdown, setShowDomainDropdown] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState("");
   const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [currentUserData, setCurrentUserData] = useState(null);
 
   const selectedMediaBuyer = mediaBuyers.find(
     (b) => b.id === selectedMediaBuyerId || b.sourceId === selectedMediaBuyerId,
   );
+  const isMediaBuyerUser = currentUserRole === "mediaBuyer";
 
   useEffect(() => {
     try {
@@ -76,6 +186,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       const user = JSON.parse(raw);
       setCurrentUserRole(user.role || "");
       setCurrentUserEmail(user.email || "");
+      setCurrentUserData(user);
       setFormData((prev) => ({
         ...prev,
         createdBy: user.email || "",
@@ -85,6 +196,29 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     }
     fetchAvailableDomains();
   }, []);
+
+  // Auto-select CallGrid source for logged-in media buyers (hide dropdown)
+  useEffect(() => {
+    if (!isMediaBuyerUser || !selectedCampaign || mediaBuyers.length === 0) {
+      return;
+    }
+    const match = findMediaBuyerForLoggedInUser(mediaBuyers, currentUserData);
+    if (!match) {
+      setSelectedMediaBuyerId("");
+      setFormData((prev) => ({ ...prev, phoneNumber: "", domain: "" }));
+      setError(
+        "Could not match your account to a CallGrid media buyer on this campaign.",
+      );
+      return;
+    }
+    setSelectedMediaBuyerId(match.id || match.sourceId || "");
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumber: match.phoneNumber || "",
+      domain: "",
+    }));
+    setError("");
+  }, [isMediaBuyerUser, selectedCampaign, mediaBuyers, currentUserData]);
 
   const fetchAvailableDomains = async () => {
     try {
@@ -112,7 +246,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     }
   };
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = async (vertical) => {
     try {
       setIsLoadingCampaigns(true);
       setError("");
@@ -126,7 +260,8 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       if (data.organizationId) {
         setCallgridOrganizationId(data.organizationId);
       }
-      setCampaigns(Array.isArray(data.campaigns) ? data.campaigns : []);
+      const all = Array.isArray(data.campaigns) ? data.campaigns : [];
+      setCampaigns(filterCampaignsForVertical(all, vertical));
     } catch (err) {
       console.error(err);
       setCampaigns([]);
@@ -157,7 +292,11 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       if (data.organizationId) {
         setCallgridOrganizationId(data.organizationId);
       }
-      setMediaBuyers(Array.isArray(data.mediaBuyers) ? data.mediaBuyers : []);
+      setMediaBuyers(
+        excludeCtvMediaBuyers(
+          Array.isArray(data.mediaBuyers) ? data.mediaBuyers : [],
+        ),
+      );
     } catch (err) {
       console.error(err);
       setMediaBuyers([]);
@@ -224,15 +363,19 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     setSelectedCampaign("");
     setSelectedMediaBuyerId("");
     setMediaBuyers([]);
+    const defaultTemplate = defaultTemplateForVertical(vertical);
     setFormData((prev) => ({
       ...prev,
       domain: "",
       phoneNumber: "",
-      template: vertical === MEDICARE_VERTICAL ? "cg-grocery" : "",
+      template: defaultTemplate,
     }));
-    if (vertical === MEDICARE_VERTICAL) {
-      setSelectedTemplate("cg-grocery");
-      fetchCampaigns();
+    setSelectedTemplate(defaultTemplate);
+    if (
+      vertical === MEDICARE_VERTICAL ||
+      vertical === FINAL_EXPENSE_VERTICAL
+    ) {
+      fetchCampaigns(vertical);
     } else {
       setCampaigns([]);
     }
@@ -484,7 +627,11 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Select Vertical</option>
-          <option value={MEDICARE_VERTICAL}>Medicare</option>
+          {CALLGRID_VERTICALS.map((v) => (
+            <option key={v.value} value={v.value}>
+              {v.label}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -517,37 +664,66 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Media Buyer <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={selectedMediaBuyerId}
-          onChange={(e) => handleMediaBuyerChange(e.target.value)}
-          disabled={!selectedCampaign || isLoadingMediaBuyers}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-        >
-          <option value="">
-            {isLoadingMediaBuyers
-              ? "Loading media buyers..."
-              : "Select Media Buyer"}
-          </option>
-          {mediaBuyers.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-              {b.phoneNumber ? ` (${b.phoneNumber})` : ""}
-            </option>
-          ))}
-        </select>
-        {selectedMediaBuyer && (
-          <div className="mt-2 space-y-1 rounded-md bg-blue-50 p-3 text-xs text-blue-800">
-            <div>
-              <strong>Source ID / campaignSourceId:</strong>{" "}
-              {selectedMediaBuyer.campaignSourceId || selectedMediaBuyer.id}
+        {isMediaBuyerUser ? (
+          selectedCampaign && (
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+              {isLoadingMediaBuyers ? (
+                "Loading your CallGrid media buyer details…"
+              ) : selectedMediaBuyer ? (
+                <>
+                  <div className="font-medium">
+                    Media buyer auto-filled: {selectedMediaBuyer.name}
+                  </div>
+                  <div className="mt-1 text-xs">
+                    Phone: {selectedMediaBuyer.phoneNumber || "—"}
+                  </div>
+                  <div className="text-xs">
+                    Source ID:{" "}
+                    {selectedMediaBuyer.campaignSourceId ||
+                      selectedMediaBuyer.id}
+                  </div>
+                </>
+              ) : (
+                "No matching CallGrid media buyer found for your account on this campaign."
+              )}
             </div>
-            <div>
-              <strong>Phone:</strong> {selectedMediaBuyer.phoneNumber || "—"}
-            </div>
-          </div>
+          )
+        ) : (
+          <>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Media Buyer <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedMediaBuyerId}
+              onChange={(e) => handleMediaBuyerChange(e.target.value)}
+              disabled={!selectedCampaign || isLoadingMediaBuyers}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            >
+              <option value="">
+                {isLoadingMediaBuyers
+                  ? "Loading media buyers..."
+                  : "Select Media Buyer"}
+              </option>
+              {mediaBuyers.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                  {b.phoneNumber ? ` (${b.phoneNumber})` : ""}
+                </option>
+              ))}
+            </select>
+            {selectedMediaBuyer && (
+              <div className="mt-2 space-y-1 rounded-md bg-blue-50 p-3 text-xs text-blue-800">
+                <div>
+                  <strong>Source ID / campaignSourceId:</strong>{" "}
+                  {selectedMediaBuyer.campaignSourceId || selectedMediaBuyer.id}
+                </div>
+                <div>
+                  <strong>Phone:</strong>{" "}
+                  {selectedMediaBuyer.phoneNumber || "—"}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -663,11 +839,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Template</option>
-              {CALLGRID_TEMPLATES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
+              {(CALLGRID_TEMPLATES_BY_VERTICAL[selectedVertical] || []).map(
+                (t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ),
+              )}
             </select>
           </div>
 

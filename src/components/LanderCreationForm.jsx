@@ -1079,7 +1079,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
         }
 
         console.log("Extracted media buyers:", mediaBuyersArray);
-        setMediaBuyers(mediaBuyersArray);
+        setMediaBuyers(
+          mediaBuyersArray.filter(
+            (buyer) =>
+              !String(buyer.name || "")
+                .toLowerCase()
+                .includes("ctv"),
+          ),
+        );
       } else {
         // If no media buyers found and fallback is available, try fallback
         if (fallbackCampaignId) {

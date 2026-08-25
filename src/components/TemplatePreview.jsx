@@ -21,6 +21,51 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       elitePreviewUrl: "https://approved-template.com/el-groc",
     },
     {
+      id: "cg-ss",
+      name: "Chatbot Social Security (CallGrid)",
+      previewUrl: "https://approved-template.com/ss",
+    },
+    {
+      id: "cg-groc-short",
+      name: "Chatbot Grocery Short (CallGrid)",
+      previewUrl: "https://approved-template.com/groc-short",
+    },
+    {
+      id: "cg-ss-short",
+      name: "Chatbot Social Security Short (CallGrid)",
+      previewUrl: "https://approved-template.com/ss-short",
+    },
+    {
+      id: "cg-groc-dynamic",
+      name: "Chatbot Grocery Dynamic (CallGrid)",
+      previewUrl: "https://approved-template.com/dynamic/?amount=1200",
+    },
+    {
+      id: "cg-groc-quiz-multi",
+      name: "Chatbot Quiz Multi (CallGrid)",
+      previewUrl: "https://approved-template.com/multi",
+    },
+    {
+      id: "cg-groc-3000",
+      name: "Chatbot Grocery (3300) (CallGrid)",
+      previewUrl: "https://approved-template.com/nn3000/",
+    },
+    {
+      id: "cg-groc-short-3000",
+      name: "Chatbot Grocery Short (3300) (CallGrid)",
+      previewUrl: "https://approved-template.com/nn-short-3000/",
+    },
+    {
+      id: "cg-ss-174",
+      name: "Chatbot Social Security (174) (CallGrid)",
+      previewUrl: "https://approved-template.com/ss174/",
+    },
+    {
+      id: "cg-ss-short-174",
+      name: "Chatbot Social Security Short (174) (CallGrid)",
+      previewUrl: "https://approved-template.com/ss-short-174/",
+    },
+    {
       id: "cb-groc-nolgo",
       name: "Chatbot Grocery no-logo",
       previewUrl: "https://approved-template.com/nologo/",
@@ -167,6 +212,26 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     {
       id: "cb-fe-25k",
       name: "Final Expense ($25k) New",
+      previewUrl: "https://approved-template.com/25k/",
+    },
+    {
+      id: "cg-fe",
+      name: "Final Expense ($0) (CallGrid)",
+      previewUrl: "https://approved-template.com/fe/",
+    },
+    {
+      id: "cg-fe-40",
+      name: "Final Expense ($40k) (CallGrid)",
+      previewUrl: "https://approved-template.com/fe40/",
+    },
+    {
+      id: "cg-fe-20",
+      name: "Final Expense ($25k) (CallGrid)",
+      previewUrl: "https://approved-template.com/fe-25/",
+    },
+    {
+      id: "cg-fe-25k",
+      name: "Final Expense ($25k) New (CallGrid)",
       previewUrl: "https://approved-template.com/25k/",
     },
     // Paragon Media - Medicaid
