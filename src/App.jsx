@@ -37,9 +37,9 @@ function App() {
         <Route
           path="/create"
           element={
-            <RoleProtectedRoute allowedRoles={["tech"]}>
+            <ProtectedRoute>
               <LanderCreation />
-            </RoleProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route

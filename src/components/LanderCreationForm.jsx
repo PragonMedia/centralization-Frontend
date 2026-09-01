@@ -133,13 +133,13 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
   const [availableDomains, setAvailableDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const [formData, setFormData] = useState({
-    organization: "paragon media",
+    organization: "elite",
     domain: "",
     route: "",
     template: "cb-groc", // Default template
     rtkID: "",
-    phoneNumber: "",
-    ringbaID: "",
+    phoneNumber: EliteDetails.phoneNumber,
+    ringbaID: EliteDetails.ringbaID,
     createdBy: "",
     platform: "",
   });
@@ -1502,14 +1502,14 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
       // Reset form
       setSelectedDomainHasRtkID(false);
       setFormData({
-        organization: "paragon media",
+        organization: "elite",
         domain: "",
         route: "",
-        template: "",
+        template: "cb-groc",
         rtkID: "",
-        ringbaID: "",
-        phoneNumber: "",
-        createdBy: "",
+        ringbaID: EliteDetails.ringbaID,
+        phoneNumber: EliteDetails.phoneNumber,
+        createdBy: formData.createdBy,
         platform: "",
       });
 
@@ -1587,23 +1587,6 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           <input
             type="radio"
             name="organization"
-            value="paragon media"
-            checked={formData.organization === "paragon media"}
-            onChange={handleChange}
-            className="mr-4"
-          />
-          <div>
-            <div className="font-medium text-gray-900">Paragon Media</div>
-            <div className="text-sm text-gray-500">
-              Dynamic campaign data from API
-            </div>
-          </div>
-        </label>
-
-        <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors">
-          <input
-            type="radio"
-            name="organization"
             value="elite"
             checked={formData.organization === "elite"}
             onChange={handleChange}
@@ -1612,6 +1595,23 @@ function LanderCreationForm({ selectedTemplate, setSelectedTemplate }) {
           <div>
             <div className="font-medium text-gray-900">Elite</div>
             <div className="text-sm text-gray-500">Fixed Elite details</div>
+          </div>
+        </label>
+
+        <label className="flex items-center p-4 border-2 border-gray-100 rounded-lg bg-gray-50 opacity-60 cursor-not-allowed">
+          <input
+            type="radio"
+            name="organization"
+            value="paragon media"
+            checked={formData.organization === "paragon media"}
+            disabled
+            className="mr-4"
+          />
+          <div>
+            <div className="font-medium text-gray-900">Paragon Media</div>
+            <div className="text-sm text-gray-500">
+              Use Lander Creation for Paragon Media
+            </div>
           </div>
         </label>
       </div>

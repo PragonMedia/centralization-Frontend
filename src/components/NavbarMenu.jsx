@@ -10,7 +10,6 @@ function NavbarMenu() {
   const canAccessAccounting = ["tech", "ceo", "admin"].includes(role);
   const canAccessStatePerformance = ["mediabuyer", "tech", "ceo"].includes(role);
   const canAccessTvAdSpend = ["tech", "ceo", "admin"].includes(role);
-  const canAccessLanderTech = role === "tech";
 
   // // Call debug function to see full state
   // debug();
@@ -47,13 +46,11 @@ function NavbarMenu() {
 
         {isAuthenticated ? (
           <>
-            {canAccessLanderTech && (
-              <Link to="/create">
-                <button type="button" className={navButtonClass}>
-                  Lander Tech
-                </button>
-              </Link>
-            )}
+            <Link to="/create">
+              <button type="button" className={navButtonClass}>
+                Elite Lander
+              </button>
+            </Link>
             <Link to="/create-callgrid">
               <button type="button" className={navButtonClass}>
                 Lander Creation
