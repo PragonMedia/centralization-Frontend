@@ -8,6 +8,7 @@ import CallGridLander from "./pages/CallGridLander";
 import Footer from "./components/Footer.jsx";
 import EditRoute from "./pages/EditRoute.jsx";
 import Accounting from "./pages/Accounting.jsx";
+import CallGridAccounting from "./pages/CallGridAccounting.jsx";
 import StatePerformance from "./pages/StatePerformance.jsx";
 import TvAdSpend from "./pages/TvAdSpend.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -63,6 +64,14 @@ function App() {
           element={
             <RoleProtectedRoute allowedRoles={["tech", "ceo", "admin"]}>
               <Accounting />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/accounting/callgrid"
+          element={
+            <RoleProtectedRoute allowedRoles={["tech", "ceo", "admin"]}>
+              <CallGridAccounting />
             </RoleProtectedRoute>
           }
         />

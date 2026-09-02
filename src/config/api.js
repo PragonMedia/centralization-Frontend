@@ -59,6 +59,8 @@ export const API_ENDPOINTS = {
   },
   ACCOUNTING: {
     REVENUE: `${API_CONFIG.BASE_URL}/accounting/revenue/cached`,
+    REVENUE_REFRESH: `${API_CONFIG.BASE_URL}/accounting/revenue`,
+    REVENUE_REFRESH_STATUS: `${API_CONFIG.BASE_URL}/accounting/revenue/refresh-status`,
     COMPANIES: `${API_CONFIG.BASE_URL}/accounting/companies`,
     UPDATE_COMPANY: (accountID) =>
       `${API_CONFIG.BASE_URL}/accounting/companies/${encodeURIComponent(accountID)}`,
@@ -68,6 +70,13 @@ export const API_ENDPOINTS = {
       `${API_CONFIG.BASE_URL}/accounting/ringba/pgnm/buyers`,
     /** Resolve CallGrid organizationId from API key (server calls CallGrid). */
     CALLGRID_RESOLVE_ORG: `${API_CONFIG.BASE_URL}/accounting/callgrid/resolve-org`,
+  },
+  CALLGRID_ACCOUNTING: {
+    REVENUE_CACHED: `${API_CONFIG.BASE_URL}/callgrid-accounting/revenue/cached`,
+    REVENUE_REFRESH: `${API_CONFIG.BASE_URL}/callgrid-accounting/revenue`,
+    REVENUE_REFRESH_STATUS: `${API_CONFIG.BASE_URL}/callgrid-accounting/revenue/refresh-status`,
+    REVENUE_LIVE: `${API_CONFIG.BASE_URL}/callgrid-accounting/revenue`,
+    BUYERS: `${API_CONFIG.BASE_URL}/callgrid-accounting/buyers`,
   },
   ROKU_LOGS: {
     LIST: `${API_CONFIG.BASE_URL}/roku-logs`,

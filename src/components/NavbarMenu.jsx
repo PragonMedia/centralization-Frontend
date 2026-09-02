@@ -62,11 +62,18 @@ function NavbarMenu() {
               </button>
             </Link>
             {canAccessAccounting && (
-              <Link to="/accounting">
-                <button type="button" className={navButtonClass}>
-                  Accounting
-                </button>
-              </Link>
+              <>
+                <Link to="/accounting">
+                  <button type="button" className={navButtonClass}>
+                    Accounting
+                  </button>
+                </Link>
+                <Link to="/accounting/callgrid">
+                  <button type="button" className={navButtonClass}>
+                    CallGrid Accounting
+                  </button>
+                </Link>
+              </>
             )}
             {canAccessStatePerformance && (
               <Link to="/state-performance">
