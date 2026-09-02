@@ -180,7 +180,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     },
     {
       id: "homepage-debt",
-      name: "Debt Homepage",
+      name: "Debt Home",
       previewUrl: "https://approved-template.com/home/",
     },
     {

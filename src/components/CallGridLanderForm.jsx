@@ -82,6 +82,7 @@ const CALLGRID_TEMPLATES_BY_VERTICAL = {
   [DEBT_FORM_VERTICAL]: [
     { value: "debt-form", label: "Debt Form" },
     { value: "debt-form-25", label: "Debt Form (25)" },
+    { value: "homepage-debt", label: "Debt Home" },
   ],
   [VSL_VERTICAL]: [
     { value: "vsl-1", label: "vsl" },
