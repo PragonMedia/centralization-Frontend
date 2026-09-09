@@ -67,6 +67,7 @@ const EditModal = ({
       { value: "cg-fe-40", label: "Final Expense ($40k)" },
       { value: "cg-fe-20", label: "Final Expense ($25k)" },
       { value: "cg-fe-25k", label: "Final Expense ($25k) New" },
+      { value: "cg-fe-quiz-multi", label: "Final Expense 25k Multi-Step" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
@@ -148,7 +149,8 @@ const EditModal = ({
       templateValue === "cg-fe" ||
       templateValue === "cg-fe-40" ||
       templateValue === "cg-fe-20" ||
-      templateValue === "cg-fe-25k"
+      templateValue === "cg-fe-25k" ||
+      templateValue === "cg-fe-quiz-multi"
     ) {
       return "Final Expense";
     }

@@ -234,6 +234,11 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       name: "Final Expense ($25k) New (CallGrid)",
       previewUrl: "https://approved-template.com/25k/",
     },
+    {
+      id: "cg-fe-quiz-multi",
+      name: "Final Expense 25k Multi-Step (CallGrid)",
+      previewUrl: "https://approved-template.com/femulti/html1.html",
+    },
     // Paragon Media - Medicaid
     {
       id: "medicaid",
