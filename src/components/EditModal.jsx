@@ -55,6 +55,7 @@ const EditModal = ({
       { value: "debt-form", label: "Debt Form" },
       { value: "debt-form-25", label: "Debt Form (25)" },
       { value: "homepage-debt", label: "Debt Home" },
+      { value: "debt-multi-20", label: "Debt multi 20k" },
     ],
     "Final Expense": [
       { value: "cb-fe", label: "Final Expense $0" },
@@ -124,11 +125,12 @@ const EditModal = ({
         templateValue === "el-ss-groc-174" || templateValue === "el-cb-ss-short-174") {
       return "Medicare PPC";
     }
-    // Debt Form templates (check before Debt PPC — debt-form-25 also starts with debt-)
+    // Debt Form templates (check before Debt PPC — debt-form-25 / debt-multi-20 also start with debt-)
     if (
       templateValue === "debt-form" ||
       templateValue === "debt-form-25" ||
-      templateValue === "homepage-debt"
+      templateValue === "homepage-debt" ||
+      templateValue === "debt-multi-20"
     ) {
       return "Debt Form";
     }
