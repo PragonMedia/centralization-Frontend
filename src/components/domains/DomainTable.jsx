@@ -70,6 +70,7 @@ const DomainTable = ({
                       </div>
                       <div className="ml-3">
                         <button
+                          type="button"
                           onClick={() =>
                             handleMediaBuyerClick(domain.assignedTo)
                           }
@@ -93,6 +94,7 @@ const DomainTable = ({
                       </span>
                     )}
                     <button
+                      type="button"
                       onClick={() => handleDomainClick(domain)}
                       className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
                     >
@@ -103,7 +105,7 @@ const DomainTable = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getOrganizationColor(
-                      domain.organization
+                      domain.organization,
                     )}`}
                   >
                     {domain.organization || "N/A"}
@@ -126,7 +128,7 @@ const DomainTable = ({
                         <span
                           key={tagIndex}
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getCertificationColor(
-                            tag
+                            tag,
                           )}`}
                         >
                           {tag}
@@ -147,29 +149,3 @@ const DomainTable = ({
 };
 
 export default DomainTable;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

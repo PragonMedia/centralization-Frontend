@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "react-toastify";
 import AddDomainModal from "./AddDomainModal";
 import DomainPopupModal from "./DomainPopupModal";
 import TrashModal from "./TrashModal";
@@ -13,6 +14,8 @@ import { cachedFetch, CACHE_CONFIG } from "../utils/cache.js";
 import { filterDomains, getFilterOptions } from "../utils/domainFilters.js";
 import { getCertificationTagColor } from "../constants/certificationTags.js";
 
+const PURGE_ALL_TIMEOUT_MS = 15 * 60 * 1000;
+
 function DomainsName() {
   const [domainData, setDomainData] = useState(null); // Start with null to show loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -26,6 +29,8 @@ function DomainsName() {
   const [showTrashModal, setShowTrashModal] = useState(false);
   const [showDomainPopup, setShowDomainPopup] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
+  const [isPurgingAll, setIsPurgingAll] = useState(false);
+  const [showPurgeAllConfirm, setShowPurgeAllConfirm] = useState(false);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -237,6 +242,77 @@ function DomainsName() {
     return currentUser && currentUser.role !== "mediaBuyer";
   };
 
+  const canPurgeAll = () => {
+    const role = getCurrentUser()?.role?.toLowerCase() || "";
+    return ["tech", "ceo", "admin"].includes(role);
+  };
+
+  const handlePurgeAllConfirm = async () => {
+    setShowPurgeAllConfirm(false);
+    if (isPurgingAll) return;
+    setIsPurgingAll(true);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      PURGE_ALL_TIMEOUT_MS,
+    );
+
+    try {
+      const res = await fetch(API_ENDPOINTS.DOMAINS.REGENERATE_AND_PURGE_ALL, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ delayMs: 500 }),
+        signal: controller.signal,
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.success === false) {
+        throw new Error(
+          body.message ||
+            body.error ||
+            `Purge all failed (HTTP ${res.status})`,
+        );
+      }
+
+      const summary = body.summary || {};
+      const failPart = summary.failCount
+        ? ` (${summary.failCount} failed — nginx: ${summary.nginxFailCount ?? 0}, purge: ${summary.purgeFailCount ?? 0})`
+        : "";
+      toast.success(
+        body.message ||
+          `Done: ${summary.successCount ?? 0}/${summary.total ?? 0} succeeded${failPart}`,
+        { autoClose: 8000 },
+      );
+
+      const failures = Array.isArray(body.results)
+        ? body.results.filter((r) => r && r.ok === false)
+        : [];
+      if (failures.length > 0) {
+        const preview = failures
+          .slice(0, 5)
+          .map((r) => r.domain || r.name || "unknown")
+          .join(", ");
+        toast.warning(
+          `${failures.length} domain(s) failed: ${preview}${
+            failures.length > 5 ? "…" : ""
+          }`,
+          { autoClose: 10000 },
+        );
+      }
+    } catch (err) {
+      if (err?.name === "AbortError") {
+        toast.error(
+          "Purge all timed out after 15 minutes. Check the server and try again.",
+        );
+      } else {
+        toast.error(err.message || "Failed to purge all domains.");
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      setIsPurgingAll(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -245,6 +321,10 @@ function DomainsName() {
           getCurrentUser={getCurrentUser}
           canAddDomains={canAddDomains}
           onAddDomain={() => setShowAddDomainModal(true)}
+          canPurgeAll={canPurgeAll}
+          onPurgeAll={() => setShowPurgeAllConfirm(true)}
+          isPurgingAll={isPurgingAll}
+          purgeDisabled={false}
         />
 
         {/* Stats */}
@@ -405,6 +485,7 @@ function DomainsName() {
           await fetchDomains();
         }}
         canEditDomain={canEditDomain}
+        purgeDisabled={isPurgingAll}
       />
 
       {/* Trash Modal */}
@@ -413,6 +494,49 @@ function DomainsName() {
         onClose={() => setShowTrashModal(false)}
         onRestored={fetchDomains}
       />
+
+      {/* Purge All confirmation */}
+      {showPurgeAllConfirm && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-gray-900/50"
+            aria-hidden="true"
+            onClick={() => !isPurgingAll && setShowPurgeAllConfirm(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">
+                Purge + regenerate all domains?
+              </h2>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 text-sm mb-2">
+                This regenerates nginx and purges Cloudflare for every active
+                domain. It can take several minutes.
+              </p>
+              <p className="text-amber-800 text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                Do not close this page while the job is running.
+              </p>
+              <div className="flex gap-3 justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPurgeAllConfirm(false)}
+                  className="px-5 py-2.5 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePurgeAllConfirm}
+                  className="px-5 py-2.5 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium"
+                >
+                  Purge All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import EditModal from "./EditModal";
 import DetailsModal from "./DetailsModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -14,6 +15,7 @@ const DomainPopupModal = ({
   domain,
   refreshData,
   canEditDomain,
+  purgeDisabled = false,
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -25,6 +27,7 @@ const DomainPopupModal = ({
   const [viewingRoute, setViewingRoute] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
   const [copiedUrl, setCopiedUrl] = useState(null);
+  const [isPurging, setIsPurging] = useState(false);
 
   // Auto-close success modal after 3 seconds and refresh data
   useEffect(() => {
@@ -75,6 +78,54 @@ const DomainPopupModal = ({
       return domain.assignedTo === currentUser.email;
     }
     return false;
+  };
+
+  const canPurgeDomain = () => {
+    if (!domain?.domain) return false;
+    if (typeof canEditDomain === "function") {
+      return canEditDomain(domain);
+    }
+    const currentUser = getCurrentUser();
+    if (!currentUser) return false;
+    const role = currentUser.role?.toLowerCase() || "";
+    if (["tech", "ceo", "admin"].includes(role)) return true;
+    if (role === "mediabuyer") {
+      return domain.assignedTo === currentUser.email;
+    }
+    return false;
+  };
+
+  const handleDomainPurge = async () => {
+    const domainName = domain?.domain;
+    if (!domainName || isPurging || purgeDisabled) return;
+    setIsPurging(true);
+    try {
+      const res = await fetch(
+        API_ENDPOINTS.DOMAINS.REGENERATE_AND_PURGE(domainName),
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+        },
+      );
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.success === false) {
+        throw new Error(
+          body.message ||
+            body.error ||
+            (res.status === 502
+              ? `Nginx regeneration failed for ${domainName}`
+              : `Failed to purge ${domainName} (HTTP ${res.status})`),
+        );
+      }
+      toast.success(
+        body.message ||
+          `Nginx regenerated and Cloudflare purged for ${domainName}`,
+      );
+    } catch (err) {
+      toast.error(err.message || `Failed to purge ${domainName}`);
+    } finally {
+      setIsPurging(false);
+    }
   };
 
   // Check if current user can edit routes
@@ -265,22 +316,70 @@ const DomainPopupModal = ({
             </div>
 
             {/* Domain Actions */}
-            {canEditDomain && canEditDomain(domain) && canEditDomains() && (
-              <div className="mb-6 flex gap-3">
-                <button
-                  onClick={handleDomainEdit}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  Edit Domain
-                </button>
-                <button
-                  onClick={handleDomainDelete}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  Delete Domain
-                </button>
+            {(canEditDomain &&
+              canEditDomain(domain) &&
+              canEditDomains()) ||
+            canPurgeDomain() ? (
+              <div className="mb-6 flex flex-wrap gap-3">
+                {canEditDomain &&
+                  canEditDomain(domain) &&
+                  canEditDomains() && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleDomainEdit}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                      >
+                        Edit Domain
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDomainDelete}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                      >
+                        Delete Domain
+                      </button>
+                    </>
+                  )}
+                {canPurgeDomain() && (
+                  <button
+                    type="button"
+                    onClick={handleDomainPurge}
+                    disabled={isPurging || purgeDisabled}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-2"
+                    title="Regenerate nginx and purge Cloudflare for this domain"
+                  >
+                    {isPurging ? (
+                      <>
+                        <svg
+                          className="w-4 h-4 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Purging…
+                      </>
+                    ) : (
+                      "Purge"
+                    )}
+                  </button>
+                )}
               </div>
-            )}
+            ) : null}
 
             {/* Media Buyer RT ID Edit Button */}
             {canEditRtkID() && (

@@ -27,6 +27,11 @@ export const API_ENDPOINTS = {
       `${API_CONFIG.BASE_URL}/domain/${encodeURIComponent(domain)}`,
     RESTORE: (domain) =>
       `${API_CONFIG.BASE_URL}/domain/${encodeURIComponent(domain)}/restore`,
+    /** Regenerate nginx + purge Cloudflare for one domain. */
+    REGENERATE_AND_PURGE: (domain) =>
+      `${API_CONFIG.BASE_URL}/domain/${encodeURIComponent(domain)}/regenerate-and-purge`,
+    /** Regenerate nginx + purge Cloudflare for all active domains. */
+    REGENERATE_AND_PURGE_ALL: `${API_CONFIG.BASE_URL}/domains/regenerate-and-purge-all`,
   },
   TRASH: {
     LIST: (params = {}) => {

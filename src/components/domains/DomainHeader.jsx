@@ -1,6 +1,14 @@
 import React from "react";
 
-const DomainHeader = ({ getCurrentUser, canAddDomains, onAddDomain }) => {
+const DomainHeader = ({
+  getCurrentUser,
+  canAddDomains,
+  onAddDomain,
+  canPurgeAll,
+  onPurgeAll,
+  isPurgingAll,
+  purgeDisabled,
+}) => {
   const currentUser = getCurrentUser();
 
   const getUserAccessInfo = () => {
@@ -72,10 +80,49 @@ const DomainHeader = ({ getCurrentUser, canAddDomains, onAddDomain }) => {
           {getUserAccessInfo()}
         </div>
 
-        {/* Add Domain Button - Only for non-mediaBuyer users */}
-        {canAddDomains() && (
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {canPurgeAll?.() && (
             <button
+              type="button"
+              onClick={onPurgeAll}
+              disabled={purgeDisabled || isPurgingAll}
+              className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 font-medium flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+              title="Regenerate nginx and purge Cloudflare for all domains"
+            >
+              {isPurgingAll ? (
+                <>
+                  <svg
+                    className="w-5 h-5 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Purging all…
+                </>
+              ) : (
+                "Purge All"
+              )}
+            </button>
+          )}
+
+          {/* Add Domain Button - Only for non-mediaBuyer users */}
+          {canAddDomains() && (
+            <button
+              type="button"
               onClick={onAddDomain}
               className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-medium flex items-center gap-2"
             >
@@ -94,37 +141,11 @@ const DomainHeader = ({ getCurrentUser, canAddDomains, onAddDomain }) => {
               </svg>
               Add Domain
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default DomainHeader;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
