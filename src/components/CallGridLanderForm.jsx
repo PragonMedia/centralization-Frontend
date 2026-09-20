@@ -76,8 +76,7 @@ const CALLGRID_TEMPLATES_BY_VERTICAL = {
   [FINAL_EXPENSE_VERTICAL]: [
     { value: "cg-fe", label: "Final Expense ($0)" },
     { value: "cg-fe-40", label: "Final Expense ($40k)" },
-    { value: "cg-fe-20", label: "Final Expense ($25k)" },
-    { value: "cg-fe-25k", label: "Final Expense ($25k) New" },
+    { value: "cg-fe-25k", label: "Final Expense ($25k)" },
     { value: "cg-fe-quiz-multi", label: "Final Expense 25k Multi-Step" },
   ],
   [DEBT_FORM_VERTICAL]: [
