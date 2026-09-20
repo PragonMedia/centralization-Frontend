@@ -237,7 +237,7 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
     {
       id: "cg-fe-25k",
       name: "Final Expense ($25k) (CallGrid)",
-      previewUrl: "https://approved-template.com/25k/",
+      previewUrl: "https://approved-template.com/cg-fe-25/",
     },
     {
       id: "cg-fe-quiz-multi",
