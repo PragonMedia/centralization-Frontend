@@ -1,8 +1,23 @@
 // API Configuration
+function resolveApiBaseUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    // Local Vite / Node backend
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:3000/api/v1";
+    }
+    // Production: same-origin nginx proxies /api → backend :3000
+    // (admin.paragonmedia.io, admin.pgnmapprovedlander.com, raw IP, etc.)
+    return `${window.location.origin}/api/v1`;
+  }
+  return "http://138.68.231.226:3000/api/v1";
+}
+
 export const API_CONFIG = {
-  // BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1",
-  BASE_URL:
-    import.meta.env.VITE_API_BASE_URL || "http://138.68.231.226:3000/api/v1",
+  BASE_URL: resolveApiBaseUrl(),
   RINGBA_ACCOUNT_ID:
     import.meta.env.VITE_RINGBA_ACCOUNT_ID ||
     "RA417e311c6e8b47538624556e6e84298a",

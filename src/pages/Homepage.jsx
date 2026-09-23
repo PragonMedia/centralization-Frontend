@@ -34,38 +34,21 @@ function Homepage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40" />
       )}
 
-      {/* Homepage content */}
+      {/* Homepage content — text centered in page flow; logo above */}
       <div
-        className={`h-screen flex items-center justify-center ${
+        className={`flex min-h-screen items-center justify-center px-6 ${
           showLoginModal ? "pointer-events-none" : ""
         }`}
       >
-        <div className="text-center">
-          <h1 className="text-6xl font-bold mb-4">Welcome to ParagonMedia</h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Your platform for creating amazing landing pages
-          </p>
-
-          {/* Authentication Status */}
-          {/* <div className="mb-6">
-            <AuthStatus />
-          </div> */}
-
-          {/* {isAuthenticated && (
-            <div className="space-y-4">
-              <p className="text-green-600 text-lg">
-                ✅ You are successfully logged in!
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                  Get Started
-                </button>
-                <button className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
-                  View Dashboard
-                </button>
-              </div>
-            </div>
-          )} */}
+        <div className="relative text-center">
+          <div className="absolute bottom-full left-0 right-0 mb-8 flex justify-center">
+            <img
+              src="/logo.svg"
+              alt="Paragon Media"
+              className="h-72 w-auto sm:h-80 md:h-96 lg:h-[28rem]"
+            />
+          </div>
+          <h1 className="text-6xl font-bold mb-4">Welcome to Paragon Media</h1>
         </div>
       </div>
 
