@@ -44,6 +44,7 @@ export const LANDER_VERTICAL_TO_DOMAIN_VERTICALS = {
   "Final Expense": ["Final Expense"],
   VSL: ["VSL"],
   "Concealed Carry": ["Concealed Carry"],
+  "Google Warm-Up": ["Google Warm-Up"],
 };
 
 /**

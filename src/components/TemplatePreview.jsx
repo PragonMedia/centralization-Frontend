@@ -240,9 +240,24 @@ const TemplatePreview = ({ selectedTemplate, organization }) => {
       previewUrl: "https://approved-template.com/cg-fe-25/",
     },
     {
+      id: "cg-fe-25k-fb",
+      name: "Final Expense ($25k) - FB",
+      previewUrl: "https://approved-template.com/25fb/",
+    },
+    {
       id: "cg-fe-quiz-multi",
       name: "Final Expense 25k Multi-Step (CallGrid)",
       previewUrl: "https://approved-template.com/femulti/html1.html",
+    },
+    {
+      id: "cg-fe-quiz-new",
+      name: "Final Expense 25k New (CallGrid)",
+      previewUrl: "https://approved-template.com/fqnew",
+    },
+    {
+      id: "cg-gg-temp",
+      name: "Google Warm-Up",
+      previewUrl: "https://approved-template.com/ggtemp",
     },
     // Paragon Media - Medicaid
     {

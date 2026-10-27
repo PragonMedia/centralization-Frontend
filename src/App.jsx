@@ -1,9 +1,8 @@
 import React from "react";
 import Navbar from "./components/Navbar.jsx";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Domains from "./pages/Domains";
-import LanderCreation from "./pages/LanderCreation";
 import CallGridLander from "./pages/CallGridLander";
 import Footer from "./components/Footer.jsx";
 import EditRoute from "./pages/EditRoute.jsx";
@@ -39,7 +38,7 @@ function App() {
           path="/create"
           element={
             <ProtectedRoute>
-              <LanderCreation />
+              <Navigate to="/create-callgrid" replace />
             </ProtectedRoute>
           }
         />

@@ -46,11 +46,6 @@ function NavbarMenu() {
 
         {isAuthenticated ? (
           <>
-            <Link to="/create">
-              <button type="button" className={navButtonClass}>
-                Elite Lander
-              </button>
-            </Link>
             <Link to="/create-callgrid">
               <button type="button" className={navButtonClass}>
                 Lander Creation

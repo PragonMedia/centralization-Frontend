@@ -65,7 +65,9 @@ const EditModal = ({
     ],
     "Final Expense CallGrid": [
       { value: "cg-fe-25k", label: "Final Expense ($25k)" },
+      { value: "cg-fe-25k-fb", label: "Final Expense ($25k) - FB" },
       { value: "cg-fe-quiz-multi", label: "Final Expense 25k Multi-Step" },
+      { value: "cg-fe-quiz-new", label: "Final Expense 25k New" },
     ],
     Medicaid: [{ value: "medicaid", label: "Medicaid" }],
     ACA: [{ value: "aca-58", label: "ACA 58" }],
@@ -149,7 +151,9 @@ const EditModal = ({
       templateValue === "cg-fe-40" ||
       templateValue === "cg-fe-20" ||
       templateValue === "cg-fe-25k" ||
-      templateValue === "cg-fe-quiz-multi"
+      templateValue === "cg-fe-25k-fb" ||
+      templateValue === "cg-fe-quiz-multi" ||
+      templateValue === "cg-fe-quiz-new"
     ) {
       return "Final Expense";
     }

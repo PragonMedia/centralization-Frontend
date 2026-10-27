@@ -3,10 +3,14 @@ import TemplatePreview from "./TemplatePreview";
 import {
   API_ENDPOINTS,
   getAuthHeaders,
+  getRingbaHeaders,
 } from "../config/api.js";
 import { cachedFetch, CACHE_CONFIG, invalidateCache } from "../utils/cache.js";
 import { sanitizeInput, validateInput } from "../utils/sanitization.js";
-import { domainMatchesLanderVertical } from "../constants/domainVerticals.js";
+import {
+  domainMatchesLanderVertical,
+  normalizeDomainOrganization,
+} from "../constants/domainVerticals.js";
 
 /** Lander vertical for domain filtering (domains store Medicare / Medicare PPC). */
 const MEDICARE_VERTICAL = "Medicare PPC";
@@ -14,11 +18,40 @@ const FINAL_EXPENSE_VERTICAL = "Final Expense";
 const DEBT_FORM_VERTICAL = "Debt Form";
 const VSL_VERTICAL = "VSL";
 const CONCEALED_CARRY_VERTICAL = "Concealed Carry";
+const GOOGLE_WARM_UP_VERTICAL = "Google Warm-Up";
 
 const CALLGRID_TRACKED_VERTICALS = new Set([
   MEDICARE_VERTICAL,
   FINAL_EXPENSE_VERTICAL,
 ]);
+
+const EliteDetails = {
+  ringbaID: "CA96589cff1d5d4fa48f459da7dbd3a728",
+  phoneNumber: "+13213980346",
+};
+
+const ELITE_MEDICARE_TEMPLATES = [
+  { value: "cb-groc", label: "Chatbot Grocery" },
+  { value: "cb-ss", label: "Chatbot Social Security" },
+  { value: "es-cb-groc-short", label: "Chatbot Grocery Short" },
+  { value: "es-cb-ss-short", label: "Chatbot Social Security Short" },
+  { value: "el-cb-groc-3000", label: "Chatbot Grocery ($3300)" },
+  { value: "el-cb-groc-short-3000", label: "Chatbot Grocery Short ($3300)" },
+  { value: "el-ss-groc-174", label: "Chatbot Social Security ($174)" },
+  { value: "el-cb-ss-short-174", label: "Chatbot Social Security Short ($174)" },
+  { value: "el-groc-dynamic", label: "Grocery Dynamic" },
+  { value: "el-groc-multi", label: "Quiz Multi" },
+];
+
+function isEliteOrganization(organization) {
+  return String(organization || "").trim().toLowerCase() === "elite";
+}
+
+function eliteTemplateValue(template) {
+  if (template === "cb-groc") return "el-cb-groc";
+  if (template === "cb-ss") return "el-cb-ss";
+  return template;
+}
 
 const CALLGRID_VERTICALS = [
   { value: MEDICARE_VERTICAL, label: "Medicare" },
@@ -26,6 +59,13 @@ const CALLGRID_VERTICALS = [
   { value: DEBT_FORM_VERTICAL, label: "Debt Form" },
   { value: VSL_VERTICAL, label: "VSL" },
   { value: CONCEALED_CARRY_VERTICAL, label: "Concealed Carry" },
+  { value: GOOGLE_WARM_UP_VERTICAL, label: "Google Warm-Up" },
+];
+
+/** Elite keeps Medicare (Ringba) + Google Warm-Up (same local flow as Paragon). */
+const ELITE_VERTICALS = [
+  { value: MEDICARE_VERTICAL, label: "Medicare" },
+  { value: GOOGLE_WARM_UP_VERTICAL, label: "Google Warm-Up" },
 ];
 
 /** Local campaigns (no CallGrid API) — same as Ringba lander creation. */
@@ -39,6 +79,9 @@ const LOCAL_CAMPAIGNS_BY_VERTICAL = {
   ],
   [CONCEALED_CARRY_VERTICAL]: [
     { id: "rush-permit", name: "Rush Permit" },
+  ],
+  [GOOGLE_WARM_UP_VERTICAL]: [
+    { id: "google-warm-up", name: "Google Warm-Up" },
   ],
 };
 
@@ -56,6 +99,12 @@ const LOCAL_MEDIA_BUYERS_BY_VERTICAL = {
     { id: "jake-hunter", name: "Jake Hunter" },
     { id: "addy-jaloudi", name: "Addy Jaloudi" },
     { id: "sean-luc", name: "Sean Luc" },
+  ],
+  [GOOGLE_WARM_UP_VERTICAL]: [
+    { id: "jake-hunter", name: "Jake Hunter" },
+    { id: "addy-jaloudi", name: "Addy Jaloudi" },
+    { id: "sean-luc", name: "Sean Luc" },
+    { id: "nick", name: "Nick" },
   ],
 };
 
@@ -75,7 +124,9 @@ const CALLGRID_TEMPLATES_BY_VERTICAL = {
   ],
   [FINAL_EXPENSE_VERTICAL]: [
     { value: "cg-fe-25k", label: "Final Expense ($25k)" },
+    { value: "cg-fe-25k-fb", label: "Final Expense ($25k) - FB" },
     { value: "cg-fe-quiz-multi", label: "Final Expense 25k Multi-Step" },
+    { value: "cg-fe-quiz-new", label: "Final Expense 25k New" },
   ],
   [DEBT_FORM_VERTICAL]: [
     { value: "debt-form", label: "Debt Form" },
@@ -93,6 +144,9 @@ const CALLGRID_TEMPLATES_BY_VERTICAL = {
     { value: "ccw", label: "CCW" },
     { value: "gg-ccw-v2", label: "CCW v2" },
     { value: "gg-ccw-plain", label: "CCW Plain" },
+  ],
+  [GOOGLE_WARM_UP_VERTICAL]: [
+    { value: "cg-gg-temp", label: "Google Warm-Up" },
   ],
 };
 
@@ -327,6 +381,24 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
     const match = findMediaBuyerForLoggedInUser(mediaBuyers, currentUserData);
+    if (isEliteOrganization(formData.organization)) {
+      if (!match) {
+        setSelectedMediaBuyerId("");
+        setFormData((prev) => ({ ...prev, phoneNumber: "", domain: "" }));
+        setError(
+          "Could not match your account to a media buyer on this campaign.",
+        );
+        return;
+      }
+      setSelectedMediaBuyerId(match.id || match.sourceId || "");
+      setFormData((prev) => ({
+        ...prev,
+        phoneNumber: EliteDetails.phoneNumber,
+        domain: "",
+      }));
+      setError("");
+      return;
+    }
     if (!match) {
       setSelectedMediaBuyerId("");
       setFormData((prev) => ({ ...prev, phoneNumber: "", domain: "" }));
@@ -342,7 +414,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       domain: "",
     }));
     setError("");
-  }, [isMediaBuyerUser, selectedCampaign, mediaBuyers, currentUserData]);
+  }, [
+    isMediaBuyerUser,
+    selectedCampaign,
+    mediaBuyers,
+    currentUserData,
+    formData.organization,
+  ]);
 
   const fetchAvailableDomains = async () => {
     try {
@@ -432,6 +510,38 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     }
   };
 
+  const fetchEliteCampaigns = async () => {
+    try {
+      setIsLoadingCampaigns(true);
+      setError("");
+      const response = await cachedFetch(
+        API_ENDPOINTS.RINGBA.CAMPAIGNS,
+        { method: "GET", headers: getRingbaHeaders() },
+        CACHE_CONFIG.CAMPAIGNS,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to load Ringba campaigns (${response.status})`);
+      }
+      const data = await response.json();
+      const campaignsData = Array.isArray(data.campaigns) ? data.campaigns : [];
+      setCampaigns(
+        campaignsData
+          .filter(
+            (campaign) =>
+              String(campaign.name || "").trim().toLowerCase() ===
+              "paragon - medicare",
+          )
+          .map((campaign) => ({ ...campaign, name: "Elite - Medicare" })),
+      );
+    } catch (err) {
+      console.error(err);
+      setCampaigns([]);
+      setError(err.message || "Failed to load Elite campaigns");
+    } finally {
+      setIsLoadingCampaigns(false);
+    }
+  };
+
   const isNickMediaBuyerSelection = useCallback((mediaBuyerName) => {
     if (mediaBuyerName == null || String(mediaBuyerName).trim() === "") {
       return false;
@@ -470,6 +580,30 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       setFilteredDomains([]);
       return;
     }
+    if (isEliteOrganization(formData.organization)) {
+      let eliteDomains = availableDomains.filter(
+        (domain) =>
+          normalizeDomainOrganization(domain.organization) === "elite",
+      );
+      if (selectedVertical === GOOGLE_WARM_UP_VERTICAL) {
+        eliteDomains = filterDomainsByUser(
+          eliteDomains,
+          currentUserEmail,
+          currentUserRole,
+          selectedMediaBuyer?.name,
+        );
+        const nickGetsAllDomains =
+          isNickMediaBuyerSelection(selectedMediaBuyer?.name) ||
+          isNickMediaBuyerEmail(currentUserEmail);
+        if (!nickGetsAllDomains) {
+          eliteDomains = eliteDomains.filter((domain) =>
+            domainMatchesLanderVertical(domain.vertical, selectedVertical),
+          );
+        }
+      }
+      setFilteredDomains(eliteDomains);
+      return;
+    }
     let filtered = filterDomainsByUser(
       availableDomains,
       currentUserEmail,
@@ -497,14 +631,90 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     filterDomainsByUser,
     isNickMediaBuyerSelection,
     isNickMediaBuyerEmail,
+    formData.organization,
   ]);
 
+  const resetAfterOrganizationChange = (organization) => {
+    setSelectedVertical("");
+    setSelectedCampaign("");
+    setSelectedMediaBuyerId("");
+    setMediaBuyers([]);
+    setCampaigns([]);
+    setSelectedDomainHasRtkID(false);
+    setError("");
+    if (isEliteOrganization(organization)) {
+      setSelectedTemplate("cb-groc");
+      setFormData((prev) => ({
+        ...prev,
+        organization: "elite",
+        domain: "",
+        route: "",
+        template: "cb-groc",
+        rtkID: "",
+        phoneNumber: EliteDetails.phoneNumber,
+        platform: "",
+      }));
+      return;
+    }
+    setSelectedTemplate("cg-grocery");
+    setFormData((prev) => ({
+      ...prev,
+      organization,
+      domain: "",
+      route: "",
+      template: "cg-grocery",
+      rtkID: "",
+      phoneNumber: "",
+      platform: "",
+    }));
+  };
+
   const handleOrganizationChange = (value) => {
-    if (value === "elite") return; // not available yet
-    setFormData((prev) => ({ ...prev, organization: value }));
+    if (value === formData.organization) return;
+    resetAfterOrganizationChange(value);
   };
 
   const handleVerticalChange = (vertical) => {
+    if (isEliteOrganization(formData.organization)) {
+      setSelectedCampaign("");
+      setSelectedMediaBuyerId("");
+      setMediaBuyers([]);
+      setSelectedDomainHasRtkID(false);
+      if (vertical === GOOGLE_WARM_UP_VERTICAL) {
+        const localCampaigns =
+          LOCAL_CAMPAIGNS_BY_VERTICAL[GOOGLE_WARM_UP_VERTICAL] || [];
+        const defaultTemplate = defaultTemplateForVertical(
+          GOOGLE_WARM_UP_VERTICAL,
+          "",
+          localCampaigns,
+        );
+        setSelectedVertical(GOOGLE_WARM_UP_VERTICAL);
+        setCampaigns(localCampaigns);
+        setIsLoadingCampaigns(false);
+        setFormData((prev) => ({
+          ...prev,
+          domain: "",
+          phoneNumber: EliteDetails.phoneNumber,
+          template: defaultTemplate,
+          rtkID: "",
+          platform: "",
+        }));
+        setSelectedTemplate(defaultTemplate);
+        return;
+      }
+      setSelectedVertical(MEDICARE_VERTICAL);
+      setFormData((prev) => ({
+        ...prev,
+        domain: "",
+        phoneNumber: EliteDetails.phoneNumber,
+        template: "cb-groc",
+        rtkID: "",
+        platform: "",
+      }));
+      setSelectedTemplate("cb-groc");
+      fetchEliteCampaigns();
+      return;
+    }
     setSelectedVertical(vertical);
     setSelectedCampaign("");
     setSelectedMediaBuyerId("");
@@ -536,6 +746,34 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   };
 
   const handleCampaignChange = (campaignId) => {
+    if (isEliteOrganization(formData.organization)) {
+      setSelectedCampaign(campaignId);
+      setSelectedMediaBuyerId("");
+      if (selectedVertical === GOOGLE_WARM_UP_VERTICAL) {
+        const buyers = localMediaBuyersForVertical(GOOGLE_WARM_UP_VERTICAL);
+        setMediaBuyers(buyers);
+        const nextTemplate = defaultTemplateForVertical(
+          GOOGLE_WARM_UP_VERTICAL,
+          campaignId,
+          LOCAL_CAMPAIGNS_BY_VERTICAL[GOOGLE_WARM_UP_VERTICAL] || campaigns,
+        );
+        setSelectedTemplate(nextTemplate);
+        setFormData((prev) => ({
+          ...prev,
+          phoneNumber: EliteDetails.phoneNumber,
+          template: nextTemplate,
+        }));
+        return;
+      }
+      setMediaBuyers([]);
+      setFormData((prev) => ({
+        ...prev,
+        phoneNumber: EliteDetails.phoneNumber,
+        template: "cb-groc",
+      }));
+      setSelectedTemplate("cb-groc");
+      return;
+    }
     setSelectedCampaign(campaignId);
     setSelectedMediaBuyerId("");
     setFormData((prev) => ({ ...prev, phoneNumber: "" }));
@@ -561,6 +799,15 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   };
 
   const handleMediaBuyerChange = (buyerId) => {
+    if (isEliteOrganization(formData.organization)) {
+      setSelectedMediaBuyerId(buyerId);
+      setFormData((prev) => ({
+        ...prev,
+        phoneNumber: EliteDetails.phoneNumber,
+        domain: "",
+      }));
+      return;
+    }
     setSelectedMediaBuyerId(buyerId);
     const buyer = mediaBuyers.find(
       (b) => b.id === buyerId || b.sourceId === buyerId,
@@ -586,9 +833,11 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     {
       id: 2,
       title: "Vertical & Campaign",
-      completed: Boolean(
-        selectedVertical && selectedCampaign && selectedMediaBuyerId,
-      ),
+      completed: isEliteOrganization(formData.organization)
+        ? selectedVertical === GOOGLE_WARM_UP_VERTICAL
+          ? Boolean(selectedVertical && selectedCampaign && selectedMediaBuyerId)
+          : Boolean(selectedVertical && selectedCampaign)
+        : Boolean(selectedVertical && selectedCampaign && selectedMediaBuyerId),
     },
     { id: 3, title: "Domain", completed: Boolean(formData.domain) },
     {
@@ -604,8 +853,21 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
   ];
 
   const canGoNext = () => {
-    if (currentStep === 1) return formData.organization === "paragon media";
+    if (currentStep === 1) {
+      return (
+        formData.organization === "paragon media" ||
+        isEliteOrganization(formData.organization)
+      );
+    }
     if (currentStep === 2) {
+      if (isEliteOrganization(formData.organization)) {
+        if (selectedVertical === GOOGLE_WARM_UP_VERTICAL) {
+          return Boolean(
+            selectedVertical && selectedCampaign && selectedMediaBuyerId,
+          );
+        }
+        return Boolean(selectedVertical && selectedCampaign);
+      }
       return Boolean(
         selectedVertical && selectedCampaign && selectedMediaBuyerId,
       );
@@ -618,7 +880,13 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
     e.preventDefault();
     setError("");
 
-    if (!selectedMediaBuyer) {
+    const eliteNeedsMediaBuyer =
+      isEliteOrganization(formData.organization) &&
+      selectedVertical === GOOGLE_WARM_UP_VERTICAL;
+    if (
+      (!isEliteOrganization(formData.organization) || eliteNeedsMediaBuyer) &&
+      !selectedMediaBuyer
+    ) {
       setError("Please select a media buyer");
       return;
     }
@@ -650,18 +918,27 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
       return;
     }
 
+    const isElite = isEliteOrganization(formData.organization);
     const usesCallgrid =
+      !isElite &&
       isCallgridTrackedVertical(selectedVertical) &&
       !isInjectedNickBuyer(selectedMediaBuyer);
+    const rawTemplate = formData.template || selectedTemplate;
     const payload = {
       organization: formData.organization,
       domain: sanitizeInput.domain(formData.domain),
       route: sanitizeInput.route(formData.route),
-      template: sanitizeInput.text(formData.template || selectedTemplate),
+      template: sanitizeInput.text(
+        isElite ? eliteTemplateValue(rawTemplate) : rawTemplate,
+      ),
       platform: sanitizeInput.text(formData.platform),
       rtkID: sanitizeInput.id(finalRtkID),
-      phoneNumber: sanitizeInput.phone(selectedMediaBuyer.phoneNumber || ""),
-      ringbaID: "",
+      phoneNumber: sanitizeInput.phone(
+        isElite
+          ? EliteDetails.phoneNumber
+          : selectedMediaBuyer.phoneNumber || "",
+      ),
+      ringbaID: isElite ? EliteDetails.ringbaID : "",
       createdBy: sanitizeInput.email(currentUserEmail || formData.createdBy),
     };
 
@@ -779,11 +1056,18 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           </div>
         </div>
       </label>
-      <label className="flex cursor-not-allowed items-center rounded-lg border-2 border-gray-100 bg-gray-50 p-4 opacity-60">
-        <input type="radio" name="organization" value="elite" disabled className="mr-4" />
+      <label className="flex cursor-pointer items-center rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300">
+        <input
+          type="radio"
+          name="organization"
+          value="elite"
+          checked={isEliteOrganization(formData.organization)}
+          onChange={(e) => handleOrganizationChange(e.target.value)}
+          className="mr-4"
+        />
         <div>
           <div className="font-medium text-gray-900">Elite</div>
-          <div className="text-sm text-gray-500">Coming soon</div>
+          <div className="text-sm text-gray-500">Ringba</div>
         </div>
       </label>
     </div>
@@ -804,7 +1088,10 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Select Vertical</option>
-          {CALLGRID_VERTICALS.map((v) => (
+          {(isEliteOrganization(formData.organization)
+            ? ELITE_VERTICALS
+            : CALLGRID_VERTICALS
+          ).map((v) => (
             <option key={v.value} value={v.value}>
               {v.label}
             </option>
@@ -824,9 +1111,11 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
         >
           <option value="">
             {isLoadingCampaigns
-              ? isCallgridTrackedVertical(selectedVertical)
-                ? "Loading CallGrid campaigns..."
-                : "Loading campaigns..."
+              ? isEliteOrganization(formData.organization)
+                ? "Loading Ringba campaigns..."
+                : isCallgridTrackedVertical(selectedVertical)
+                  ? "Loading CallGrid campaigns..."
+                  : "Loading campaigns..."
               : "Select Campaign"}
           </option>
           {campaigns.map((c) => (
@@ -835,13 +1124,27 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
             </option>
           ))}
         </select>
-        {selectedCampaign && (
+        {selectedCampaign && isEliteOrganization(formData.organization) && (
+          <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+            <p>
+              <span className="font-medium">Ringba ID:</span>{" "}
+              {EliteDetails.ringbaID}
+            </p>
+            <p>
+              <span className="font-medium">Phone:</span>{" "}
+              {EliteDetails.phoneNumber}
+            </p>
+          </div>
+        )}
+        {selectedCampaign && !isEliteOrganization(formData.organization) && (
           <p className="mt-1 text-xs text-gray-500">
             Campaign ID: {selectedCampaign}
           </p>
         )}
       </div>
 
+      {(!isEliteOrganization(formData.organization) ||
+        selectedVertical === GOOGLE_WARM_UP_VERTICAL) && (
       <div>
         {isMediaBuyerUser ? (
           selectedCampaign && (
@@ -879,6 +1182,7 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           </>
         )}
       </div>
+      )}
     </div>
   );
 
@@ -952,8 +1256,11 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
             </ul>
           )}
           <p className="mt-2 text-sm text-gray-500">
-            Same domain list/rules as Ringba lander creation (filtered by
-            media buyer + selected vertical).
+            {isEliteOrganization(formData.organization)
+              ? selectedVertical === GOOGLE_WARM_UP_VERTICAL
+                ? "Elite domains filtered by media buyer + Google Warm-Up."
+                : "All domains whose organization is Elite."
+              : "Same domain list/rules as Ringba lander creation (filtered by media buyer + selected vertical)."}
           </p>
         </div>
       </div>
@@ -1000,10 +1307,14 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
                 ? "Please select a vertical first"
                 : "Select Template"}
             </option>
-            {templatesForVerticalAndCampaign(
-              selectedVertical,
-              selectedCampaign,
-              campaigns,
+            {(isEliteOrganization(formData.organization) &&
+            selectedVertical === MEDICARE_VERTICAL
+              ? ELITE_MEDICARE_TEMPLATES
+              : templatesForVerticalAndCampaign(
+                  selectedVertical,
+                  selectedCampaign,
+                  campaigns,
+                )
             ).map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
@@ -1067,6 +1378,12 @@ function CallGridLanderForm({ selectedTemplate, setSelectedTemplate }) {
           local campaigns, templates, and media buyers as Lander Tech (RTK
           only).
         </p>
+        {isEliteOrganization(formData.organization) && (
+          <p className="mt-2 text-sm text-gray-500">
+            Elite stays on Ringba. Phone and Ringba ID use the fixed Elite
+            numbers. Templates save as the Elite lander values.
+          </p>
+        )}
       </div>
 
       {renderProgress()}

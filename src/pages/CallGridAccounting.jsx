@@ -1,6 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api";
 import { resolveCallGridOrganization } from "../utils/callgridResolveOrganization";
+
+/** YYYY-MM-DD for "today" in a named IANA zone (cache days are ET-based). */
+function getTodayYmdInTimeZone(timeZone = "America/New_York") {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
 
 const DAY_NAMES = [
   "Sunday",
@@ -179,13 +190,11 @@ const ACCOUNTING_BIWEEKLY_BLOCK_DAYS = 14;
 /** Monthly cycle: ~4 weeks per view; arrows jump one full block. */
 const ACCOUNTING_MONTHLY_BLOCK_DAYS = 28;
 
+/** Default range: Monday–today in America/New_York (matches cache days). */
 function getDefaultDateRange() {
-  const today = new Date();
-  const endDate = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  );
+  const todayStr = getTodayYmdInTimeZone("America/New_York");
+  const [y, m, d] = todayStr.split("-").map(Number);
+  const endDate = new Date(y, m - 1, d);
   const monday = new Date(endDate);
   const day = monday.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const daysSinceMonday = day === 0 ? 6 : day - 1;
@@ -830,7 +839,7 @@ function CallGridAccounting() {
     [start, end],
   );
 
-  const todayStr = toInputDateString(new Date());
+  const todayStr = getTodayYmdInTimeZone("America/New_York");
   const arrowStepForNextCheck =
     netFilter === "bi-weekly"
       ? ACCOUNTING_BIWEEKLY_BLOCK_DAYS
@@ -849,7 +858,7 @@ function CallGridAccounting() {
   };
 
   const handleShiftDateRange = (direction) => {
-    const today = toInputDateString(new Date());
+    const today = getTodayYmdInTimeZone("America/New_York");
     const w = ACCOUNTING_DATE_ARROW_STEP_WEEKLY;
     const bi = ACCOUNTING_BIWEEKLY_BLOCK_DAYS;
     const mo = ACCOUNTING_MONTHLY_BLOCK_DAYS;
@@ -1270,8 +1279,17 @@ function CallGridAccounting() {
               <h1 className="text-3xl font-bold text-gray-900">
                 CallGrid Accounting
               </h1>
+              <p className="text-gray-600 mt-1">
+                CallGrid company revenue. Dates use America/New_York.{" "}
+                <Link
+                  to="/accounting"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Open Ringba / PGNM Accounting
+                </Link>
+              </p>
               {dateRangeLabel && (
-                <p className="text-gray-600 mt-1">{dateRangeLabel}</p>
+                <p className="text-gray-500 text-sm mt-1">{dateRangeLabel}</p>
               )}
               {cacheMeta?.refreshedAt && (
                 <p className="text-gray-500 text-sm mt-1">

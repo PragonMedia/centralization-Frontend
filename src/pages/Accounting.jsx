@@ -1,6 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import { API_ENDPOINTS, getAuthHeaders } from "../config/api";
 import { resolveCallGridOrganization } from "../utils/callgridResolveOrganization";
+
+/** YYYY-MM-DD for "today" in a named IANA zone (Ringba cache is ET-based). */
+function getTodayYmdInTimeZone(timeZone = "America/New_York") {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
 
 const DAY_NAMES = [
   "Sunday",
@@ -139,13 +150,32 @@ const ACCOUNTING_BIWEEKLY_BLOCK_DAYS = 14;
 /** Monthly cycle: ~4 weeks per view; arrows jump one full block. */
 const ACCOUNTING_MONTHLY_BLOCK_DAYS = 28;
 
+function parseInputDateStr(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** Filter cached revenue rows to the selected date range (inclusive). */
+function filterRevenueByDateRange(revenue, startStr, endStr) {
+  if (!Array.isArray(revenue)) return [];
+  const start = parseInputDateStr(startStr);
+  const end = parseInputDateStr(endStr);
+  if (!start || !end) return revenue;
+  return revenue.filter((dayEntry) => {
+    const d = parseDayStrToDate(dayEntry.day);
+    if (!d || Number.isNaN(d.getTime())) return false;
+    const dayOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return dayOnly >= start && dayOnly <= end;
+  });
+}
+
+/** Default range: Monday–today in America/New_York (matches Ringba cache days). */
 function getDefaultDateRange() {
-  const today = new Date();
-  const endDate = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  );
+  const todayStr = getTodayYmdInTimeZone("America/New_York");
+  const [y, m, d] = todayStr.split("-").map(Number);
+  const endDate = new Date(y, m - 1, d);
   const monday = new Date(endDate);
   const day = monday.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const daysSinceMonday = day === 0 ? 6 : day - 1;
@@ -332,6 +362,7 @@ function buildBuyerTable(revenue, allCompanies = []) {
   const buyerMap = {};
   const buyerMeta = {};
   const buyerHasComparison = new Set();
+  const buyerHasParagonData = new Set();
   const companyLookup = buildCompanyLookup(allCompanies);
 
   revenue.forEach((dayEntry) => {
@@ -391,6 +422,7 @@ function buildBuyerTable(revenue, allCompanies = []) {
               : per.conversionAmount + addOur;
           cell.perDateByLabel[dateLabel] = per;
         }
+        buyerHasParagonData.add(buyer);
       }
 
       if (
@@ -419,7 +451,7 @@ function buildBuyerTable(revenue, allCompanies = []) {
   });
 
   const buyers = Object.keys(buyerMap)
-    .filter((b) => buyerHasComparison.has(b))
+    .filter((b) => buyerHasComparison.has(b) || buyerHasParagonData.has(b))
     .sort();
 
   buyers.forEach((b) => {
@@ -480,6 +512,60 @@ function parseAmount(val) {
   if (val === "" || val == null) return 0;
   const num = typeof val === "string" ? parseFloat(val) : val;
   return Number.isNaN(num) ? 0 : num;
+}
+
+/**
+ * One Accounting table: each Ringba company becomes a single buyer row.
+ * Day records under that company are summed into conversionAmount /
+ * buyerConversionAmount for that company name.
+ */
+function mergeCompaniesRevenueAsBuyerRows(companies) {
+  const merged = [];
+  for (const company of companies || []) {
+    const buyer = String(company.companyName ?? company.name ?? "").trim();
+    if (!buyer) continue;
+    const accountID = String(
+      company.accountID ?? company.accountId ?? "",
+    ).trim();
+    const platform = companyPlatformFromDoc(company);
+    const net = companyNetFromDoc(company);
+    for (const dayEntry of company.revenue ?? []) {
+      if (!dayEntry?.day) continue;
+      let ourSum = null;
+      let buyerSum = null;
+      for (const record of dayEntry.records || []) {
+        if (
+          record.conversionAmount != null &&
+          String(record.conversionAmount).trim() !== ""
+        ) {
+          const n = parseAmount(record.conversionAmount);
+          ourSum = ourSum == null ? n : ourSum + n;
+        }
+        if (
+          record.buyerConversionAmount != null &&
+          String(record.buyerConversionAmount).trim() !== ""
+        ) {
+          const n = parseAmount(record.buyerConversionAmount);
+          buyerSum = buyerSum == null ? n : buyerSum + n;
+        }
+      }
+      if (ourSum == null && buyerSum == null) continue;
+      merged.push({
+        day: dayEntry.day,
+        records: [
+          {
+            buyer,
+            accountID,
+            platform,
+            net,
+            conversionAmount: ourSum == null ? "" : String(ourSum),
+            buyerConversionAmount: buyerSum == null ? "" : String(buyerSum),
+          },
+        ],
+      });
+    }
+  }
+  return merged;
 }
 
 function isOverThreshold(ourAmount, buyerAmount) {
@@ -643,12 +729,29 @@ function Accounting() {
       }
 
       const json = await res.json();
-      if (Array.isArray(json) && json[0]?.companies) {
-        setData(json[0]);
-      } else if (json?.companies) {
-        setData(json);
+      const payload =
+        Array.isArray(json) && json[0]?.companies
+          ? json[0]
+          : json?.companies
+            ? json
+            : json;
+
+      // Backend returns the full ~2-month Ringba cache and ignores start/end.
+      // Filter each company's revenue to the selected range (same as CallGridAccounting).
+      if (payload?.companies && Array.isArray(payload.companies)) {
+        setData({
+          ...payload,
+          companies: payload.companies.map((company) => ({
+            ...company,
+            revenue: filterRevenueByDateRange(
+              company.revenue ?? [],
+              start,
+              end,
+            ),
+          })),
+        });
       } else {
-        setData(json);
+        setData(payload);
       }
     } catch (e) {
       setError(e.message || "Failed to load revenue data.");
@@ -738,17 +841,14 @@ function Accounting() {
     () => [...companies, ...companiesDirectory],
     [companies, companiesDirectory],
   );
-  const pgnmCompany = companies.find(
-    (c) => normalizeBuyerKey(c.companyName ?? c.name) === "pgnm",
-  );
-  const tables = pgnmCompany
-    ? [
-        {
-          companyName: pgnmCompany.companyName,
-          rows: buildBuyerTable(pgnmCompany.revenue ?? [], companiesForLookup),
-        },
-      ]
-    : [];
+  // One table: roll each company's revenue up to a buyer row named after the company.
+  const tables = useMemo(() => {
+    const rows = buildBuyerTable(
+      mergeCompaniesRevenueAsBuyerRows(companies),
+      companiesForLookup,
+    );
+    return rows.length > 0 ? [{ key: "all", rows }] : [];
+  }, [companies, companiesForLookup]);
 
   const dateRangeLabel = formatDateRange(start, end);
   const columnDateParts = useMemo(
@@ -756,7 +856,7 @@ function Accounting() {
     [start, end],
   );
 
-  const todayStr = toInputDateString(new Date());
+  const todayStr = getTodayYmdInTimeZone("America/New_York");
   const arrowStepForNextCheck =
     netFilter === "bi-weekly"
       ? ACCOUNTING_BIWEEKLY_BLOCK_DAYS
@@ -775,7 +875,7 @@ function Accounting() {
   };
 
   const handleShiftDateRange = (direction) => {
-    const today = toInputDateString(new Date());
+    const today = getTodayYmdInTimeZone("America/New_York");
     const w = ACCOUNTING_DATE_ARROW_STEP_WEEKLY;
     const bi = ACCOUNTING_BIWEEKLY_BLOCK_DAYS;
     const mo = ACCOUNTING_MONTHLY_BLOCK_DAYS;
@@ -1138,8 +1238,17 @@ function Accounting() {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Accounting</h1>
+              <p className="text-gray-600 mt-1">
+                Ringba company revenue (cached). Dates use America/New_York.{" "}
+                <Link
+                  to="/accounting/callgrid"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Open CallGrid Accounting
+                </Link>
+              </p>
               {dateRangeLabel && (
-                <p className="text-gray-600 mt-1">{dateRangeLabel}</p>
+                <p className="text-gray-500 text-sm mt-1">{dateRangeLabel}</p>
               )}
             </div>
             {activeTab === "accounting" && (
@@ -1256,10 +1365,10 @@ function Accounting() {
           {activeTab === "accounting" &&
             !loading &&
             !error &&
-            tables.map(({ companyName, rows }) => {
+            tables.map(({ key, rows }) => {
               const filteredRows = filterRows(rows);
               return (
-                <div key={companyName} className="mb-10">
+                <div key={key} className="mb-10">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden bg-white">

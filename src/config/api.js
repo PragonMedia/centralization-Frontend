@@ -5,9 +5,9 @@ function resolveApiBaseUrl() {
   }
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    // Local Vite / Node backend
+    // Local Vite talks to the production API (nginx /api on the server).
     if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:3000/api/v1";
+      return "https://admin.paragonmedia.io/api/v1";
     }
     // Production: same-origin nginx proxies /api → backend :3000
     // (admin.paragonmedia.io, admin.pgnmapprovedlander.com, raw IP, etc.)
